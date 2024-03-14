@@ -1,6 +1,6 @@
 #ifndef _RENDERINCLUDE_H
 #define _RENDERINCLUDE_H
-#endif
+
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -32,3 +32,5 @@
 #include <optional>
 #include <set>
 #include <unordered_map>
+
+#endif
