@@ -38,7 +38,10 @@
     <ClCompile Include="Source\VKBaseRenderer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
+    <ClCompile Include="Source\Camera.cpp">
+      <Filter>源文件\RenderUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Scene.cpp">
       <Filter>源文件\RenderUtils</Filter>
     </ClCompile>
   </ItemGroup>
@@ -49,7 +52,13 @@
     <ClInclude Include="Source\Headers\RendererInclude.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="Source\Camera.h">
+      <Filter>源文件\RenderUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\threadpool.hpp">
       <Filter>源文件\RenderUtils</Filter>
     </ClInclude>
   </ItemGroup>

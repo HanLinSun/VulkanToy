@@ -72,7 +72,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\VulkanLibrary\glfw-3.3.8\glfw-3.3.8\include;D:\VulkanSDK\Include;F:\VS2022IDE\Libraries\glm-0.9.9.8\glm;F:\VS2022IDE\Libraries\glfw-3.3.8.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <IncludePath>F:\VSCodingRepo\VKBaseRenderer\Source\Headers;D:\VulkanLibrary\glfw-3.3.8\glfw-3.3.8\include;D:\VulkanSDK\Include;F:\VS2022IDE\Libraries\glm-0.9.9.8\glm;F:\VS2022IDE\Libraries\glfw-3.3.8.bin.WIN64\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>D:\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -142,12 +142,15 @@
     <None Include="Shaders\vertShader.vert" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Source\Camera.h" />
     <ClInclude Include="Source\Headers\RendererInclude.h" />
+    <ClInclude Include="Source\Scene.h" />
+    <ClInclude Include="Source\threadpool.hpp" />
     <ClInclude Include="Source\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\VKBaseRenderer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

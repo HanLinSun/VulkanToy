@@ -33,4 +33,7 @@
 #include <set>
 #include <unordered_map>
 
+#define USE_VULKAN 1
+#define USE_DIRECT_X 0
+
 #endif
