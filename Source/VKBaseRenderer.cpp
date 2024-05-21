@@ -1,6 +1,8 @@
-﻿#include "./Headers/RendererInclude.h"
+﻿#include <RendererInclude.h>
 #include "Scene.h"
-
+#include <cstdlib>
+namespace Renderer
+{
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
@@ -22,6 +24,7 @@ const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = true;
 #endif
+
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -55,53 +58,6 @@ struct SwapChainSupportDetails {
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
-
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        return bindingDescription;
-    }
-
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-        attributeDescriptions[2].binding = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-
-        return attributeDescriptions;
-    }
-
-    bool operator==(const Vertex& other) const {
-        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-    }
-};
-
-namespace std {
-    template<> struct hash<Vertex> {
-        size_t operator()(Vertex const& vertex) const {
-            return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
-        }
-    };
-}
 
 struct UniformBufferObject {
     alignas(16) glm::mat4 model;
@@ -109,11 +65,13 @@ struct UniformBufferObject {
     alignas(16) glm::mat4 proj;
 };
 
+
 class VKBaseRenderer {
 public:
     void run() {
         initWindow();
         initVulkan();
+        //CompileShader("vertShader","fragShader");
         mainLoop();
         cleanup();
     }
@@ -181,13 +139,13 @@ private:
     std::vector<VkFence> inFlightFences;
     uint32_t currentFrame = 0;
 
+    Scene* m_scene;
+
     bool framebufferResized = false;
 
     void initWindow() {
         glfwInit();
-
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
         window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -198,9 +156,42 @@ private:
         app->framebufferResized = true;
     }
 
+    void createScene()
+    {
+        if (m_scene == nullptr)
+        {
+            m_scene = new Scene();
+        }
+    }
+
+    void loadModel(std::string model_path, std::string model_texture_path)
+    {
+        m_scene->loadModel(model_path, model_texture_path);
+    }
+
+    void CompileShader(std::string vertexShader, std::string fragmentShader)
+    {
+        std::string compileCmd = "D:\VulkanSDK\Bin\glslc.exe ";
+        int ret_vert = std::system((compileCmd + vertexShader + ".vert" + " -o " + vertexShader + ".spv").c_str());
+        int ret_frag = std::system((compileCmd + vertexShader + ".frag" + " -o " + vertexShader + ".spv").c_str());
+
+        if (ret_vert != 0)
+        {
+            std::cout << "Compile vertex shader error!" << std::endl;
+        }
+
+
+        if (ret_frag != 0)
+        {
+            std::cout << "Compile fragment shader error!" << std::endl;
+        }
+    }
+
     void initVulkan() {
         createInstance();
         setupDebugMessenger();
+        createScene();
+        loadModel(MODEL_PATH,TEXTURE_PATH);
         createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
@@ -208,17 +199,17 @@ private:
         createImageViews();
         createRenderPass();
         createDescriptorSetLayout();
+        CompileShader("vertShader", "fragShader");
         createGraphicsPipeline();
         createCommandPool();
         createColorResources();
         createDepthResources();
         createFramebuffers();
-        createTextureImage();
+        createTextureImage(m_scene->getSceneMeshData(0).m_diffuseColorTexture);
         createTextureImageView();
         createTextureSampler();
-        loadModel();
-        createVertexBuffer();
-        createIndexBuffer();
+        createVertexBuffer(m_scene->getSceneMeshData(0));
+        createIndexBuffer(m_scene->getSceneMeshData(0));
         createUniformBuffers();
         createDescriptorPool();
         createDescriptorSets();
@@ -324,7 +315,9 @@ private:
         createFramebuffers();
     }
 
-    void createInstance() {
+    void createInstance() 
+    {
+
         if (enableValidationLayers && !checkValidationLayerSupport()) {
             throw std::runtime_error("validation layers requested, but not available!");
         }
@@ -619,8 +612,8 @@ private:
     }
 
     void createGraphicsPipeline() {
-        auto vertShaderCode = readFile("./Shaders/VertexShader.spv");
-        auto fragShaderCode = readFile("./Shaders/FragmentShader.spv");
+        auto vertShaderCode = readFile("./Shaders/vertShader.spv");
+        auto fragShaderCode = readFile("./Shaders/fragShader.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
@@ -821,14 +814,19 @@ private:
         return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
     }
 
-    void createTextureImage() {
+    void createTextureImage(Texture m_texture) {
         int texWidth, texHeight, texChannels;
-        stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+        //stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+        texWidth = m_texture.width;
+        texHeight = m_texture.height;
+
         VkDeviceSize imageSize = texWidth * texHeight * 4;
         mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
-        if (!pixels) {
-            throw std::runtime_error("failed to load texture image!");
+        if (!m_texture.pixels) {
+            throw std::runtime_error("input texture missing critical information, may have load error");
         }
 
         VkBuffer stagingBuffer;
@@ -837,10 +835,10 @@ private:
 
         void* data;
         vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-        memcpy(data, pixels, static_cast<size_t>(imageSize));
+        memcpy(data, m_texture.pixels, static_cast<size_t>(imageSize));
         vkUnmapMemory(device, stagingBufferMemory);
 
-        stbi_image_free(pixels);
+        stbi_image_free(m_texture.pixels);
 
         createImage(texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 
@@ -1114,47 +1112,9 @@ private:
         endSingleTimeCommands(commandBuffer);
     }
 
-    void loadModel() {
-        tinyobj::attrib_t attrib;
-        std::vector<tinyobj::shape_t> shapes;
-        std::vector<tinyobj::material_t> materials;
-        std::string warn, err;
-
-        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str())) {
-            throw std::runtime_error(warn + err);
-        }
-
-        std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-        for (const auto& shape : shapes) {
-            for (const auto& index : shape.mesh.indices) {
-                Vertex vertex{};
-
-                vertex.pos = {
-                    attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]
-                };
-
-                vertex.texCoord = {
-                    attrib.texcoords[2 * index.texcoord_index + 0],
-                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-                };
-
-                vertex.color = { 1.0f, 1.0f, 1.0f };
-
-                if (uniqueVertices.count(vertex) == 0) {
-                    uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-                    vertices.push_back(vertex);
-                }
-
-                indices.push_back(uniqueVertices[vertex]);
-            }
-        }
-    }
-
-    void createVertexBuffer() {
-        VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+    void createVertexBuffer(MeshData mesh) {
+        //This function should be modified for each polygon
+        VkDeviceSize bufferSize = sizeof(Vertex) * mesh.m_vertices.size();
 
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -1162,7 +1122,7 @@ private:
 
         void* data;
         vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, vertices.data(), (size_t)bufferSize);
+        memcpy(data, mesh.m_vertices.data(), (size_t)bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
@@ -1173,8 +1133,10 @@ private:
         vkFreeMemory(device, stagingBufferMemory, nullptr);
     }
 
-    void createIndexBuffer() {
-        VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+    void createIndexBuffer(MeshData mesh) {
+
+       
+        VkDeviceSize bufferSize = sizeof(indices[0]) * mesh.m_index.size();
 
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
@@ -1182,7 +1144,7 @@ private:
 
         void* data;
         vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, indices.data(), (size_t)bufferSize);
+        memcpy(data, mesh.m_index.data(), (size_t)bufferSize);
         vkUnmapMemory(device, stagingBufferMemory);
 
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
@@ -1732,9 +1694,10 @@ private:
         return VK_FALSE;
     }
 };
+}
 
 int main() {
-    VKBaseRenderer app;
+    Renderer::VKBaseRenderer app;
     
     try {
         app.run();
@@ -1746,3 +1709,6 @@ int main() {
 
     return EXIT_SUCCESS;
 }
+
+
+

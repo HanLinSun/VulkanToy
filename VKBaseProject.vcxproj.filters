@@ -42,24 +42,30 @@
       <Filter>源文件\RenderUtils</Filter>
     </ClCompile>
     <ClCompile Include="Source\Scene.cpp">
-      <Filter>源文件\RenderUtils</Filter>
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Headers\ModelFileLoader.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\tiny_obj_loader.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Headers\RendererInclude.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Camera.h">
-      <Filter>源文件\RenderUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Source\threadpool.hpp">
       <Filter>源文件\RenderUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\modelFileLoader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Scene.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Camera.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\SceneStructs.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

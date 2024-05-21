@@ -142,14 +142,16 @@
     <None Include="Shaders\vertShader.vert" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Camera.h" />
+    <ClInclude Include="Source\Headers\Camera.h" />
+    <ClInclude Include="Source\Headers\modelFileLoader.h" />
     <ClInclude Include="Source\Headers\RendererInclude.h" />
-    <ClInclude Include="Source\Scene.h" />
+    <ClInclude Include="Source\Headers\Scene.h" />
+    <ClInclude Include="Source\Headers\SceneStructs.h" />
     <ClInclude Include="Source\threadpool.hpp" />
-    <ClInclude Include="Source\tiny_obj_loader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\Headers\ModelFileLoader.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\VKBaseRenderer.cpp" />
   </ItemGroup>
