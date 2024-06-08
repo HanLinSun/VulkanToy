@@ -12,20 +12,28 @@ namespace Renderer
 		m_invProjMatrix(glm::mat4()), m_invViewMatrix(glm::mat4()), m_aspectRatio(1.0), m_upVector(glm::vec3(0, 1, 0)),
 		m_refPosition(glm::vec3(0, 0, 2)), m_rightVector(glm::vec3(1, 0, 0)), m_lookAt(glm::normalize(m_refPosition - m_position)) {}
 
+	Camera::~Camera(){}
 
 	glm::vec3 Camera::getCameraPosition()
 	{
 		return m_position;
 	}
-
-	void Camera::updateCameraPosition(glm::vec3 in_position) 
+	
+	bool Camera::moving()
 	{
-		m_position = in_position;
+		return keys.down || keys.up || keys.left || keys.right;
 	}
 
-	void Camera::updateCameraRotation(glm::vec3 in_rotation)
+	void Camera::setCameraPosition(glm::vec3 in_position) 
+	{
+		m_position = in_position;
+		updateViewMatrix();
+	}
+
+	void Camera::setCameraRotation(glm::vec3 in_rotation)
 	{
 		m_rotation = in_rotation;
+		updateViewMatrix();
 	}
 
 	glm::mat4 Camera::getProjectionMatrix()
@@ -45,22 +53,9 @@ namespace Renderer
 
 	// Z is the direction of the lookAt
 	// up is y, right is x
-	void Camera::translateCamera(glm::vec3 in_direction)
+	void Camera::translateCamera(glm::vec3 translation)
 	{
-		glm::vec3 m_translateDistance = glm::vec3
-		(
-			m_rightVector.x * in_direction.x,
-			m_upVector.y * in_direction.y,
-			m_lookAt.z * in_direction.z
-		);
-
-#if USE_VULKAN
-		m_translateDistance.y *= -1;
-#endif
-
-		m_position += m_translateDistance;
-		m_refPosition += m_translateDistance;
-
+		this->m_position += translation;
 		updateViewMatrix();
 	}
 
@@ -77,30 +72,36 @@ namespace Renderer
 		m_screenHeight = height;
 		m_aspectRatio = width / height;
 	}
-	
-	void Camera::updateAllMatrix()
+
+	void Camera::setPerspectiveMatrix(float fov, float nearPlane, float farPlane)
 	{
-		m_modelMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		glm::mat4 currentMatrix = m_projectionMatrix;
+		this->m_farClipPlane = farPlane;
+		this->m_nearClipPlane = nearPlane;
+		m_projectionMatrix = glm::perspective(glm::radians(fov), m_aspectRatio, m_nearClipPlane, m_farClipPlane);
 
-		//view matrix update
-		m_viewMatrix = glm::lookAt(m_position, m_refPosition, m_upVector);
-
-#if USE_VULKAN
-		//projection matrix for vulkan
-	   //In vulkan, NDC is [-1,1], with y axis flipped, which is different from DX
-		m_projectionMatrix = glm::perspective(glm::radians(m_fieldOfView), m_screenWidth / m_screenHeight, m_nearClipPlane, m_farClipPlane);
-		m_projectionMatrix[1][1] = -1 * m_projectionMatrix[1][1];
-#elif USE_DIRECT_X
-		//Direct X has [0,1] NDC coordinates
-		// so have different projection matrix, and no need to flip y
-		m_projectionMatrix = glm::perspectiveRH(glm::radians(m_fieldOfView), width / height, m_nearClipPlane, m_farClipPlane);
-#endif
-
-		m_mvpMatrix = m_projectionMatrix * m_viewMatrix * m_modelMatrix;
+		if (flipY) {
+			m_projectionMatrix[1][1] *= -1.0f;
+		}
 	}
+	
 
 	void Camera::updateViewMatrix()
 	{
+		m_viewMatrix = glm::lookAt(m_position, glm::vec3(0, 0, 0), glm::vec3(0, 0, 1));
+	}
 
+	void Camera::update(float deltaTime)
+	{
+		m_updated = false;
+		if (moving())
+		{
+			glm::vec3 camFront;
+			camFront.x = -cos(glm::radians(m_rotation.x)) * sin(glm::radians(m_rotation.y));
+			camFront.y = sin(glm::radians(m_rotation.x));
+			camFront.z = cos(glm::radians(m_rotation.x)) * cos(glm::radians(m_rotation.y));
+
+		}
+		
 	}
 }

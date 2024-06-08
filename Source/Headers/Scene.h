@@ -10,7 +10,7 @@ namespace Renderer
 	public:
 
 		Scene();
-		~Scene();
+		~Scene() {};
 
 		void loadModel(std::string path, std::string texture_path);
 		const std::vector<Polygon> getScenePolygons();
@@ -21,6 +21,7 @@ namespace Renderer
 		void loadPolygonDiffuseTexture(Polygon& m_poly, std::string texture_path);
 
 		void loadMeshTexture(MeshData& m_mesh, std::string texture_path);
+		Camera getSceneCamera();
 
 	private:
 		std::vector<MeshData> m_meshes;

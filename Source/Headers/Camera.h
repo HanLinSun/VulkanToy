@@ -3,6 +3,9 @@
 
 namespace Renderer
 {
+
+
+
 	class Camera
 	{
 	public:
@@ -10,8 +13,8 @@ namespace Renderer
 		Camera();
 		~Camera();
 
-		void updateCameraPosition(glm::vec3 in_position);
-		void updateCameraRotation(glm::vec3 in_rotaton);
+		void setCameraPosition(glm::vec3 in_position);
+		void setCameraRotation(glm::vec3 in_rotaton);
 
 		glm::vec3 getCameraPosition();
 
@@ -23,6 +26,19 @@ namespace Renderer
 		void rotateCamera(glm::vec3 in_eulerAngle);
 
 		void setCameraWH(float width, float height);
+		void setPerspectiveMatrix(float fov,float znear, float zfar);
+		void updateViewMatrix();
+
+		struct
+		{
+			bool left = false;
+			bool right = false;
+			bool up = false;
+			bool down = false;
+		} keys;
+
+		bool moving();
+		void update(float deltaTime);
 
 	private:
 		glm::vec3 m_position;
@@ -46,15 +62,18 @@ namespace Renderer
 		float m_nearClipPlane;
 		float m_farClipPlane;
 
+		float rotationSpeed = 1.0f;
+		float movementSpeed = 1.0f;
+
 		float m_aspectRatio;
 
 		float m_screenWidth;
 		float m_screenHeight;
 
 		bool m_updated = true;
+		//By default is Vulkan, need to flip
+		bool flipY = true;
 
-		void updateAllMatrix();
-		void updateViewMatrix();
 	};
 }
 

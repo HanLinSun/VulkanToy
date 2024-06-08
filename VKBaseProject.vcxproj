@@ -73,6 +73,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>F:\VSCodingRepo\VKBaseRenderer\Source\Headers;D:\VulkanLibrary\glfw-3.3.8\glfw-3.3.8\include;D:\VulkanSDK\Include;F:\VS2022IDE\Libraries\glm-0.9.9.8\glm;F:\VS2022IDE\Libraries\glfw-3.3.8.bin.WIN64\include;$(IncludePath)</IncludePath>
+    <ExternalIncludePath>F:\VSCodingRepo\VKBaseRenderer\include;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -111,6 +112,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>D:\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,7 +144,15 @@
     <None Include="Shaders\vertShader.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="include\backends\imgui_impl_vulkan.h" />
+    <ClInclude Include="include\imconfig.h" />
+    <ClInclude Include="include\imgui.h" />
+    <ClInclude Include="include\imgui_internal.h" />
     <ClInclude Include="Source\Headers\Camera.h" />
+    <ClInclude Include="Source\Headers\GUIManager.h" />
+    <ClInclude Include="Source\Headers\InputManager.h" />
+    <ClInclude Include="Source\Headers\Light.h" />
     <ClInclude Include="Source\Headers\modelFileLoader.h" />
     <ClInclude Include="Source\Headers\RendererInclude.h" />
     <ClInclude Include="Source\Headers\Scene.h" />
@@ -150,8 +160,18 @@
     <ClInclude Include="Source\threadpool.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="include\backends\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="include\imgui.cpp" />
+    <ClCompile Include="include\imgui_demo.cpp" />
+    <ClCompile Include="include\imgui_draw.cpp" />
+    <ClCompile Include="include\imgui_tables.cpp" />
+    <ClCompile Include="include\imgui_widgets.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
-    <ClCompile Include="Source\Headers\ModelFileLoader.cpp" />
+    <ClCompile Include="Source\GUIManager.cpp" />
+    <ClCompile Include="Source\InputManager.cpp" />
+    <ClCompile Include="Source\Light.cpp" />
+    <ClCompile Include="Source\ModelFileLoader.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\VKBaseRenderer.cpp" />
   </ItemGroup>

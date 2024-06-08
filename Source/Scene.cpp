@@ -73,4 +73,9 @@ namespace Renderer
 	{
 		return m_polygons[index];
 	}
+
+	Camera Scene::getSceneCamera()
+	{
+		return m_camera;
+	}
 }

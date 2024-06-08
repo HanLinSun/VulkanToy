@@ -67,15 +67,6 @@ namespace Renderer
 		float emittance;
 	};
 
-	struct PBRMaterial
-	{
-		glm::vec3 albedoColor;
-
-		float roughness;
-		float metalness;
-		float clearCoat;
-	};
-
 	struct Texture
 	{
 		stbi_uc* pixels;
@@ -87,6 +78,20 @@ namespace Renderer
 			pixels = nullptr;
 			width = height = channels = 0;
 		}
+	};
+
+	struct PBRMaterial
+	{
+		glm::vec3 albedoColor;
+
+		float roughness;
+		float metalness;
+		float clearCoat;
+
+		Texture roughness_texture;
+		Texture metalness_texture;
+		Texture albedo_Texture;
+		Texture normal_Texture;
 	};
 
 	struct MeshData

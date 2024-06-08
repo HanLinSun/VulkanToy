@@ -10,6 +10,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 
 #include <iostream>
 #include <stdexcept>
@@ -21,6 +23,9 @@
 #include <optional>
 #include <set>
 #include <unordered_map>
+#include <thread>
+
+
 
 #define USE_VULKAN 1
 #define USE_DIRECT_X 0

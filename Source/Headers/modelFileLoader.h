@@ -6,6 +6,7 @@
 #include <glm/gtx/hash.hpp>
 #include "Scene.h"
 
+
 namespace Renderer
 {
 	class ModelFileLoader

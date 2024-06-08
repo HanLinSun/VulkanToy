@@ -1,71 +1,137 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="源文件">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="头文件">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="资源文件">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="源文件\Shader">
+    <Filter Include="Header">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header\ImGUI">
+      <UniqueIdentifier>{454b87f6-1a77-4e0b-84a0-7d160fcff86d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source\Shader">
       <UniqueIdentifier>{82b17347-ba25-4ab3-bc57-3e594f8dedd2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="源文件\RenderUtils">
+    <Filter Include="Source\RenderUtils">
       <UniqueIdentifier>{70eb96dd-5ad3-46a6-a88e-d4cb31d04d4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ImGUI">
+      <UniqueIdentifier>{a76c9db7-7501-4ce3-a2a0-86d8bbae4141}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Controller">
+      <UniqueIdentifier>{2d4bf4fd-02eb-491b-a600-9e0bc286a2ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Scene">
+      <UniqueIdentifier>{0bc24c8c-7b7a-474c-8b1c-f0685be4997e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat">
-      <Filter>源文件\Shader</Filter>
+      <Filter>Source\Shader</Filter>
     </None>
     <None Include="Shaders\fragShader.frag">
-      <Filter>源文件\Shader</Filter>
+      <Filter>Source\Shader</Filter>
     </None>
     <None Include="Shaders\vertShader.vert">
-      <Filter>源文件\Shader</Filter>
+      <Filter>Source\Shader</Filter>
     </None>
     <None Include="Shaders\ComputeShader.comp">
-      <Filter>源文件\Shader</Filter>
+      <Filter>Source\Shader</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\VKBaseRenderer.cpp">
-      <Filter>源文件</Filter>
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui_demo.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui_draw.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui_tables.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui_widgets.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\backends\imgui_impl_glfw.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\backends\imgui_impl_vulkan.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ModelFileLoader.cpp">
+      <Filter>Source\RenderUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\InputManager.cpp">
+      <Filter>Source\RenderUtils</Filter>
     </ClCompile>
     <ClCompile Include="Source\Camera.cpp">
-      <Filter>源文件\RenderUtils</Filter>
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Light.cpp">
+      <Filter>Source\Scene</Filter>
     </ClCompile>
     <ClCompile Include="Source\Scene.cpp">
-      <Filter>源文件</Filter>
+      <Filter>Source\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Headers\ModelFileLoader.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="Source\GUIManager.cpp">
+      <Filter>Source\RenderUtils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
-      <Filter>头文件</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Source\threadpool.hpp">
-      <Filter>源文件\RenderUtils</Filter>
+      <Filter>Source\RenderUtils</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\modelFileLoader.h">
-      <Filter>头文件</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Scene.h">
-      <Filter>头文件</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Camera.h">
-      <Filter>头文件</Filter>
+      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\SceneStructs.h">
-      <Filter>头文件</Filter>
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Light.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui.h">
+      <Filter>Header\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imgui_internal.h">
+      <Filter>Header\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\backends\imgui_impl_glfw.h">
+      <Filter>Header\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\backends\imgui_impl_vulkan.h">
+      <Filter>Header\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="include\imconfig.h">
+      <Filter>Header\ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\InputManager.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\GUIManager.h">
+      <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
