@@ -31,6 +31,30 @@
     <Filter Include="Source\Scene">
       <UniqueIdentifier>{0bc24c8c-7b7a-474c-8b1c-f0685be4997e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\VulkanHelper">
+      <UniqueIdentifier>{c4670854-4032-45b1-86c0-7f61c9a8f3a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\Event">
+      <UniqueIdentifier>{04daa4e1-df50-42a4-b2c9-634550a831ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\Window">
+      <UniqueIdentifier>{31898091-fdd5-46cf-8c09-d0465a6e4059}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\Utils">
+      <UniqueIdentifier>{78c4f747-9f06-45bf-b977-14184e439a9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Window">
+      <UniqueIdentifier>{14fabf5f-8a79-4691-af8c-e93bf4ab2da0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\Layer">
+      <UniqueIdentifier>{d21b3ebe-56b4-4f4e-8801-52eabe836793}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Layer">
+      <UniqueIdentifier>{5b5c6fc3-be81-4924-8c7d-94090e3c8dc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\Renderer">
+      <UniqueIdentifier>{796aac14-8112-48c5-bdff-3c88c598ab56}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat">
@@ -89,6 +113,24 @@
     <ClCompile Include="Source\GUIManager.cpp">
       <Filter>Source\RenderUtils</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Materials.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Window.cpp">
+      <Filter>Source\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\WindowsPlatform.cpp">
+      <Filter>Source\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Layer.cpp">
+      <Filter>Source\Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\LayerStack.cpp">
+      <Filter>Source\Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application.cpp">
+      <Filter>Source\Window</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -96,18 +138,6 @@
     </ClInclude>
     <ClInclude Include="Source\threadpool.hpp">
       <Filter>Source\RenderUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\modelFileLoader.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Scene.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Camera.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\SceneStructs.h">
-      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Light.h">
       <Filter>Header</Filter>
@@ -127,10 +157,61 @@
     <ClInclude Include="include\imconfig.h">
       <Filter>Header\ImGUI</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\InputManager.h">
+    <ClInclude Include="Source\Headers\Material.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Headers\Core.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Event\ApplicationEvent.h">
+      <Filter>Header\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Event\KeyEvent.h">
+      <Filter>Header\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Event\MouseEvent.h">
+      <Filter>Header\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Window.h">
+      <Filter>Header\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\WindowsPlatform.h">
+      <Filter>Header\Window</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Headers\GUIManager.h">
+      <Filter>Header\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\InputManager.h">
+      <Filter>Header\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\modelFileLoader.h">
+      <Filter>Header\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Event\Event.h">
+      <Filter>Header\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Application.h">
+      <Filter>Header\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Layer.h">
+      <Filter>Header\Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\LayerStack.h">
+      <Filter>Header\Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\IncludeUtils.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Camera.h">
+      <Filter>Header\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Scene.h">
+      <Filter>Header\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\SceneStructs.h">
+      <Filter>Header\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\RenderApplication.h">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>

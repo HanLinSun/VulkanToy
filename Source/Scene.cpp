@@ -8,7 +8,7 @@ namespace Renderer
 {
 	Scene::Scene() :m_polygons() {}
 
-	void Scene::loadModel(std::string path, std::string texture_path)
+	void Scene::loadModel(std::string path, std::string texture_path="")
 	{
 		//Default only have 1 polygon in one obj file
 		MeshData mesh;
@@ -31,7 +31,31 @@ namespace Renderer
 			file_loader->loadDataToMesh(mesh);
 		}
 		//load texture
-		loadMeshTexture(mesh, texture_path);
+		if (texture_path != "") loadMeshTexture(mesh, texture_path);
+		m_meshes.push_back(mesh);
+	}
+
+	void Scene::loadModel(std::string path)
+	{
+		//Default only have 1 polygon in one obj file
+		MeshData mesh;
+		ModelFileLoader* file_loader = nullptr;
+		int fileSplit = 0;
+		for (int i = path.size() - 1; i > 0; i--)
+		{
+			if (path[i] == '.')
+			{
+				fileSplit = i;
+				break;
+			}
+		}
+		std::string fileType = path.substr(fileSplit, path.size() - fileSplit);
+		if (fileType == ".obj")
+		{
+			file_loader = new ObjFileLoader;
+			file_loader->loadFileData(path);
+			file_loader->loadDataToMesh(mesh);
+		}
 		m_meshes.push_back(mesh);
 	}
 

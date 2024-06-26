@@ -13,6 +13,9 @@ namespace Renderer
 		~Scene() {};
 
 		void loadModel(std::string path, std::string texture_path);
+
+		void loadModel(std::string path);
+
 		const std::vector<Polygon> getScenePolygons();
 		const std::vector<MeshData> getSceneMeshDatas();
 		const MeshData getSceneMeshData(int index);

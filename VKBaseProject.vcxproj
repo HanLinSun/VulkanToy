@@ -74,6 +74,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>F:\VSCodingRepo\VKBaseRenderer\Source\Headers;D:\VulkanLibrary\glfw-3.3.8\glfw-3.3.8\include;D:\VulkanSDK\Include;F:\VS2022IDE\Libraries\glm-0.9.9.8\glm;F:\VS2022IDE\Libraries\glfw-3.3.8.bin.WIN64\include;$(IncludePath)</IncludePath>
     <ExternalIncludePath>F:\VSCodingRepo\VKBaseRenderer\include;$(ExternalIncludePath)</ExternalIncludePath>
+    <OutDir>$(SolutionDir)\bin\$(Configuration)-$(Platform)</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -149,14 +150,27 @@
     <ClInclude Include="include\imconfig.h" />
     <ClInclude Include="include\imgui.h" />
     <ClInclude Include="include\imgui_internal.h" />
+    <ClInclude Include="Source\Headers\Application.h" />
     <ClInclude Include="Source\Headers\Camera.h" />
+    <ClInclude Include="Source\Headers\Core.h" />
+    <ClInclude Include="Source\Headers\Event\Event.h" />
+    <ClInclude Include="Source\Headers\Event\KeyEvent.h" />
+    <ClInclude Include="Source\Headers\Event\MouseEvent.h" />
+    <ClInclude Include="Source\Headers\Event\ApplicationEvent.h" />
     <ClInclude Include="Source\Headers\GUIManager.h" />
+    <ClInclude Include="Source\Headers\IncludeUtils.h" />
     <ClInclude Include="Source\Headers\InputManager.h" />
+    <ClInclude Include="Source\Headers\Layer.h" />
+    <ClInclude Include="Source\Headers\LayerStack.h" />
     <ClInclude Include="Source\Headers\Light.h" />
+    <ClInclude Include="Source\Headers\Material.h" />
     <ClInclude Include="Source\Headers\modelFileLoader.h" />
+    <ClInclude Include="Source\Headers\RenderApplication.h" />
     <ClInclude Include="Source\Headers\RendererInclude.h" />
     <ClInclude Include="Source\Headers\Scene.h" />
     <ClInclude Include="Source\Headers\SceneStructs.h" />
+    <ClInclude Include="Source\Headers\Window.h" />
+    <ClInclude Include="Source\Headers\WindowsPlatform.h" />
     <ClInclude Include="Source\threadpool.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -167,13 +181,19 @@
     <ClCompile Include="include\imgui_draw.cpp" />
     <ClCompile Include="include\imgui_tables.cpp" />
     <ClCompile Include="include\imgui_widgets.cpp" />
+    <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\GUIManager.cpp" />
     <ClCompile Include="Source\InputManager.cpp" />
+    <ClCompile Include="Source\Layer.cpp" />
+    <ClCompile Include="Source\LayerStack.cpp" />
     <ClCompile Include="Source\Light.cpp" />
+    <ClCompile Include="Source\Materials.cpp" />
     <ClCompile Include="Source\ModelFileLoader.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\VKBaseRenderer.cpp" />
+    <ClCompile Include="Source\Window.cpp" />
+    <ClCompile Include="Source\WindowsPlatform.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

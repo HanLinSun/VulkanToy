@@ -24,7 +24,9 @@
 #include <set>
 #include <unordered_map>
 #include <thread>
-
+#include <ctime>
+#include <string>
+#include <functional>
 
 
 #define USE_VULKAN 1

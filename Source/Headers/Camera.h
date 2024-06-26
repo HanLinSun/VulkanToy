@@ -1,11 +1,9 @@
 #pragma once
 #include <RendererInclude.h>
+#include "SceneStructs.h"
 
 namespace Renderer
 {
-
-
-
 	class Camera
 	{
 	public:
@@ -29,23 +27,19 @@ namespace Renderer
 		void setPerspectiveMatrix(float fov,float znear, float zfar);
 		void updateViewMatrix();
 
-		struct
-		{
-			bool left = false;
-			bool right = false;
-			bool up = false;
-			bool down = false;
-		} keys;
+		CamInputListener keyListener;
 
 		bool moving();
-		void update(float deltaTime);
+		void updateMove();
 
 	private:
 		glm::vec3 m_position;
 		glm::vec3 m_rotation;
 		glm::vec3 m_lookAt;
+
 		glm::vec3 m_upVector;
 		glm::vec3 m_rightVector;
+		glm::vec3 m_forwardVector;
 
 		glm::mat4 m_projectionMatrix;
 		glm::mat4 m_viewMatrix;

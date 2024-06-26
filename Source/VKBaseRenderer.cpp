@@ -1,9 +1,10 @@
 ﻿#include <RendererInclude.h>
 #include "Scene.h"
 #include <cstdlib>
-
+#include "Headers/InputManager.h"
 #include <imgui.h>
 #include "Headers/GUIManager.h"
+#include "Headers/Application.h"
 
 #undef max
 
@@ -85,14 +86,17 @@ struct UniformBufferObject {
 };
 
 
-class VKBaseRenderer {
+class VKBaseRenderer 
+{
 public:
+
     void run() {
         initWindow();
         initVulkan();
         mainLoop();
         cleanup();
     }
+
 
 private:
     GLFWwindow* window;
@@ -170,19 +174,25 @@ private:
     std::vector<VkFence> inFlightFences;
     uint32_t currentFrame = 0;
 
-    Scene* m_scene;
+    Scene* m_Scene;
+    Camera m_Camera;
     bool show_demo_window = true;
     QueueFamilyIndices queueFamilyIndices;
     uint32_t imageCount;
 
     ImDrawData* draw_data = nullptr;
     GUIManager guiManager;
+    InputManager inputManager;
+
+    //update time
+    std::chrono::time_point<std::chrono::high_resolution_clock> lastTimeStamp, tPrevEnd;
 
     bool framebufferResized = false;
 
     void initWindow() {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        
         window = glfwCreateWindow(WIDTH, HEIGHT, "GGGGG", nullptr, nullptr);
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -197,7 +207,8 @@ private:
         guiManager.createImGuiCommandBuffers();
         guiManager.createImGuiFramebuffer(swapChainImageViews);
        
-      
+        m_Camera.setCameraPosition(glm::vec3(2.0, 2.0, 2.0));
+
         ImGui_ImplGlfw_InitForVulkan(window, true);
         ImGui_ImplVulkan_InitInfo init_info = {};
         init_info.Instance = instance;
@@ -224,15 +235,18 @@ private:
 
     void createScene()
     {
-        if (m_scene == nullptr)
+        if (m_Scene == nullptr)
         {
-            m_scene = new Scene();
+            m_Scene = new Scene();
+            guiManager.mainScene = m_Scene;
+            m_Camera = m_Scene->getSceneCamera();
         }
     }
 
     void loadModel(std::string model_path, std::string model_texture_path)
     {
-        m_scene->loadModel(model_path, model_texture_path);
+        m_Scene->loadModel(model_path, model_texture_path);
+
     }
 
     void CompileShader(std::string vertexShader, std::string fragmentShader)
@@ -244,7 +258,9 @@ private:
         createInstance();
         setupDebugMessenger();
         createScene();
+        //By default we use this
         loadModel(MODEL_PATH,TEXTURE_PATH);
+
         createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
@@ -257,11 +273,13 @@ private:
         createColorResources();
         createDepthResources();
         createFramebuffers();
-        createTextureImage(m_scene->getSceneMeshData(0).m_diffuseColorTexture);
+
+        createTextureImage(m_Scene->getSceneMeshData(0).m_diffuseColorTexture);
         createTextureImageView();
         createTextureSampler();
-        createVertexBuffer(m_scene->getSceneMeshData(0));
-        createIndexBuffer(m_scene->getSceneMeshData(0));
+        createVertexBuffer(m_Scene->getSceneMeshData(0));
+        createIndexBuffer(m_Scene->getSceneMeshData(0));
+
         createUniformBuffers();
         createDescriptorPool();
         createDescriptorSets();
@@ -276,6 +294,7 @@ private:
         {
             glfwPollEvents();
             guiManager.createGUIFrame();
+            inputManager.HandlePressEvent(m_Camera.keyListener);
             drawFrame();
         }
 
@@ -877,7 +896,7 @@ private:
     }
 
     void createTextureImage(Texture m_texture) {
-        int texWidth, texHeight, texChannels;
+        int texWidth, texHeight;
 
         //stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
@@ -1477,21 +1496,23 @@ private:
 
         UniformBufferObject ubo{};
 
-        Camera mainCam = m_scene->getSceneCamera();
-        mainCam.setCameraWH(WIDTH, HEIGHT);
-        mainCam.setCameraPosition(glm::vec3(2.0, 2.0, 2.0));
-        mainCam.setPerspectiveMatrix(60.f, 0.1f, 10.f);
-        mainCam.updateViewMatrix();
+       
+        m_Camera.setCameraWH(WIDTH, HEIGHT);
+        
+        m_Camera.setPerspectiveMatrix(60.f, 0.1f, 10.f);
+        m_Camera.updateViewMatrix();
 
         ubo.model = glm::mat4(1.0f);
-        ubo.view = mainCam.getViewMatrix();
-        ubo.proj = mainCam.getProjectionMatrix();
+        ubo.view = m_Camera.getViewMatrix();
+        ubo.proj = m_Camera.getProjectionMatrix();
 
         memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
     }
 
     void drawFrame() {
         vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+        lastTimeStamp = std::chrono::high_resolution_clock::now();
+        tPrevEnd = lastTimeStamp;
 
         uint32_t imageIndex;
         VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
@@ -1507,11 +1528,14 @@ private:
         vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
         vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-        recordCommandBuffer(commandBuffers[currentFrame], imageIndex,m_scene->getSceneMeshData(0));
+        recordCommandBuffer(commandBuffers[currentFrame], imageIndex,m_Scene->getSceneMeshData(0));
 
         //Draw ImGui 
+        m_Camera.updateMove();
+
 
         guiManager.drawUI(currentFrame, imageIndex);
+
         updateUniformBuffer(currentFrame);
 
         //After record new command buffer need to submit them
@@ -1558,7 +1582,6 @@ private:
         else if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to present swap chain image!");
         }
-
         currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
@@ -1770,11 +1793,18 @@ private:
 };
 }
 
+//Renderer::Application* Renderer::CreateApplication()
+//{
+//    return new Renderer::VKBaseRenderer();
+//}
+
 int main() {
     Renderer::VKBaseRenderer app;
     
     try {
         app.run();
+      //  app.Run();
+      //  app.application.Run();
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

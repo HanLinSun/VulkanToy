@@ -20,7 +20,7 @@ void GUIManager::createImGuiDescriptorPool()
     pool_info.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
     pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(imGui_pool_sizes);
     pool_info.pPoolSizes = imGui_pool_sizes;
-    VkResult err = vkCreateDescriptorPool(device, &pool_info, nullptr, &m_imGuiDescriptorPool);
+    VkResult err = vkCreateDescriptorPool(m_device, &pool_info, nullptr, &m_imGuiDescriptorPool);
     check_vk_result(err);
 }
 
@@ -41,7 +41,7 @@ void GUIManager::createImGuiFramebuffer(std::vector<VkImageView>& swapChainImage
     for (uint32_t i = 0; i < swapChainImageViews.size(); i++)
     {
         attachment[0] = swapChainImageViews[i];
-        if (vkCreateFramebuffer(device, &info, nullptr, &m_imGuiFrameBuffers[i]) != VK_SUCCESS)
+        if (vkCreateFramebuffer(m_device, &info, nullptr, &m_imGuiFrameBuffers[i]) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create framebuffer!");
         }
@@ -90,7 +90,7 @@ void GUIManager::createImGuiRenderPass(VkFormat swapChainImageFormat)
     guiRenderPassInfo.dependencyCount = 1;
     guiRenderPassInfo.pDependencies = &dependency;
 
-    if (vkCreateRenderPass(device, &guiRenderPassInfo, nullptr, &m_imGuiRenderPass) != VK_SUCCESS) {
+    if (vkCreateRenderPass(m_device, &guiRenderPassInfo, nullptr, &m_imGuiRenderPass) != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
     }
 
@@ -105,14 +105,14 @@ void GUIManager::createImGuiCommandBuffers()
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = (uint32_t)m_imGuiCommandBuffers.size();
 
-    if (vkAllocateCommandBuffers(device, &allocInfo, m_imGuiCommandBuffers.data()) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(m_device, &allocInfo, m_imGuiCommandBuffers.data()) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate imgui command buffers!");
     }
 }
 
-void GUIManager::initImGUIAttribute(VkDevice in_device, VkExtent2D in_swapChainExtent,VkFormat swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height)
+void GUIManager::initImGUIAttribute(const VkDevice& in_device, VkExtent2D& in_swapChainExtent,VkFormat& swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height)
 {
-    device = in_device;
+    m_device = in_device;
     swapChainExtent = in_swapChainExtent;
 
     IMGUI_CHECKVERSION();
@@ -143,9 +143,9 @@ void GUIManager::destroy()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    vkDestroyDescriptorPool(device, m_imGuiDescriptorPool, nullptr);
-    vkDestroyCommandPool(device, m_imGuiCommandPool, nullptr);
-    vkDestroyRenderPass(device, m_imGuiRenderPass, nullptr);
+    vkDestroyDescriptorPool(m_device, m_imGuiDescriptorPool, nullptr);
+    vkDestroyCommandPool(m_device, m_imGuiCommandPool, nullptr);
+    vkDestroyRenderPass(m_device, m_imGuiRenderPass, nullptr);
 }
 
 void GUIManager::createGUIFrame()
@@ -164,10 +164,17 @@ void GUIManager::createGUIFrame()
             if (ImGui::MenuItem("Load Model")) 
             {
                 std::cout << "Trigger Load Model" << std::endl;
-                openFile(loadModelPath);
-                
+                openFile(loadModelfilePath);
+                //std::string loadTexturePath;
+                if (loadModelfilePath != "")
+                {
+                    mainScene->loadModel(loadModelfilePath);
+                }
             }
-
+            if (ImGui::MenuItem("Load texture"))
+            {
+                std::cout << "Trigger Load Texture" << std::endl;
+            }
             if (ImGui::MenuItem("Save Screen Shotcut"))
             {
                 std::cout << "Trigger Screen Shotcut" << std::endl;
@@ -178,10 +185,10 @@ void GUIManager::createGUIFrame()
         ImGui::EndMainMenuBar();
     }
 
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io->Framerate, io->Framerate);
+    ImGui::Text(" Current : %.1f  FPS ",  io->Framerate);
     ImGui::SameLine();
     ImGui::Render();
-    draw_data = ImGui::GetDrawData();
+    m_drawData = ImGui::GetDrawData();
 }
 
 void GUIManager::drawUI(uint32_t currentFrame,uint32_t imageIndex)
@@ -204,13 +211,13 @@ void GUIManager::drawUI(uint32_t currentFrame,uint32_t imageIndex)
     imGui_renderPassInfo.clearValueCount = 1;
     imGui_renderPassInfo.pClearValues = &clearColor;
     vkCmdBeginRenderPass(m_imGuiCommandBuffers[currentFrame], &imGui_renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    ImGui_ImplVulkan_RenderDrawData(draw_data, m_imGuiCommandBuffers[currentFrame]);
+    ImGui_ImplVulkan_RenderDrawData(m_drawData, m_imGuiCommandBuffers[currentFrame]);
 
     vkCmdEndRenderPass(m_imGuiCommandBuffers[currentFrame]);
     vkEndCommandBuffer(m_imGuiCommandBuffers[currentFrame]);
 }
 
-bool GUIManager::openFile(std::string selected_file)
+bool GUIManager::openFile(std::string& selected_file_path)
 {
     std::string sFilePath;
     //  CREATE FILE OBJECT INSTANCE
@@ -255,11 +262,11 @@ bool GUIManager::openFile(std::string selected_file)
     //  FORMAT AND STORE THE FILE PATH
     std::wstring path(f_Path);
     std::string c(path.begin(), path.end());
-   sFilePath = c;
+    selected_file_path = c;
 
     //  FORMAT STRING FOR EXECUTABLE NAME
-    const size_t slash = sFilePath.find_last_of("/\\");
-    selected_file = sFilePath.substr(slash + 1);
+    //const size_t slash = sFilePath.find_last_of("/\\");
+    //selected_file = sFilePath.substr(slash + 1);
 
     //  SUCCESS, CLEAN UP
     CoTaskMemFree(f_Path);

@@ -1,5 +1,7 @@
 #pragma once
 #include <stb_image.h>
+#include "RendererInclude.h"
+
 namespace Renderer
 {
 	struct Vertex
@@ -67,6 +69,21 @@ namespace Renderer
 		float emittance;
 	};
 
+	struct CamInputListener
+	{
+		bool left = false;
+		bool right = false;
+		bool up = false;
+		bool down = false;
+
+		bool rotateLeft;
+		bool rotateRight;
+
+		bool mouseScrollForward=false;
+		bool mouseScrollBack = false;
+	};
+
+
 	struct Texture
 	{
 		stbi_uc* pixels;
@@ -103,6 +120,7 @@ namespace Renderer
 		Texture m_normalTexture;
 		Texture m_specularColorTexture;
 	};
+
 
 	struct Polygon
 	{
