@@ -1,10 +1,51 @@
 #pragma once
 #include "Layer.h"
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_vulkan.h>
+
+#include "Core.h"
 
 namespace Renderer
 {
 	class ImGuiLayer : public Layer
 	{
+	public:
+		ImGuiLayer();
+		~ImGuiLayer()=default;
 
+		void OnUpdate() override;
+		void OnDetach() override;
+		void OnAttach() override;
+		void OnEvent(Event& event);
+
+		void drawUI(uint32_t currentFrame, uint32_t imageIndex);
+
+		void createImGuiDescriptorPool();
+		void createImGuiRenderPass(VkFormat swapChainImageFormat);
+		void createImGuiCommandBuffers();
+		void createImGuiFramebuffer(std::vector<VkImageView>& swapChainImageViews);
+
+		void initImGUIAttribute(const VkDevice& in_device, VkExtent2D& swapChainExtent, VkFormat& swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height);
+
+		void destroy();
+
+		void Begin();
+		void End();
+		void BlockEvents(bool block) { m_blockEvents = block; }
+
+		VkDescriptorPool m_imGuiDescriptorPool;
+		std::vector<VkDescriptorSet> m_imGuiDescriptorSet;
+		std::vector<VkCommandBuffer> m_imGuiCommandBuffers;
+		std::vector<VkFramebuffer> m_imGuiFrameBuffers;
+		VkRenderPass m_imGuiRenderPass;
+		VkCommandPool m_imGuiCommandPool;
+
+	private:
+
+		ImDrawData* m_drawData = nullptr;
+		VkDevice m_device;
+		VkExtent2D m_swapChainExtent;
+
+		bool m_blockEvents = false;
 	};
 }

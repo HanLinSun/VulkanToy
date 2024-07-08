@@ -1,34 +1,16 @@
 #pragma once
 #include "IncludeUtils.h"
+#include "ImGUILayer.h"
 namespace Renderer
 {
-	class TestLayer: public Layer
-	{
-		TestLayer() :Layer("Example")
-		{
-
-		}
-
-		void OnUpdate() override
-		{
-
-		}
-
-		void OnEvent(Event& e) override
-		{
-
-		}
-
-	};
-
 	class RenderApplication : public Application
 	{
 	public:
 		RenderApplication()
 		{
-			PushLayer(new TestLayer());
+			PushOverLayer(new ImGuiLayer());
 		}
-		~RenderApplication();
+		~RenderApplication() {};
 	};
 
 	Application* CreateApplication()

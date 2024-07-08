@@ -158,6 +158,7 @@
     <ClInclude Include="Source\Headers\Event\MouseEvent.h" />
     <ClInclude Include="Source\Headers\Event\ApplicationEvent.h" />
     <ClInclude Include="Source\Headers\GUIManager.h" />
+    <ClInclude Include="Source\Headers\ImGUILayer.h" />
     <ClInclude Include="Source\Headers\IncludeUtils.h" />
     <ClInclude Include="Source\Headers\InputManager.h" />
     <ClInclude Include="Source\Headers\Layer.h" />
@@ -169,6 +170,14 @@
     <ClInclude Include="Source\Headers\RendererInclude.h" />
     <ClInclude Include="Source\Headers\Scene.h" />
     <ClInclude Include="Source\Headers\SceneStructs.h" />
+    <ClInclude Include="Source\Headers\Vulkan\VulkanBuffer.h" />
+    <ClInclude Include="Source\Headers\Vulkan\VulkanDevice.h" />
+    <ClInclude Include="Source\Headers\Vulkan\VulkanFrameBuffer.hpp" />
+    <ClInclude Include="Source\Headers\Vulkan\VulkanInitializer.hpp" />
+    <ClInclude Include="Source\Headers\Vulkan\VulkanRenderer.h" />
+    <ClInclude Include="Source\Headers\Vulkan\VulkanSwapChain.h" />
+    <ClInclude Include="Source\Headers\Vulkan\VulkanTexture.h" />
+    <ClInclude Include="Source\Headers\Vulkan\VulkanTool.h" />
     <ClInclude Include="Source\Headers\Window.h" />
     <ClInclude Include="Source\Headers\WindowsPlatform.h" />
     <ClInclude Include="Source\threadpool.hpp" />
@@ -184,6 +193,7 @@
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\GUIManager.cpp" />
+    <ClCompile Include="Source\ImGUILayer.cpp" />
     <ClCompile Include="Source\InputManager.cpp" />
     <ClCompile Include="Source\Layer.cpp" />
     <ClCompile Include="Source\LayerStack.cpp" />
@@ -192,7 +202,12 @@
     <ClCompile Include="Source\ModelFileLoader.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\VKBaseRenderer.cpp" />
-    <ClCompile Include="Source\Window.cpp" />
+    <ClCompile Include="Source\VulkanBuffer.cpp" />
+    <ClCompile Include="Source\VulkanDevice.cpp" />
+    <ClCompile Include="Source\VulkanRenderer.cpp" />
+    <ClCompile Include="Source\VulkanSwapChain.cpp" />
+    <ClCompile Include="Source\VulkanTexture.cpp" />
+    <ClCompile Include="Source\VulkanTool.cpp" />
     <ClCompile Include="Source\WindowsPlatform.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

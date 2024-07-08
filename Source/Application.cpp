@@ -4,14 +4,15 @@
 #include "Headers/WindowsPlatform.h"
 namespace Renderer
 {
-
+	Application* Application::s_instance = nullptr;
 #define BIND_EVENT_FUNCTION(x) std::bind(&x,this,std::placeholders::_1)
 
 	Application::Application()
 	{
+		s_instance = this;
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->SetEventCallback(BIND_EVENT_FUNCTION(Application::OnEvent));
-		
+		m_renderer = std::unique_ptr<VulkanBaseRenderer>();
 	 }
 
 	Application::~Application(){}
@@ -64,7 +65,7 @@ namespace Renderer
 
 		while (m_Running)
 		{
-
+			m_renderer->nextFrame();
 			m_Window->OnUpdate();
 			for (Layer* layer : m_LayerStack)
 			{

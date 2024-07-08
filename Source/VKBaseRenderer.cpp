@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include "Headers/GUIManager.h"
 #include "Headers/Application.h"
+#include "Headers/RenderApplication.h"
 
 #undef max
 
@@ -119,9 +120,6 @@ private:
     std::vector<VkImageView> swapChainImageViews;
 
     std::vector<VkFramebuffer> swapChainFramebuffers;
-
-    std::vector<VkFramebuffer> m_imGuiFrameBuffers;
-
     VkRenderPass renderPass;
 
     VkRenderPass m_imGuiRenderPass;
@@ -131,9 +129,6 @@ private:
     VkPipeline graphicsPipeline;
 
     VkCommandPool commandPool;
-
-    VkCommandPool m_imGuiCommandPool;
-
     VkImage colorImage;
     VkDeviceMemory colorImageMemory;
     VkImageView colorImageView;
@@ -1799,11 +1794,13 @@ private:
 //}
 
 int main() {
-    Renderer::VKBaseRenderer app;
+   //Renderer::VKBaseRenderer app;
+
+    Renderer::RenderApplication render_app;
     
     try {
-        app.run();
-      //  app.Run();
+        render_app.Run();
+       // app.run();
       //  app.application.Run();
     }
     catch (const std::exception& e) {

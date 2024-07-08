@@ -1,14 +1,15 @@
 #pragma once
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
+#include "RendererInclude.h"
 #include <vulkan/vulkan.h>
 #include <iostream>
 #include <vector>
 #include <Windows.h>
 #include <shobjidl.h> 
 #include "Scene.h"
+#include "Core.h"
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
 class GUIManager
 {
 public:
@@ -43,9 +44,6 @@ private:
 	VkExtent2D swapChainExtent;
 
 	ImGuiIO* io=nullptr;
-
-
-
 	std::string loadModelfilePath;
 };
 

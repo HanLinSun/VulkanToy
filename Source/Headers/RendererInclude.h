@@ -28,6 +28,3 @@
 #include <string>
 #include <functional>
 
-
-#define USE_VULKAN 1
-#define USE_DIRECT_X 0

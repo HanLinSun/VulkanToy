@@ -27,7 +27,6 @@ void GUIManager::createImGuiDescriptorPool()
 void GUIManager::createImGuiFramebuffer(std::vector<VkImageView>& swapChainImageViews)
 {
     m_imGuiFrameBuffers.resize(swapChainImageViews.size());
-
     VkImageView attachment[1];
     VkFramebufferCreateInfo info = {};
     info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
