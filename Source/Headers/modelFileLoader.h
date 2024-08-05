@@ -41,4 +41,9 @@ namespace Renderer
 		std::vector<std::string> texturePath;
 
 	};
+
+	class PlyFiileLoader : public ModelFileLoader
+	{
+
+	};
 }

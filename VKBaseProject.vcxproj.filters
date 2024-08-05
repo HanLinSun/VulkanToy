@@ -137,24 +137,6 @@
     <ClCompile Include="Source\ImGUILayer.cpp">
       <Filter>Source\Layer</Filter>
     </ClCompile>
-    <ClCompile Include="Source\VulkanRenderer.cpp">
-      <Filter>Source\Renderer\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\VulkanSwapChain.cpp">
-      <Filter>Source\Renderer\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\VulkanTool.cpp">
-      <Filter>Source\Renderer\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\VulkanBuffer.cpp">
-      <Filter>Source\Renderer\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\VulkanDevice.cpp">
-      <Filter>Source\Renderer\Vulkan</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\VulkanTexture.cpp">
-      <Filter>Source\Renderer\Vulkan</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -240,30 +222,6 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\ImGUILayer.h">
       <Filter>Header\Layer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanBuffer.h">
-      <Filter>Header\Renderer\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanDevice.h">
-      <Filter>Header\Renderer\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanInitializer.hpp">
-      <Filter>Header\Renderer\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanRenderer.h">
-      <Filter>Header\Renderer\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanSwapChain.h">
-      <Filter>Header\Renderer\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanTexture.h">
-      <Filter>Header\Renderer\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanTool.h">
-      <Filter>Header\Renderer\Vulkan</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanFrameBuffer.hpp">
-      <Filter>Header\Renderer\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

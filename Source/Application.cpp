@@ -12,7 +12,6 @@ namespace Renderer
 		s_instance = this;
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->SetEventCallback(BIND_EVENT_FUNCTION(Application::OnEvent));
-		m_renderer = std::unique_ptr<VulkanBaseRenderer>();
 	 }
 
 	Application::~Application(){}
@@ -65,7 +64,7 @@ namespace Renderer
 
 		while (m_Running)
 		{
-			m_renderer->nextFrame();
+			//m_renderer->nextFrame();
 			m_Window->OnUpdate();
 			for (Layer* layer : m_LayerStack)
 			{
