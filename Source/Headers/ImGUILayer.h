@@ -2,7 +2,6 @@
 #include "Layer.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
-
 #include "Core.h"
 
 namespace Renderer

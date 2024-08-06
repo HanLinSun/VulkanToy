@@ -1,5 +1,6 @@
 #pragma once
-#include "IncludeUtils.h"
+#include "Application.h"
+#include "Layer.h"
 #include "ImGUILayer.h"
 namespace Renderer
 {
@@ -12,9 +13,9 @@ namespace Renderer
 		}
 		~RenderApplication() {};
 	};
+}
 
-	Application* CreateApplication()
-	{
-		return new RenderApplication();
-	}
+Renderer::Application* CreateApplication()
+{
+	return new Renderer::RenderApplication();
 }

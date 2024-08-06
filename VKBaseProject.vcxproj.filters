@@ -28,9 +28,6 @@
     <Filter Include="Source\Scene">
       <UniqueIdentifier>{0bc24c8c-7b7a-474c-8b1c-f0685be4997e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\VulkanHelper">
-      <UniqueIdentifier>{c4670854-4032-45b1-86c0-7f61c9a8f3a3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header\Event">
       <UniqueIdentifier>{04daa4e1-df50-42a4-b2c9-634550a831ad}</UniqueIdentifier>
     </Filter>
@@ -55,11 +52,8 @@
     <Filter Include="Source\Renderer">
       <UniqueIdentifier>{955fc731-f9f8-4833-a499-c4846499cc3b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header\Renderer\Vulkan">
-      <UniqueIdentifier>{80c65433-d5b5-4980-bd16-dde7c24b55ee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Renderer\Vulkan">
-      <UniqueIdentifier>{8da65224-5c7e-4d39-8ded-2454cd26675e}</UniqueIdentifier>
+    <Filter Include="Header\Vulkan">
+      <UniqueIdentifier>{600c34b8-2fa7-4d28-8bdb-3f56a0bab420}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +130,9 @@
     </ClCompile>
     <ClCompile Include="Source\ImGUILayer.cpp">
       <Filter>Source\Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\EntryPoint.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -222,6 +219,9 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\ImGUILayer.h">
       <Filter>Header\Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\VulkanBaseRenderer.h">
+      <Filter>Header\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

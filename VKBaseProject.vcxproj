@@ -170,6 +170,7 @@
     <ClInclude Include="Source\Headers\RendererInclude.h" />
     <ClInclude Include="Source\Headers\Scene.h" />
     <ClInclude Include="Source\Headers\SceneStructs.h" />
+    <ClInclude Include="Source\Headers\Vulkan\VulkanBaseRenderer.h" />
     <ClInclude Include="Source\Headers\Window.h" />
     <ClInclude Include="Source\Headers\WindowsPlatform.h" />
     <ClInclude Include="Source\threadpool.hpp" />
@@ -184,6 +185,7 @@
     <ClCompile Include="include\imgui_widgets.cpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\EntryPoint.cpp" />
     <ClCompile Include="Source\GUIManager.cpp" />
     <ClCompile Include="Source\ImGUILayer.cpp" />
     <ClCompile Include="Source\InputManager.cpp" />

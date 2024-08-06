@@ -5,6 +5,7 @@
 namespace Renderer
 {
 	Application* Application::s_instance = nullptr;
+
 #define BIND_EVENT_FUNCTION(x) std::bind(&x,this,std::placeholders::_1)
 
 	Application::Application()
@@ -64,12 +65,12 @@ namespace Renderer
 
 		while (m_Running)
 		{
-			//m_renderer->nextFrame();
 			m_Window->OnUpdate();
-			for (Layer* layer : m_LayerStack)
-			{
-				layer->OnUpdate();
-			}
+
+			//for (Layer* layer : m_LayerStack)
+			//{
+			//	layer->OnUpdate();
+			//}
 
 		}
 	}

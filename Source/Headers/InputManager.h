@@ -13,18 +13,6 @@ public:
 	InputManager() {};
 	InputManager(InputManager&) = delete;
 	InputManager& operator = (const InputManager&) = delete;
-	//std::shared_ptr<InputManager> getInstance()
-	//{
-	//	if (m_instance_ptr == nullptr)
-	//	{
-	//		std::lock_guard<std::mutex>lock(m_mutex);
-	//		if (m_instance_ptr == nullptr)
-	//		{
-	//			m_instance_ptr = std::shared_ptr<InputManager>(new InputManager);
-	//		}
-	//	}
-	//	return  m_instance_ptr;
-	//}
 
 	void HandlePressEvent(Renderer::CamInputListener& inputListener);
 	void KeyEventHelper(char keycode, bool& val);
