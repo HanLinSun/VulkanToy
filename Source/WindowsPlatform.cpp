@@ -38,7 +38,9 @@ namespace Renderer
 			glfwSetErrorCallback(GLFWSetErrorCallback);
 			s_GLFWInitiated = true;
 		}
-
+		//Vulkan require Window set to GLFW_NO_API
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		//
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		glfwMakeContextCurrent(m_Window);
 		//We set m_Data as user pointer here, so can cast it's type safely in GetwindowPointer

@@ -4,10 +4,10 @@
 int main() {
     //Renderer::VulkanBaseRenderer app;
 
-     Renderer::RenderApplication render_app;
+        Renderer::RenderApplication render_app;
     try {
-          render_app.Run();
-       // app.run();
+        render_app.Run();
+        //app.run();
         //  app.application.Run();
     }
     catch (const std::exception& e) {

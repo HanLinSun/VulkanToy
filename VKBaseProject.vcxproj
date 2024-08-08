@@ -24,7 +24,7 @@
     <ProjectGuid>{36d97455-8199-4087-95de-c1f404ff8993}</ProjectGuid>
     <RootNamespace>VKBaseProject</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>VKBaseRenderer</ProjectName>
+    <ProjectName>VulkanBaseRenderer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -195,7 +195,7 @@
     <ClCompile Include="Source\Materials.cpp" />
     <ClCompile Include="Source\ModelFileLoader.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
-    <ClCompile Include="Source\VKBaseRenderer.cpp" />
+    <ClCompile Include="Source\VulkanBaseRenderer.cpp" />
     <ClCompile Include="Source\WindowsPlatform.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -28,7 +28,7 @@ namespace Renderer
 		bool OnWindowClosed(WindowCloseEvent& e);
 
 		std::unique_ptr<Window> m_Window;
-
+		std::unique_ptr<VulkanBaseRenderer> m_baseRenderer;
 
 		bool m_Running = true;
 		LayerStack m_LayerStack;

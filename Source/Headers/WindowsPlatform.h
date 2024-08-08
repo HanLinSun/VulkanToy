@@ -18,6 +18,7 @@ namespace Renderer
 		inline void SetEventCallback(const EventCallbackFunction& callback) override { m_Data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
 		bool IsVSync() const override;
+		GLFWwindow* getWindowptr() { return m_Window; }
 
 	private:
 		virtual void Init(const WindowProps& prop);

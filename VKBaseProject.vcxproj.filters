@@ -71,7 +71,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\VKBaseRenderer.cpp">
+    <ClCompile Include="Source\VulkanBaseRenderer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="include\imgui.cpp">

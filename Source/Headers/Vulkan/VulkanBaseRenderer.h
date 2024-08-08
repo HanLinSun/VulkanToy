@@ -2,9 +2,10 @@
 #include <RendererInclude.h>
 #include "Scene.h"
 #include <cstdlib>
-#include "Headers/InputManager.h"
 #include <imgui.h>
-#include "Headers/GUIManager.h"
+#include <GUIManager.h>
+#include <InputManager.h>
+#include <Window.h>
 
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
@@ -67,48 +68,44 @@ static void check_vk_result(VkResult err)
 
 namespace Renderer
 {
-
-
-
 	class VulkanBaseRenderer
 	{
 	public:
-
+		VulkanBaseRenderer(Window* targetWindow);
 		void run();
-		void setWindow();
+		void PassGLFWWindowPtr(GLFWwindow* window_ptr);
+
 	private:
-		GLFWwindow* window;
+		GLFWwindow* m_window;
 
-		VkInstance instance;
-		VkDebugUtilsMessengerEXT debugMessenger;
-		VkSurfaceKHR surface;
-
-		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+		VkInstance m_instance;
+		VkDebugUtilsMessengerEXT m_debugMessenger;
+		VkSurfaceKHR m_surface;
+		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-		VkDevice device;
+		VkDevice m_device;
+		VkQueue m_graphicsQueue;
+		VkQueue m_presentQueue;
+		VkSwapchainKHR m_swapChain;
+		std::vector<VkImage> m_swapChainImages;
+		VkFormat m_swapChainImageFormat;
+		VkExtent2D m_swapChainExtent;
+		std::vector<VkImageView> m_swapChainImageViews;
+		std::vector<VkFramebuffer> m_swapChainFramebuffers;
 
-		VkQueue graphicsQueue;
-		VkQueue presentQueue;
-
-		VkSwapchainKHR swapChain;
-		std::vector<VkImage> swapChainImages;
-		VkFormat swapChainImageFormat;
-		VkExtent2D swapChainExtent;
-		std::vector<VkImageView> swapChainImageViews;
-
-		std::vector<VkFramebuffer> swapChainFramebuffers;
-		VkRenderPass renderPass;
-
+		VkRenderPass m_renderPass;
 		VkRenderPass m_imGuiRenderPass;
 
-		VkDescriptorSetLayout descriptorSetLayout;
-		VkPipelineLayout pipelineLayout;
-		VkPipeline graphicsPipeline;
+		VkDescriptorSetLayout m_descriptorSetLayout;
+		VkPipelineLayout m_pipelineLayout;
 
-		VkCommandPool commandPool;
-		VkImage colorImage;
-		VkDeviceMemory colorImageMemory;
-		VkImageView colorImageView;
+		VkPipeline m_graphicsPipeline;
+		VkPipeline m_computePipeline;
+
+		VkCommandPool m_commandPool;
+		VkImage m_colorImage;
+		VkDeviceMemory m_colorImageMemory;
+		VkImageView m_colorImageView;
 
 		VkImage depthImage;
 		VkDeviceMemory depthImageMemory;
@@ -138,11 +135,11 @@ namespace Renderer
 		VkDescriptorPool m_imGuiDescriptorPool;
 		std::vector<VkDescriptorSet> m_imGuiDescriptorSet;
 
-		std::vector<VkCommandBuffer> commandBuffers;
+		std::vector<VkCommandBuffer> m_commandBuffers;
 		std::vector<VkCommandBuffer> m_imGuiCommandBuffers;
 
-		std::vector<VkSemaphore> imageAvailableSemaphores;
-		std::vector<VkSemaphore> renderFinishedSemaphores;
+		std::vector<VkSemaphore> m_imageAvailableSemaphores;
+		std::vector<VkSemaphore> m_renderFinishedSemaphores;
 		std::vector<VkFence> inFlightFences;
 		uint32_t currentFrame = 0;
 
@@ -171,7 +168,7 @@ namespace Renderer
 
 		void loadModel(std::string model_path, std::string model_texture_path);
 
-		void CompileShader(std::string vertexShader, std::string fragmentShader);
+		void compileShader(std::string vertexShader, std::string fragmentShader);
 
 		void initVulkan();
 
@@ -204,6 +201,8 @@ namespace Renderer
 		void createDescriptorSetLayout();
 
 		void createGraphicsPipeline();
+
+		void createComputePipeline();
 
 		void createFramebuffers();
 
@@ -295,7 +294,5 @@ namespace Renderer
 			return VK_FALSE;
 		}
 	};
-
-
 
 }
