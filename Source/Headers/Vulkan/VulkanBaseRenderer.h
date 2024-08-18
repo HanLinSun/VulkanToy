@@ -3,8 +3,6 @@
 #include "Scene.h"
 #include <cstdlib>
 #include <imgui.h>
-#include <GUIManager.h>
-#include <InputManager.h>
 #include <Window.h>
 
 const uint32_t WIDTH = 1600;
@@ -35,6 +33,8 @@ const bool enableValidationLayers = true;
 #endif
 
 #include <backends/imgui_impl_vulkan.h>
+#include <LayerStack.h>
+#include <ImGuiLayer.h>
 
 struct QueueFamilyIndices {
 	std::optional<uint32_t> graphicsFamily;
@@ -73,9 +73,14 @@ namespace Renderer
 	public:
 		VulkanBaseRenderer(Window* targetWindow);
 		void run();
-		void PassGLFWWindowPtr(GLFWwindow* window_ptr);
-
+		void destroy();
+		void cleanup();
+		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+		void setLayerStack(LayerStack* layer);
+		void initGUILayerAttribute();
+		void initVulkan();
 	private:
+
 		GLFWwindow* m_window;
 
 		VkInstance m_instance;
@@ -87,6 +92,7 @@ namespace Renderer
 		VkQueue m_graphicsQueue;
 		VkQueue m_presentQueue;
 		VkSwapchainKHR m_swapChain;
+
 		std::vector<VkImage> m_swapChainImages;
 		VkFormat m_swapChainImageFormat;
 		VkExtent2D m_swapChainExtent;
@@ -140,7 +146,7 @@ namespace Renderer
 
 		std::vector<VkSemaphore> m_imageAvailableSemaphores;
 		std::vector<VkSemaphore> m_renderFinishedSemaphores;
-		std::vector<VkFence> inFlightFences;
+		std::vector<VkFence> m_inFlightFences;
 		uint32_t currentFrame = 0;
 
 		Scene* m_Scene;
@@ -150,33 +156,25 @@ namespace Renderer
 		uint32_t imageCount;
 
 		ImDrawData* draw_data = nullptr;
-		GUIManager guiManager;
-		InputManager inputManager;
+		LayerStack* m_layerStack;
+		ImGuiLayer* m_ImGuiLayer;
+
+		int ScreenWidth;
+		int ScreenHeight;
 
 		//update time
 		std::chrono::time_point<std::chrono::high_resolution_clock> lastTimeStamp, tPrevEnd;
 
 		bool framebufferResized = false;
 
-		void initWindow();
-
-		void initGUIAttribute();
-
-		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
 		void createScene();
-
 		void loadModel(std::string model_path, std::string model_texture_path);
-
 		void compileShader(std::string vertexShader, std::string fragmentShader);
 
-		void initVulkan();
-
 		void mainLoop();
-
 		void cleanupSwapChain();
 
-		void cleanup();
 
 		void recreateSwapChain();
 
@@ -227,6 +225,8 @@ namespace Renderer
 		void createTextureImageView();
 
 		void createTextureSampler();
+
+
 
 		VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 

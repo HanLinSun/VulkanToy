@@ -157,7 +157,6 @@
     <ClInclude Include="Source\Headers\Event\KeyEvent.h" />
     <ClInclude Include="Source\Headers\Event\MouseEvent.h" />
     <ClInclude Include="Source\Headers\Event\ApplicationEvent.h" />
-    <ClInclude Include="Source\Headers\GUIManager.h" />
     <ClInclude Include="Source\Headers\ImGUILayer.h" />
     <ClInclude Include="Source\Headers\IncludeUtils.h" />
     <ClInclude Include="Source\Headers\InputManager.h" />
@@ -186,7 +185,6 @@
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\EntryPoint.cpp" />
-    <ClCompile Include="Source\GUIManager.cpp" />
     <ClCompile Include="Source\ImGUILayer.cpp" />
     <ClCompile Include="Source\InputManager.cpp" />
     <ClCompile Include="Source\Layer.cpp" />

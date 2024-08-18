@@ -110,9 +110,6 @@
     <ClCompile Include="Source\Scene.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Source\GUIManager.cpp">
-      <Filter>Source\RenderUtils</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Materials.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -180,9 +177,6 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\WindowsPlatform.h">
       <Filter>Header\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\GUIManager.h">
-      <Filter>Header\Utils</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\InputManager.h">
       <Filter>Header\Utils</Filter>

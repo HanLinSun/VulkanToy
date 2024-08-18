@@ -22,6 +22,8 @@ namespace Renderer
 		void PushLayer(Layer* layer);
 		void PushOverLayer(Layer* layer);
 
+		void PassLayerStackToRenderer();
+
 		inline static Application& Get() { return *s_instance; }
 		inline Window& GetWindow() { return *m_Window; }
 	private:

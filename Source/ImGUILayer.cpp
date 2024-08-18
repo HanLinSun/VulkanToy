@@ -14,10 +14,11 @@ namespace Renderer
         ImGui::NewFrame();
         ImGui::ShowDemoWindow();
         //Show a simple window that we create for ourselves
-        ImGuiIO& io = ImGui::GetIO();
-        Application& app = Application::Get();
+        static float f = 0.0f;
+        static int counter = 0;
 
-        io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
+
+        ImGui::Text(" Current : %.1f  FPS ", io->Framerate);
         ImGui::SameLine();
         ImGui::Render();
         m_drawData = ImGui::GetDrawData();
@@ -82,7 +83,7 @@ namespace Renderer
         guiAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         guiAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         guiAttachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        guiAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        guiAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         VkAttachmentReference color_attachment = {};
         color_attachment.attachment = 0;
@@ -156,8 +157,11 @@ namespace Renderer
         }
     }
 
-    void ImGuiLayer::initImGUIAttribute(const VkDevice& in_device, VkExtent2D& swapChainExtent, VkFormat& swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height)
+    void ImGuiLayer::initImGUIAttribute(const VkDevice& in_device, VkExtent2D& in_swapChainExtent, VkFormat& swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height)
     {
+        m_device = in_device;
+        m_swapChainExtent = in_swapChainExtent;
+        OnAttach();
     }
 
     void ImGuiLayer::destroy()
@@ -184,19 +188,19 @@ namespace Renderer
         io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
         io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
 
-        float fontSize = 18.0f;// *2.0f;
-        io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Bold.ttf", fontSize);
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("assets/fonts/opensans/OpenSans-Regular.ttf", fontSize);
-
-        //Setup Dear ImGui style
-        ImGui::StyleColorsDark();
-        //ImGui::StyleColorsLight();
-        ImGuiStyle& style = ImGui::GetStyle();
 
         ImFontConfig config;
         config.OversampleH = 2;
         config.OversampleV = 1;
         config.GlyphExtraSpacing.x = 1.0f;
 
+        float fontSize = 18.0f;// *2.0f;
+        io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 24.0f, &config);
+
+        //Setup Dear ImGui style
+        ImGui::StyleColorsDark();
+        //ImGui::StyleColorsLight();
+        ImGuiStyle& style = ImGui::GetStyle();
+        this->io = &io;
 	}
 }

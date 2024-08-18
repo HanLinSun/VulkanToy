@@ -29,7 +29,6 @@ namespace Renderer
 
 		CamInputListener keyListener;
 
-		bool moving();
 		void updateMove();
 
 	private:

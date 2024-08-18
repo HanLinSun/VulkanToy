@@ -19,11 +19,6 @@ namespace Renderer
 		return m_position;
 	}
 	
-	bool Camera::moving()
-	{
-		return keyListener.down || keyListener.up || keyListener.left || keyListener.right;
-	}
-
 	void Camera::setCameraPosition(glm::vec3 in_position) 
 	{
 		m_position = in_position;
@@ -93,27 +88,6 @@ namespace Renderer
 
 	void Camera::updateMove()
 	{
-		if (moving())
-		{
-			if (keyListener.up)
-			{
-				m_position += 0.001f* movementSpeed * m_upVector;
-			}
-			if (keyListener.down)
-			{
-				m_position += 0.001f * movementSpeed * -m_upVector;
-			}
-			if (keyListener.right)
-			{
-				m_position += 0.001f * movementSpeed * m_rightVector;
-			}
-			if (keyListener.left)
-			{
-				m_position += 0.001f * movementSpeed * -m_rightVector;
-			}
-		
 			updateViewMatrix();
-		}
-		
 	}
 }

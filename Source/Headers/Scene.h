@@ -29,7 +29,8 @@ namespace Renderer
 	private:
 		std::vector<MeshData> m_meshes;
 		std::vector<Polygon> m_polygons;
-		Camera m_camera;
+		Camera m_camera; //This is the main Camera
+
 	};
 
 }

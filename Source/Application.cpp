@@ -13,9 +13,7 @@ namespace Renderer
 		s_instance = this;
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->SetEventCallback(BIND_EVENT_FUNCTION(Application::OnEvent));
-
 		m_baseRenderer = std::unique_ptr<VulkanBaseRenderer>(new VulkanBaseRenderer(m_Window.get()));
-		
 	 }
 
 	Application::~Application(){}
@@ -33,8 +31,7 @@ namespace Renderer
 				break;
 			}
 		}
-
-		std::cout << " OnEvent triggered" << std::endl;
+		//std::cout << " OnEvent triggered" << std::endl;
 	}
 
 	bool Application::OnWindowClosed(WindowCloseEvent& e) 
@@ -53,6 +50,11 @@ namespace Renderer
 		m_LayerStack.PushOverlay(layer);
 	}
 
+	void Application::PassLayerStackToRenderer()
+	{
+		m_baseRenderer->setLayerStack(&m_LayerStack);
+	}
+
 	void Application::Run()
 	{
 		WindowResizeEvent e(1280, 720);
@@ -66,16 +68,19 @@ namespace Renderer
 			std::cout << "Log: Input event triggered" << std::endl;
 		}
 
+		m_baseRenderer->initVulkan();
+		m_baseRenderer->initGUILayerAttribute();
+
 		while (m_Running)
 		{
 			m_Window->OnUpdate();
+			for (Layer* layer : m_LayerStack)
+			{
+				layer->OnUpdate();
+			}
 			m_baseRenderer->run();
-			//for (Layer* layer : m_LayerStack)
-			//{
-			//	layer->OnUpdate();
-			//}
-
 		}
+		m_baseRenderer->destroy();
 	}
 
 }

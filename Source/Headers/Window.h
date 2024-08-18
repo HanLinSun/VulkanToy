@@ -10,7 +10,7 @@ namespace Renderer
 		unsigned int Width;
 		unsigned int Height;
 
-		WindowProps(const std::string& title = "Vulkan Renderer", uint32_t width = 1600, uint32_t height = 900) :Title(title), Width(width), Height(height) {};
+		WindowProps(const std::string& title = "Vulkan Renderer", uint32_t width = 1600, uint32_t height =720) :Title(title), Width(width), Height(height) {};
 	};
 
 	class Window

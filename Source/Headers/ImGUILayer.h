@@ -1,8 +1,8 @@
 #pragma once
-#include "Layer.h"
+#include <Layer.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_vulkan.h>
-#include "Core.h"
+#include <Core.h>
 
 namespace Renderer
 {
@@ -19,6 +19,7 @@ namespace Renderer
 
 		void drawUI(uint32_t currentFrame, uint32_t imageIndex);
 
+		//Vulkan needs them
 		void createImGuiDescriptorPool();
 		void createImGuiRenderPass(VkFormat swapChainImageFormat);
 		void createImGuiCommandBuffers();
@@ -41,6 +42,7 @@ namespace Renderer
 
 	private:
 
+		ImGuiIO* io = nullptr;
 		ImDrawData* m_drawData = nullptr;
 		VkDevice m_device;
 		VkExtent2D m_swapChainExtent;

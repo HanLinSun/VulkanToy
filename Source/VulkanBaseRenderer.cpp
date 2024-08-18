@@ -22,42 +22,33 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 
 namespace Renderer
 {
-
     VulkanBaseRenderer::VulkanBaseRenderer(Window* windowptr)
     {
         WindowsWindow* window_ptr = reinterpret_cast<WindowsWindow*>(windowptr);
         m_window = window_ptr->getWindowptr();
+        //glfwSetWindowUserPointer(m_window, this);
+        glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
+
+        ScreenWidth = windowptr->GetWidth();
+        ScreenHeight = windowptr->GetHeight();
     }
     void VulkanBaseRenderer::run() {
-        //initWindow();
-        initVulkan();
-        mainLoop();
-        cleanup();
+            drawFrame();
     }
 
-    void VulkanBaseRenderer::PassGLFWWindowPtr(GLFWwindow* window_ptr)
+    void VulkanBaseRenderer::initGUILayerAttribute()
     {
-        m_window = window_ptr;
-    }
-    void VulkanBaseRenderer::initWindow() {
-        glfwInit();
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        //ImGUI Layer(by default put it on top) 
+        // need rewrite inthe future
+        m_ImGuiLayer = reinterpret_cast<ImGuiLayer*>(m_layerStack->Top());
         
-        m_window = glfwCreateWindow(WIDTH, HEIGHT, "GGGGG", nullptr, nullptr);
-        glfwSetWindowUserPointer(m_window, this);
-        glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
-    }
+        m_ImGuiLayer->initImGUIAttribute(m_device, m_swapChainExtent, m_swapChainImageFormat, m_swapChainImageViews, m_swapChainExtent.width, m_swapChainExtent.height);
+        m_ImGuiLayer->createImGuiDescriptorPool();
+        m_ImGuiLayer->createImGuiRenderPass(m_swapChainImageFormat);
+        createCommandPool(&(m_ImGuiLayer->m_imGuiCommandPool));
+        m_ImGuiLayer->createImGuiCommandBuffers();
+        m_ImGuiLayer->createImGuiFramebuffer(m_swapChainImageViews);
 
-
-    void VulkanBaseRenderer::initGUIAttribute()
-    {
-        guiManager.initImGUIAttribute(m_device, m_swapChainExtent,m_swapChainImageFormat, m_swapChainImageViews, m_swapChainExtent.width, m_swapChainExtent.height);       
-        guiManager.createImGuiDescriptorPool();
-        guiManager.createImGuiRenderPass(m_swapChainImageFormat);
-        createCommandPool(&guiManager.m_imGuiCommandPool);
-        guiManager.createImGuiCommandBuffers();
-        guiManager.createImGuiFramebuffer(m_swapChainImageViews);
-       
         m_Camera.setCameraPosition(glm::vec3(2.0, 2.0, 2.0));
 
         ImGui_ImplGlfw_InitForVulkan(m_window, true);
@@ -68,8 +59,10 @@ namespace Renderer
         init_info.QueueFamily = queueFamilyIndices.graphicsFamily.value();
         init_info.Queue = m_graphicsQueue;
         init_info.PipelineCache = VK_NULL_HANDLE;
-        init_info.DescriptorPool =guiManager.m_imGuiDescriptorPool;
-        init_info.RenderPass = guiManager.m_imGuiRenderPass;
+
+        init_info.DescriptorPool = m_ImGuiLayer->m_imGuiDescriptorPool;
+        init_info.RenderPass = m_ImGuiLayer->m_imGuiRenderPass;
+
         init_info.Subpass = 0;
         init_info.MinImageCount =imageCount;
         init_info.ImageCount =imageCount;
@@ -78,16 +71,18 @@ namespace Renderer
         init_info.CheckVkResultFn = check_vk_result;
         ImGui_ImplVulkan_Init(&init_info);
     }
+
+
     void VulkanBaseRenderer::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
         auto app = reinterpret_cast<VulkanBaseRenderer*>(glfwGetWindowUserPointer(window));
         app->framebufferResized = true;
     }
+
     void VulkanBaseRenderer::createScene()
     {
         if (m_Scene == nullptr)
         {
             m_Scene = new Scene();
-            guiManager.mainScene = m_Scene;
             m_Camera = m_Scene->getSceneCamera();
         }
     }
@@ -100,12 +95,15 @@ namespace Renderer
     {
 
     }
+
     void VulkanBaseRenderer::initVulkan() {
         createInstance();
         setupDebugMessenger();
         createScene();
+
         //By default we use this
         loadModel(MODEL_PATH,TEXTURE_PATH);
+
         createSurface();
         pickPhysicalDevice();
         createLogicalDevice();
@@ -130,19 +128,12 @@ namespace Renderer
         createDescriptorSets();
         createCommandBuffers();
         createSyncObjects();
-
-        initGUIAttribute();
     }
-    void VulkanBaseRenderer::mainLoop() {
-        while (!glfwWindowShouldClose(m_window)) 
-        {
-            glfwPollEvents();
-            guiManager.createGUIFrame();
-            inputManager.HandlePressEvent(m_Camera.keyListener);
-            drawFrame();
-        }
 
+    void VulkanBaseRenderer::destroy()
+    {
         vkDeviceWaitIdle(m_device);
+        cleanup();
     }
     void VulkanBaseRenderer::cleanupSwapChain() {
         vkDestroyImageView(m_device, depthImageView, nullptr);
@@ -194,11 +185,11 @@ namespace Renderer
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroySemaphore(m_device, m_renderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(m_device, m_imageAvailableSemaphores[i], nullptr);
-            vkDestroyFence(m_device, inFlightFences[i], nullptr);
+            vkDestroyFence(m_device, m_inFlightFences[i], nullptr);
         }
 
         vkDestroyCommandPool(m_device, m_commandPool, nullptr);
-        guiManager.destroy();
+        m_ImGuiLayer->destroy();
 
         vkDestroyDevice(m_device, nullptr);
 
@@ -231,11 +222,11 @@ namespace Renderer
         createDepthResources();
         createFramebuffers();
      
-        guiManager.createImGuiRenderPass(m_swapChainImageFormat);
-        guiManager.createImGuiFramebuffer(m_swapChainImageViews);
-        guiManager.createImGuiCommandBuffers();
-
+        m_ImGuiLayer->createImGuiRenderPass(m_swapChainImageFormat);
+        m_ImGuiLayer->createImGuiFramebuffer(m_swapChainImageViews);
+        m_ImGuiLayer->createImGuiCommandBuffers();
     }
+
     void VulkanBaseRenderer::createInstance()
     {
         if (enableValidationLayers && !checkValidationLayerSupport()) {
@@ -244,7 +235,7 @@ namespace Renderer
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Hello Triangle";
+        appInfo.pApplicationName = "Vulkan Base Renderer";
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "No Engine";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -381,7 +372,6 @@ namespace Renderer
         VkSwapchainCreateInfoKHR createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
         createInfo.surface = m_surface;
-
         createInfo.minImageCount = imageCount;
         createInfo.imageFormat = surfaceFormat.format;
         createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -522,6 +512,7 @@ namespace Renderer
             throw std::runtime_error("failed to create descriptor set layout!");
         }
     }
+
     void VulkanBaseRenderer::createGraphicsPipeline() {
         auto vertShaderCode = readFile("./Shaders/VertexShader.spv");
         auto fragShaderCode = readFile("./Shaders/FragmentShader.spv");
@@ -636,7 +627,7 @@ namespace Renderer
         pipelineInfo.renderPass = m_renderPass;
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
+       
         if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
@@ -692,7 +683,6 @@ namespace Renderer
         createImage(m_swapChainExtent.width, m_swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
         depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
     }
-
     VkFormat VulkanBaseRenderer:: findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
         for (VkFormat format : candidates) {
             VkFormatProperties props;
@@ -708,7 +698,6 @@ namespace Renderer
 
         throw std::runtime_error("failed to find supported format!");
     }
-
     VkFormat VulkanBaseRenderer::findDepthFormat() {
         return findSupportedFormat(
             { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
@@ -716,10 +705,10 @@ namespace Renderer
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
         );
     }
-
     bool VulkanBaseRenderer::hasStencilComponent(VkFormat format) {
         return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
     }
+
     void VulkanBaseRenderer::createTextureImage(Texture m_texture) {
         int texWidth, texHeight;
 
@@ -1032,7 +1021,6 @@ namespace Renderer
     void VulkanBaseRenderer::createIndexBuffer(MeshData mesh)
     {
         VkDeviceSize bufferSize = sizeof(uint32_t) * mesh.m_index.size();
-
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
         createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
@@ -1125,7 +1113,6 @@ namespace Renderer
             vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
     }
-
     void VulkanBaseRenderer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1282,7 +1269,7 @@ namespace Renderer
     void VulkanBaseRenderer::createSyncObjects() {
         m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-        inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+        m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1294,7 +1281,7 @@ namespace Renderer
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
                 vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
-                vkCreateFence(m_device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+                vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create synchronization objects for a frame!");
             }
         }
@@ -1309,7 +1296,7 @@ namespace Renderer
         UniformBufferObject ubo{};
 
        
-        m_Camera.setCameraWH(WIDTH, HEIGHT);
+        m_Camera.setCameraWH(ScreenWidth, ScreenHeight);
         
         m_Camera.setPerspectiveMatrix(60.f, 0.1f, 10.f);
         m_Camera.updateViewMatrix();
@@ -1322,7 +1309,7 @@ namespace Renderer
     }
 
     void VulkanBaseRenderer::drawFrame() {
-        vkWaitForFences(m_device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+        vkWaitForFences(m_device, 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
         lastTimeStamp = std::chrono::high_resolution_clock::now();
         tPrevEnd = lastTimeStamp;
 
@@ -1337,16 +1324,15 @@ namespace Renderer
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        vkResetFences(m_device, 1, &inFlightFences[currentFrame]);
+        vkResetFences(m_device, 1, &m_inFlightFences[currentFrame]);
 
         vkResetCommandBuffer(m_commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
         recordCommandBuffer(m_commandBuffers[currentFrame], imageIndex,m_Scene->getSceneMeshData(0));
 
-        //Draw ImGui 
-        m_Camera.updateMove();
+    /*    m_Camera.updateMove();*/
 
 
-        guiManager.drawUI(currentFrame, imageIndex);
+        m_ImGuiLayer->drawUI(currentFrame, imageIndex);
 
         updateUniformBuffer(currentFrame);
 
@@ -1354,7 +1340,7 @@ namespace Renderer
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        std::array<VkCommandBuffer, 2> submitCommandBuffers = { m_commandBuffers[currentFrame] , guiManager.m_imGuiCommandBuffers[currentFrame] };
+        std::array<VkCommandBuffer, 2> submitCommandBuffers = { m_commandBuffers[currentFrame] , m_ImGuiLayer->m_imGuiCommandBuffers[currentFrame] };
 
         VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[currentFrame] };
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -1369,7 +1355,7 @@ namespace Renderer
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
 
@@ -1597,6 +1583,10 @@ namespace Renderer
         return buffer;
     }
 
+    void VulkanBaseRenderer::setLayerStack(LayerStack* in_layerStack) 
+    {
+        m_layerStack = in_layerStack;
+    }
 };
 
 

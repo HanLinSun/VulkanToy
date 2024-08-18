@@ -10,6 +10,7 @@ namespace Renderer
 		RenderApplication()
 		{
 			PushOverLayer(new ImGuiLayer());
+			PassLayerStackToRenderer();
 		}
 		~RenderApplication() {};
 	};

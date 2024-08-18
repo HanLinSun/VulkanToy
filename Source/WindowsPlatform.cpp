@@ -2,6 +2,7 @@
 #include "Headers/Event/ApplicationEvent.h"
 #include "Headers/Event/KeyEvent.h"
 #include "Headers/Event/MouseEvent.h"
+#include <Vulkan/VulkanBaseRenderer.h>
 
 namespace Renderer
 {
@@ -56,6 +57,7 @@ namespace Renderer
 				data.Width = width;
 				data.Height = height;
 				WindowResizeEvent event(width, height);
+				data.Resize=true;
 				data.EventCallback (event);
 			});
 
@@ -126,6 +128,7 @@ namespace Renderer
 				MouseMovedEvent event((float)xPos, (float)yPos);
 				data.EventCallback(event);
 			});
+
 	}
 
 	void WindowsWindow::Shutdown()
@@ -133,11 +136,12 @@ namespace Renderer
 		glfwDestroyWindow(m_Window);
 	}
 
+	
 
 	void WindowsWindow::OnUpdate()
 	{
 		glfwPollEvents();
-		glfwSwapBuffers(m_Window);
+		//glfwSwapBuffers(m_Window);
 	}
 
 	void WindowsWindow::SetVSync(bool enabled)

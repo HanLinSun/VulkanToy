@@ -14,11 +14,14 @@ namespace Renderer
 		inline unsigned int GetWidth() const override { return m_Data.Width; }
 		inline unsigned int GetHeight() const override { return m_Data.Height; }
 
+		bool WindowResized = false;
+
 		//Window attributes
 		inline void SetEventCallback(const EventCallbackFunction& callback) override { m_Data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
 		bool IsVSync() const override;
 		GLFWwindow* getWindowptr() { return m_Window; }
+		void WindowResizeCallback(GLFWwindow* window, int width, int height);
 
 	private:
 		virtual void Init(const WindowProps& prop);
@@ -31,7 +34,7 @@ namespace Renderer
 			std::string Title;
 			unsigned int Width, Height;
 			bool VSync;
-
+			bool Resize;
 			EventCallbackFunction EventCallback;
 		};
 
