@@ -1,14 +1,14 @@
 #include "Headers/Vulkan/VulkanBaseRenderer.h"
 #include "Headers/RenderApplication.h"
+#include <Log.h>
 
-int main() {
-    //Renderer::VulkanBaseRenderer app;
-
-        Renderer::RenderApplication render_app;
+int main() 
+{
+    Renderer::Log::Init();
+ 
+    Renderer::RenderApplication render_app;
     try {
         render_app.Run();
-        //app.run();
-        //  app.application.Run();
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

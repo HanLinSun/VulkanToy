@@ -131,6 +131,9 @@
     <ClCompile Include="Source\EntryPoint.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Log.cpp">
+      <Filter>Source\Window</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -216,6 +219,9 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\Vulkan\VulkanBaseRenderer.h">
       <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Log.h">
+      <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

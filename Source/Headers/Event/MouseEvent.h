@@ -39,7 +39,7 @@ namespace Renderer
 		std::string ToString() const override
 		{
 			std::stringstream ss;
-			ss << "MouseScrollEvent: " <<m_XOffset << " , " << m_YOffset;
+			ss << "MouseScrollEvent: " <<GetXOffset() << " , " <<GetYOffset();
 			return ss.str();
 		}
 

@@ -2,6 +2,7 @@
 #include "Event/ApplicationEvent.h"
 #include "Headers/Event/Event.h"
 #include "Headers/WindowsPlatform.h"
+#include "Log.h"
 namespace Renderer
 {
 	Application* Application::s_instance = nullptr;
@@ -22,7 +23,7 @@ namespace Renderer
 	{
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNCTION(Application::OnWindowClosed));
-
+		LOG_CORE_INFO("{0}",e.ToString());
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{
 			(*--it)->OnEvent(e);
@@ -31,7 +32,6 @@ namespace Renderer
 				break;
 			}
 		}
-		//std::cout << " OnEvent triggered" << std::endl;
 	}
 
 	bool Application::OnWindowClosed(WindowCloseEvent& e) 
@@ -60,12 +60,12 @@ namespace Renderer
 		WindowResizeEvent e(1280, 720);
 		if (e.InInCategory(EventCategoryApplication))
 		{
-			std::cout << "Log: application event triggered" << std::endl;
+			LOG_CORE_TRACE(e.ToString());
 		}
 
 		if (e.InInCategory(EventCategoryInput))
 		{
-			std::cout << "Log: Input event triggered" << std::endl;
+			LOG_CORE_TRACE(e.ToString());
 		}
 
 		m_baseRenderer->initVulkan();

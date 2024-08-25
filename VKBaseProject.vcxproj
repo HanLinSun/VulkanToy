@@ -112,7 +112,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vendor\spdlog\include;D:\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsManaged>false</CompileAsManaged>
     </ClCompile>
     <Link>
@@ -163,6 +163,7 @@
     <ClInclude Include="Source\Headers\Layer.h" />
     <ClInclude Include="Source\Headers\LayerStack.h" />
     <ClInclude Include="Source\Headers\Light.h" />
+    <ClInclude Include="Source\Headers\Log.h" />
     <ClInclude Include="Source\Headers\Material.h" />
     <ClInclude Include="Source\Headers\modelFileLoader.h" />
     <ClInclude Include="Source\Headers\RenderApplication.h" />
@@ -190,6 +191,7 @@
     <ClCompile Include="Source\Layer.cpp" />
     <ClCompile Include="Source\LayerStack.cpp" />
     <ClCompile Include="Source\Light.cpp" />
+    <ClCompile Include="Source\Log.cpp" />
     <ClCompile Include="Source\Materials.cpp" />
     <ClCompile Include="Source\ModelFileLoader.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
