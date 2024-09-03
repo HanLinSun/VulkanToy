@@ -175,7 +175,6 @@ namespace Renderer
 		void mainLoop();
 		void cleanupSwapChain();
 
-
 		void recreateSwapChain();
 
 		void createInstance();

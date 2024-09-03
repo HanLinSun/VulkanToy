@@ -24,8 +24,7 @@ namespace Renderer
 {
     VulkanBaseRenderer::VulkanBaseRenderer(Window* windowptr)
     {
-        WindowsWindow* window_ptr = reinterpret_cast<WindowsWindow*>(windowptr);
-        m_window = window_ptr->getWindowptr();
+        m_window = reinterpret_cast<GLFWwindow*>(windowptr->GetNativeWindow());
         //glfwSetWindowUserPointer(m_window, this);
         glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
 

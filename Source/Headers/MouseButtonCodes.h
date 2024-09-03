@@ -1,0 +1,13 @@
+#pragma once
+#define APP_MOUSE_BUTTON_1         0
+#define APP_MOUSE_BUTTON_2         1
+#define APP_MOUSE_BUTTON_3         2
+#define APP_MOUSE_BUTTON_4         3
+#define APP_MOUSE_BUTTON_5         4
+#define APP_MOUSE_BUTTON_6         5
+#define APP_MOUSE_BUTTON_7         6
+#define APP_MOUSE_BUTTON_8         7
+#define APP_MOUSE_BUTTON_LAST      APP_MOUSE_BUTTON_8
+#define APP_MOUSE_BUTTON_LEFT      APP_MOUSE_BUTTON_1
+#define APP_MOUSE_BUTTON_RIGHT     APP_MOUSE_BUTTON_2
+#define APP_MOUSE_BUTTON_MIDDLE    APP_MOUSE_BUTTON_3

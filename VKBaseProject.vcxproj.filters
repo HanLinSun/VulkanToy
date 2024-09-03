@@ -55,6 +55,12 @@
     <Filter Include="Header\Vulkan">
       <UniqueIdentifier>{600c34b8-2fa7-4d28-8bdb-3f56a0bab420}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Vulkan">
+      <UniqueIdentifier>{5cface14-04c9-481c-bbb7-0e03050cd9fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Core">
+      <UniqueIdentifier>{cca0386f-fd30-4865-983d-71a17da51c89}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat">
@@ -98,9 +104,6 @@
     <ClCompile Include="Source\ModelFileLoader.cpp">
       <Filter>Source\RenderUtils</Filter>
     </ClCompile>
-    <ClCompile Include="Source\InputManager.cpp">
-      <Filter>Source\RenderUtils</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Camera.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
@@ -122,25 +125,25 @@
     <ClCompile Include="Source\LayerStack.cpp">
       <Filter>Source\Layer</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Application.cpp">
-      <Filter>Source\Window</Filter>
-    </ClCompile>
     <ClCompile Include="Source\ImGUILayer.cpp">
       <Filter>Source\Layer</Filter>
     </ClCompile>
     <ClCompile Include="Source\EntryPoint.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Log.cpp">
+    <ClCompile Include="Source\WindowsInput.cpp">
       <Filter>Source\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Application.cpp">
+      <Filter>Source\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Log.cpp">
+      <Filter>Source\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
       <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\threadpool.hpp">
-      <Filter>Source\RenderUtils</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Light.h">
       <Filter>Header</Filter>
@@ -181,7 +184,7 @@
     <ClInclude Include="Source\Headers\WindowsPlatform.h">
       <Filter>Header\Window</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\InputManager.h">
+    <ClInclude Include="Source\Headers\Input.h">
       <Filter>Header\Utils</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\modelFileLoader.h">
@@ -222,6 +225,24 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\Log.h">
       <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\WindowsInput.h">
+      <Filter>Header\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Keycodes.h">
+      <Filter>Header\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\MouseButtonCodes.h">
+      <Filter>Header\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\VulkanSwapChain.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\VulkanInitializer.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\VulkanBuffer.h">
+      <Filter>Header\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -20,7 +20,9 @@ namespace Renderer
 		inline void SetEventCallback(const EventCallbackFunction& callback) override { m_Data.EventCallback = callback; }
 		void SetVSync(bool enabled) override;
 		bool IsVSync() const override;
-		GLFWwindow* getWindowptr() { return m_Window; }
+
+		inline virtual void* GetNativeWindow() const { return m_Window; };
+
 		void WindowResizeCallback(GLFWwindow* window, int width, int height);
 
 	private:
