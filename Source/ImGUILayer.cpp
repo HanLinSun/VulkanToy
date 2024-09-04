@@ -32,7 +32,7 @@ namespace Renderer
     {
 
     }
-    void ImGuiLayer::drawUI(uint32_t currentFrame, uint32_t imageIndex)
+    void ImGuiLayer::DrawUI(uint32_t currentFrame, uint32_t imageIndex)
     {
         vkResetCommandBuffer(m_imGuiCommandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
         VkCommandBufferBeginInfo imGui_beginInfo{};
@@ -58,7 +58,7 @@ namespace Renderer
         vkEndCommandBuffer(m_imGuiCommandBuffers[currentFrame]);
     }
 
-    void ImGuiLayer::createImGuiDescriptorPool()
+    void ImGuiLayer::CreateImGuiDescriptorPool()
     {
         VkDescriptorPoolSize imGui_pool_sizes[] = {
         {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2},
@@ -73,7 +73,7 @@ namespace Renderer
         check_vk_result(err);
     }
 
-    void ImGuiLayer::createImGuiRenderPass(VkFormat swapChainImageFormat)
+    void ImGuiLayer::CreateImGuiRenderPass(VkFormat swapChainImageFormat)
     {
         VkAttachmentDescription guiAttachment{};
         guiAttachment.format = swapChainImageFormat;
@@ -120,7 +120,7 @@ namespace Renderer
         }
     }
 
-    void ImGuiLayer::createImGuiCommandBuffers()
+    void ImGuiLayer::CreateImGuiCommandBuffers()
     {
         m_imGuiCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
         VkCommandBufferAllocateInfo allocInfo{};
@@ -134,7 +134,7 @@ namespace Renderer
         }
     }
 
-    void ImGuiLayer::createImGuiFramebuffer(std::vector<VkImageView>& swapChainImageViews)
+    void ImGuiLayer::CreateImGuiFramebuffer(std::vector<VkImageView>& swapChainImageViews)
     {
         m_imGuiFrameBuffers.resize(swapChainImageViews.size());
         VkImageView attachment[1];
@@ -157,14 +157,14 @@ namespace Renderer
         }
     }
 
-    void ImGuiLayer::initImGUIAttribute(const VkDevice& in_device, VkExtent2D& in_swapChainExtent, VkFormat& swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height)
+    void ImGuiLayer::InitImGUIAttribute(const VkDevice& in_device, VkExtent2D& in_swapChainExtent, VkFormat& swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height)
     {
         m_device = in_device;
         m_swapChainExtent = in_swapChainExtent;
         OnAttach();
     }
 
-    void ImGuiLayer::destroy()
+    void ImGuiLayer::Destroy()
     {
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();

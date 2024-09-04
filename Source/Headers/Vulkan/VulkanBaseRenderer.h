@@ -72,14 +72,16 @@ namespace Renderer
 	{
 	public:
 		VulkanBaseRenderer(Window* targetWindow);
-		void run();
-		void destroy();
-		void cleanup();
-		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-		void setLayerStack(LayerStack* layer);
-		void initGUILayerAttribute();
-		void initVulkan();
+		void Run();
+		void Destroy();
+		void Cleanup();
+		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
+		void SetLayerStack(LayerStack* layer);
+		void InitGUILayerAttribute();
+		void InitVulkan();
 	private:
+
+		//Device* m_device;
 
 		GLFWwindow* m_window;
 
@@ -106,7 +108,10 @@ namespace Renderer
 		VkPipelineLayout m_pipelineLayout;
 
 		VkPipeline m_graphicsPipeline;
+
+		//RayTrace compute pipeline
 		VkPipeline m_computePipeline;
+		//
 
 		VkCommandPool m_commandPool;
 		VkImage m_colorImage;
@@ -116,6 +121,7 @@ namespace Renderer
 		VkImage depthImage;
 		VkDeviceMemory depthImageMemory;
 		VkImageView depthImageView;
+
 
 		uint32_t mipLevels;
 
@@ -168,84 +174,83 @@ namespace Renderer
 		bool framebufferResized = false;
 
 
-		void createScene();
-		void loadModel(std::string model_path, std::string model_texture_path);
-		void compileShader(std::string vertexShader, std::string fragmentShader);
+		void CreateScene();
 
-		void mainLoop();
-		void cleanupSwapChain();
+		void LoadModel(std::string model_path, std::string model_texture_path);
 
-		void recreateSwapChain();
+		void CompileShader(std::string vertexShader, std::string fragmentShader);
 
-		void createInstance();
+		void CleanupSwapChain();
 
-		void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+		void RecreateSwapChain();
 
-		void setupDebugMessenger();
+		void CreateInstance();
 
-		void createSurface();
+		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-		void pickPhysicalDevice();
+		void SetupDebugMessenger();
 
-		void createLogicalDevice();
+		void CreateSurface();
 
-		void createSwapChain();
+		void PickPhysicalDevice();
 
-		void createImageViews();
+		void CreateLogicalDevice();
 
-		void createRenderPass();
+		void CreateSwapChain();
+
+		void CreateImageViews();
+
+		void CreateRenderPass();
 		//GUI Pass
-		void createDescriptorSetLayout();
+		void CreateDescriptorSetLayout();
 
-		void createGraphicsPipeline();
+		void CreateGraphicsPipeline();
 
-		void createComputePipeline();
+		void CreateComputePipeline();
 
-		void createFramebuffers();
+		void CreateFramebuffers();
 
-		void createCommandPool(VkCommandPool* commandPool);
+		void CreateCommandPool(VkCommandPool* commandPool);
 
-		void createColorResources();
+		void CreateColorResources();
 
-		void createDepthResources();
+		void CreateDepthResources();
 
-		VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
-		VkFormat findDepthFormat();
+		VkFormat FindDepthFormat();
 
-		bool hasStencilComponent(VkFormat format);
+		bool HasStencilComponent(VkFormat format);
 
-		void createTextureImage(Texture m_texture);
+		void CreateTextureImage(Texture m_texture);
 
-		void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
 		VkSampleCountFlagBits getMaxUsableSampleCount();
 
-		void createTextureImageView();
+		void CreateTextureImageView();
 
-		void createTextureSampler();
+		void CreateTextureSampler();
 
+		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
+		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 
-		VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
-		void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
-		void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
+		void CreateVertexBuffer(MeshData mesh);
 
-		void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+		void CreateIndexBuffer(MeshData mesh);
 
-		void createVertexBuffer(MeshData mesh);
+		void CreateUniformBuffers();
 
-		void createIndexBuffer(MeshData mesh);
+		void CreateDescriptorPool();
 
-		void createUniformBuffers();
+		void CreateDescriptorSets();
 
-		void createDescriptorPool();
-
-		void createDescriptorSets();
-
-		void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
 		VkCommandBuffer beginSingleTimeCommands();
 

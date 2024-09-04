@@ -52,7 +52,7 @@ namespace Renderer
 
 	void Application::PassLayerStackToRenderer()
 	{
-		m_baseRenderer->setLayerStack(&m_LayerStack);
+		m_baseRenderer->SetLayerStack(&m_LayerStack);
 	}
 
 	void Application::Run()
@@ -68,19 +68,23 @@ namespace Renderer
 			LOG_CORE_TRACE(e.ToString());
 		}
 
-		m_baseRenderer->initVulkan();
-		m_baseRenderer->initGUILayerAttribute();
+		m_baseRenderer->InitVulkan();
+		m_baseRenderer->InitGUILayerAttribute();
 
 		while (m_Running)
 		{
+			float time = (float)glfwGetTime(); //Maybe in the future it will become platform based
+			Timestep timestep = time - m_LastFrameTime;
+			m_LastFrameTime = time;
+
 			m_Window->OnUpdate();
 			for (Layer* layer : m_LayerStack)
 			{
 				layer->OnUpdate();
 			}
-			m_baseRenderer->run();
+			m_baseRenderer->Run();
 		}
-		m_baseRenderer->destroy();
+		m_baseRenderer->Destroy();
 	}
 
 }

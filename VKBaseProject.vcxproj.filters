@@ -61,6 +61,9 @@
     <Filter Include="Source\Core">
       <UniqueIdentifier>{cca0386f-fd30-4865-983d-71a17da51c89}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header\Core">
+      <UniqueIdentifier>{e3f8a481-5219-4341-b064-74e30dcad7e9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat">
@@ -166,9 +169,6 @@
     <ClInclude Include="Source\Headers\Material.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Core.h">
-      <Filter>Header</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Headers\Event\ApplicationEvent.h">
       <Filter>Header\Event</Filter>
     </ClInclude>
@@ -235,13 +235,31 @@
     <ClInclude Include="Source\Headers\MouseButtonCodes.h">
       <Filter>Header\Event</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanSwapChain.h">
+    <ClInclude Include="Source\Headers\Vulkan\SwapChain.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Vulkan\VulkanInitializer.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Vulkan\VulkanBuffer.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Timestep.h">
+      <Filter>Header\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Core.h">
+      <Filter>Header\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\Device.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\QueueFlags.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\ShaderModule.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\Textures.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>

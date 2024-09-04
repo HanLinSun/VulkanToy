@@ -30,6 +30,8 @@ namespace Renderer
 	private:
 		bool OnWindowClosed(WindowCloseEvent& e);
 
+	private:
+		float m_LastFrameTime = 0.0f;
 		std::unique_ptr<Window> m_Window;
 		std::unique_ptr<VulkanBaseRenderer> m_baseRenderer;
 

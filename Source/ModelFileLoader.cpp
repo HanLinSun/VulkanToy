@@ -100,7 +100,7 @@ namespace Renderer
 			}
 			else if (s[0] == 'v' && s[1] == 't')
 			{
-				//Texcoord
+				//Texcoord 
 
 				std::vector<std::string> uv_pos = stringSplitHelper(s.substr(3, s.size() - 2), ' ');
 				temp_uv = glm::vec2(std::stof(uv_pos[0]), 1.f - std::stof(uv_pos[1]));

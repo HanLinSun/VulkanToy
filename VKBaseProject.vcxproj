@@ -172,10 +172,15 @@
     <ClInclude Include="Source\Headers\RendererInclude.h" />
     <ClInclude Include="Source\Headers\Scene.h" />
     <ClInclude Include="Source\Headers\SceneStructs.h" />
+    <ClInclude Include="Source\Headers\Timestep.h" />
+    <ClInclude Include="Source\Headers\Vulkan\QueueFlags.h" />
+    <ClInclude Include="Source\Headers\Vulkan\ShaderModule.h" />
+    <ClInclude Include="Source\Headers\Vulkan\Textures.h" />
     <ClInclude Include="Source\Headers\Vulkan\VulkanBaseRenderer.h" />
     <ClInclude Include="Source\Headers\Vulkan\VulkanBuffer.h" />
+    <ClInclude Include="Source\Headers\Vulkan\Device.h" />
     <ClInclude Include="Source\Headers\Vulkan\VulkanInitializer.h" />
-    <ClInclude Include="Source\Headers\Vulkan\VulkanSwapChain.h" />
+    <ClInclude Include="Source\Headers\Vulkan\SwapChain.h" />
     <ClInclude Include="Source\Headers\Window.h" />
     <ClInclude Include="Source\Headers\WindowsInput.h" />
     <ClInclude Include="Source\Headers\WindowsPlatform.h" />

@@ -17,17 +17,17 @@ namespace Renderer
 		void OnAttach() override;
 		void OnEvent(Event& event);
 
-		void drawUI(uint32_t currentFrame, uint32_t imageIndex);
+		void DrawUI(uint32_t currentFrame, uint32_t imageIndex);
 
 		//Vulkan needs them
-		void createImGuiDescriptorPool();
-		void createImGuiRenderPass(VkFormat swapChainImageFormat);
-		void createImGuiCommandBuffers();
-		void createImGuiFramebuffer(std::vector<VkImageView>& swapChainImageViews);
+		void CreateImGuiDescriptorPool();
+		void CreateImGuiRenderPass(VkFormat swapChainImageFormat);
+		void CreateImGuiCommandBuffers();
+		void CreateImGuiFramebuffer(std::vector<VkImageView>& swapChainImageViews);
 
-		void initImGUIAttribute(const VkDevice& in_device, VkExtent2D& swapChainExtent, VkFormat& swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height);
+		void InitImGUIAttribute(const VkDevice& in_device, VkExtent2D& swapChainExtent, VkFormat& swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height);
 
-		void destroy();
+		void Destroy();
 
 		void Begin();
 		void End();
