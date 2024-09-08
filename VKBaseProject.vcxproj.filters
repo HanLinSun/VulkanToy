@@ -143,6 +143,15 @@
     <ClCompile Include="Source\Log.cpp">
       <Filter>Source\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Instance.cpp">
+      <Filter>Source\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Device.cpp">
+      <Filter>Source\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\SwapChain.cpp">
+      <Filter>Source\Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -260,6 +269,9 @@
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Vulkan\Textures.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\Instance.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>

@@ -4,6 +4,9 @@
 #include <cstdlib>
 #include <imgui.h>
 #include <Window.h>
+#include "Instance.h"
+#include "Device.h"
+#include "QueueFlags.h"
 
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
@@ -35,15 +38,6 @@ const bool enableValidationLayers = true;
 #include <backends/imgui_impl_vulkan.h>
 #include <LayerStack.h>
 #include <ImGuiLayer.h>
-
-struct QueueFamilyIndices {
-	std::optional<uint32_t> graphicsFamily;
-	std::optional<uint32_t> presentFamily;
-
-	bool isComplete() {
-		return graphicsFamily.has_value() && presentFamily.has_value();
-	}
-};
 
 struct SwapChainSupportDetails {
 	VkSurfaceCapabilitiesKHR capabilities;
@@ -81,19 +75,18 @@ namespace Renderer
 		void InitVulkan();
 	private:
 
-		//Device* m_device;
-
+		Device* m_device;
+		Instance* m_instance;
 		GLFWwindow* m_window;
+		SwapChain* m_swapChain;
 
-		VkInstance m_instance;
 		VkDebugUtilsMessengerEXT m_debugMessenger;
 		VkSurfaceKHR m_surface;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-		VkDevice m_device;
 		VkQueue m_graphicsQueue;
 		VkQueue m_presentQueue;
-		VkSwapchainKHR m_swapChain;
+		//VkSwapchainKHR m_swapChain;
 
 		std::vector<VkImage> m_swapChainImages;
 		VkFormat m_swapChainImageFormat;
@@ -111,7 +104,7 @@ namespace Renderer
 
 		//RayTrace compute pipeline
 		VkPipeline m_computePipeline;
-		//
+
 
 		VkCommandPool m_commandPool;
 		VkImage m_colorImage;
@@ -180,23 +173,15 @@ namespace Renderer
 
 		void CompileShader(std::string vertexShader, std::string fragmentShader);
 
-		void CleanupSwapChain();
+		void DestroyFrameResources();
 
 		void RecreateSwapChain();
-
-		void CreateInstance();
 
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 		void SetupDebugMessenger();
 
 		void CreateSurface();
-
-		void PickPhysicalDevice();
-
-		void CreateLogicalDevice();
-
-		void CreateSwapChain();
 
 		void CreateImageViews();
 
@@ -226,7 +211,7 @@ namespace Renderer
 
 		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 
-		VkSampleCountFlagBits getMaxUsableSampleCount();
+		VkSampleCountFlagBits GetMaxUsableSampleCount(VkPhysicalDevice physicalDevice);
 
 		void CreateTextureImageView();
 
@@ -280,11 +265,7 @@ namespace Renderer
 
 		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
 
-		bool isDeviceSuitable(VkPhysicalDevice device);
-
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-
-		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
 		std::vector<const char*> getRequiredExtensions();
 
@@ -294,7 +275,6 @@ namespace Renderer
 
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
 			std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
 			return VK_FALSE;
 		}
 	};

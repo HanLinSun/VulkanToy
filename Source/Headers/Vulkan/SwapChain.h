@@ -1,7 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "Device.h"
+#include <Vulkan/Device.h>
+#include <glfw/glfw3.h>
 
 class Device;
 class SwapChain {
@@ -25,12 +26,13 @@ public:
     ~SwapChain();
 
 private:
-    SwapChain(Device* device, VkSurfaceKHR vkSurface, unsigned int numBuffers);
+    SwapChain(Device* device, VkSurfaceKHR vkSurface, unsigned int numBuffers, GLFWwindow* window);
     void Create();
     void Destroy();
 
     Device* m_device;
     VkSurfaceKHR m_vkSurface;
+    GLFWwindow* m_window;
 
     unsigned int m_numBuffers;
 

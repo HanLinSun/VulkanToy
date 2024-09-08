@@ -2,7 +2,9 @@
 #include <array>
 #include <stdexcept>
 #include <vulkan/vulkan.h>
-#include "Vulkan/QueueFlags.h"
+#include "QueueFlags.h"
+#include "SwapChain.h"
+#include <glfw/glfw3.h>
 
 class SwapChain;
 class Instance;
@@ -10,7 +12,7 @@ class Device
 {
 	friend class Instance;
 public:
-	SwapChain* CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers);
+	SwapChain* CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers, GLFWwindow* window);
 	Instance* GetInstance();
 	VkDevice GetVkDevice();
 	VkQueue GetQueue(QueueFlags flag);

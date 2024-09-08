@@ -173,6 +173,7 @@
     <ClInclude Include="Source\Headers\Scene.h" />
     <ClInclude Include="Source\Headers\SceneStructs.h" />
     <ClInclude Include="Source\Headers\Timestep.h" />
+    <ClInclude Include="Source\Headers\Vulkan\Instance.h" />
     <ClInclude Include="Source\Headers\Vulkan\QueueFlags.h" />
     <ClInclude Include="Source\Headers\Vulkan\ShaderModule.h" />
     <ClInclude Include="Source\Headers\Vulkan\Textures.h" />
@@ -195,8 +196,10 @@
     <ClCompile Include="include\imgui_widgets.cpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\Device.cpp" />
     <ClCompile Include="Source\EntryPoint.cpp" />
     <ClCompile Include="Source\ImGUILayer.cpp" />
+    <ClCompile Include="Source\Instance.cpp" />
     <ClCompile Include="Source\Layer.cpp" />
     <ClCompile Include="Source\LayerStack.cpp" />
     <ClCompile Include="Source\Light.cpp" />
@@ -204,6 +207,7 @@
     <ClCompile Include="Source\Materials.cpp" />
     <ClCompile Include="Source\ModelFileLoader.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
+    <ClCompile Include="Source\SwapChain.cpp" />
     <ClCompile Include="Source\VulkanBaseRenderer.cpp" />
     <ClCompile Include="Source\WindowsInput.cpp" />
     <ClCompile Include="Source\WindowsPlatform.cpp" />
