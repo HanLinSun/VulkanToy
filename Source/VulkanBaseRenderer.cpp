@@ -42,7 +42,7 @@ namespace Renderer
         m_device= m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, deviceFeatures);
         m_swapChain = m_device->CreateSwapChain(m_surface, 5 , m_window);
 
-        msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
+        //msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
 
     }
     void VulkanBaseRenderer::Run() {
@@ -542,7 +542,7 @@ namespace Renderer
     VkFormat VulkanBaseRenderer:: FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
         for (VkFormat format : candidates) {
             VkFormatProperties props;
-            vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &props);
+            vkGetPhysicalDeviceFormatProperties(m_instance->GetPhysicalDevice(), format, &props);
 
             if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
                 return format;
@@ -1040,14 +1040,13 @@ namespace Renderer
 
     uint32_t VulkanBaseRenderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
         VkPhysicalDeviceMemoryProperties memProperties;
-        vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
+        vkGetPhysicalDeviceMemoryProperties(m_instance->GetPhysicalDevice(), &memProperties);
 
         for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
             if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
                 return i;
             }
         }
-
         throw std::runtime_error("failed to find suitable memory type!");
     }
 
