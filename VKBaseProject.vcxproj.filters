@@ -152,6 +152,9 @@
     <ClCompile Include="Source\SwapChain.cpp">
       <Filter>Source\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="Source\BufferUtils.cpp">
+      <Filter>Source\Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -250,7 +253,7 @@
     <ClInclude Include="Source\Headers\Vulkan\VulkanInitializer.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanBuffer.h">
+    <ClInclude Include="Source\Headers\Vulkan\BufferUtils.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Timestep.h">

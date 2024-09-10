@@ -528,7 +528,7 @@ namespace Renderer
         //Compute command pool
     }
     void VulkanBaseRenderer::CreateColorResources() {
-        VkFormat colorFormat = m_swapChainImageFormat;
+        VkFormat colorFormat = m_swapChain->GetVkImageFormat();
 
         CreateImage(m_swapChainExtent.width, m_swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_colorImage, m_colorImageMemory);
         m_colorImageView = CreateImageView(m_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);

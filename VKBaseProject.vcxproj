@@ -178,7 +178,7 @@
     <ClInclude Include="Source\Headers\Vulkan\ShaderModule.h" />
     <ClInclude Include="Source\Headers\Vulkan\Textures.h" />
     <ClInclude Include="Source\Headers\Vulkan\VulkanBaseRenderer.h" />
-    <ClInclude Include="Source\Headers\Vulkan\VulkanBuffer.h" />
+    <ClInclude Include="Source\Headers\Vulkan\BufferUtils.h" />
     <ClInclude Include="Source\Headers\Vulkan\Device.h" />
     <ClInclude Include="Source\Headers\Vulkan\VulkanInitializer.h" />
     <ClInclude Include="Source\Headers\Vulkan\SwapChain.h" />
@@ -195,6 +195,7 @@
     <ClCompile Include="include\imgui_tables.cpp" />
     <ClCompile Include="include\imgui_widgets.cpp" />
     <ClCompile Include="Source\Application.cpp" />
+    <ClCompile Include="Source\BufferUtils.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\Device.cpp" />
     <ClCompile Include="Source\EntryPoint.cpp" />
