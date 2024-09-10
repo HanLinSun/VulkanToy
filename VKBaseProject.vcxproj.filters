@@ -83,27 +83,6 @@
     <ClCompile Include="Source\VulkanBaseRenderer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="include\imgui.cpp">
-      <Filter>Source\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="include\imgui_demo.cpp">
-      <Filter>Source\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="include\imgui_draw.cpp">
-      <Filter>Source\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="include\imgui_tables.cpp">
-      <Filter>Source\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="include\imgui_widgets.cpp">
-      <Filter>Source\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="include\backends\imgui_impl_glfw.cpp">
-      <Filter>Source\ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="include\backends\imgui_impl_vulkan.cpp">
-      <Filter>Source\ImGUI</Filter>
-    </ClCompile>
     <ClCompile Include="Source\ModelFileLoader.cpp">
       <Filter>Source\RenderUtils</Filter>
     </ClCompile>
@@ -154,6 +133,27 @@
     </ClCompile>
     <ClCompile Include="Source\BufferUtils.cpp">
       <Filter>Source\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ImGUI\imgui.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ImGUI\backends\imgui_impl_vulkan.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ImGUI\imgui_demo.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ImGUI\imgui_draw.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ImGUI\imgui_tables.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ImGUI\imgui_widgets.cpp">
+      <Filter>Source\ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="include\ImGUI\backends\imgui_impl_glfw.cpp">
+      <Filter>Source\ImGUI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

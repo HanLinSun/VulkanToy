@@ -72,9 +72,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>F:\VSCodingRepo\VKBaseRenderer\Source\Headers;D:\VulkanLibrary\glfw-3.3.8\glfw-3.3.8\include;D:\VulkanSDK\Include;F:\VS2022IDE\Libraries\glm-0.9.9.8\glm;F:\VS2022IDE\Libraries\glfw-3.3.8.bin.WIN64\include;$(IncludePath)</IncludePath>
-    <ExternalIncludePath>F:\VSCodingRepo\VKBaseRenderer\include;$(ExternalIncludePath)</ExternalIncludePath>
+    <IncludePath>$(SolutionDir)include;$(SolutionDir)include\ImGUI;$(SolutionDir)Source\Headers;$(SolutionDir)vendor\glfw\include;$(VULKAN_SDK)\Include;$(SolutionDir)vendor\glm;$(IncludePath)</IncludePath>
+    <ExternalIncludePath>$(SolutionDir)include;$(ExternalIncludePath)</ExternalIncludePath>
     <OutDir>$(SolutionDir)\bin\$(Configuration)-$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)\bin\$(Configuration)-$(Platform)</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -118,7 +119,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\VulkanSDK\Lib;F:\VS2022IDE\Libraries\glfw-3.3.8.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)include\glfw-3.4.bin.WIN64\lib-vc2022;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -187,13 +188,13 @@
     <ClInclude Include="Source\Headers\WindowsPlatform.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="include\backends\imgui_impl_glfw.cpp" />
-    <ClCompile Include="include\backends\imgui_impl_vulkan.cpp" />
-    <ClCompile Include="include\imgui.cpp" />
-    <ClCompile Include="include\imgui_demo.cpp" />
-    <ClCompile Include="include\imgui_draw.cpp" />
-    <ClCompile Include="include\imgui_tables.cpp" />
-    <ClCompile Include="include\imgui_widgets.cpp" />
+    <ClCompile Include="include\ImGUI\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="include\ImGUI\backends\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="include\ImGUI\imgui.cpp" />
+    <ClCompile Include="include\ImGUI\imgui_demo.cpp" />
+    <ClCompile Include="include\ImGUI\imgui_draw.cpp" />
+    <ClCompile Include="include\ImGUI\imgui_tables.cpp" />
+    <ClCompile Include="include\ImGUI\imgui_widgets.cpp" />
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\BufferUtils.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
