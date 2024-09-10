@@ -44,7 +44,7 @@ namespace Renderer
 
 		for (int split = 0; split <= s.size(); split++)
 		{
-			if (s[split] == target || s[split] == '\0')
+			if (s[split] == target || s[split] == '\0' )
 			{
 				std::string splitStr = s.substr(start, split - start);
 				resNum.push_back(splitStr);
@@ -80,6 +80,17 @@ namespace Renderer
 
 	}
 
+	void removeUselessSpace(std::string& s)
+	{
+		int slow=0;
+		for (int fast = 0; fast< s.size(); fast++)
+		{
+			if (s[fast] == ' ' && s[fast+1]==' ') continue;
+			s[slow] = s[fast];
+			slow++;
+		}
+	}
+
 	void ObjFileLoader::loadFileData(std::string modelFilePath)
 	{
 		std::ifstream file;
@@ -89,14 +100,17 @@ namespace Renderer
 		glm::vec3 temp_normal;
 		glm::vec2 temp_uv;
 
+		std::string lastReadline = "";
 		while (getline(file, s))
 		{
+			removeUselessSpace(s);
 			if (s[0] == 'v' && s[1] == ' ')
 			{
 				//vertex
 				std::vector<std::string> vert_pos = stringSplitHelper(s.substr(2, s.size() - 2), ' ');
 				temp_position = glm::vec3(std::stof(vert_pos[0]), std::stof(vert_pos[1]), std::stof(vert_pos[2]));
 				vertex_pos.push_back(temp_position);
+				lastReadline = s;
 			}
 			else if (s[0] == 'v' && s[1] == 't')
 			{
@@ -105,6 +119,7 @@ namespace Renderer
 				std::vector<std::string> uv_pos = stringSplitHelper(s.substr(3, s.size() - 2), ' ');
 				temp_uv = glm::vec2(std::stof(uv_pos[0]), 1.f - std::stof(uv_pos[1]));
 				vertex_texCoord.push_back(temp_uv);
+				lastReadline = s;
 			}
 			else if (s[0] == 'v' && s[1] == 'n')
 			{
@@ -112,12 +127,23 @@ namespace Renderer
 				std::vector<std::string> vert_normal = stringSplitHelper(s.substr(3, s.size() - 2), ' ');
 				temp_position = glm::vec3(std::stof(vert_normal[0]), std::stof(vert_normal[1]), std::stof(vert_normal[2]));
 				vertex_normal.push_back(temp_position);
+				lastReadline = s;
 			}
 			else if (s[0] == 'f')
 			{
 				//Face index
 				std::vector<std::string> face_idxStr = stringSplitHelper(s.substr(2, s.size() - 2), ' ');
 				splitAndLoadFaceIndex(face_idxStr, face_pos_idx, face_uv_idx, face_normal_idx);
+				lastReadline = s;
+			}
+			if (lastReadline[0] == 'f' && s[0]!='f' && s[0]!='s')
+			{
+				//one model read finished
+				pos_offset_idx.push_back(vertex_pos.size());
+				normal_offset_idx.push_back(vertex_normal.size());
+				texcoord_offset_idx.push_back(vertex_texCoord.size());
+				face_offset_idx.push_back(face_pos_idx.size());
+				lastReadline = s;
 			}
 		}
 	}

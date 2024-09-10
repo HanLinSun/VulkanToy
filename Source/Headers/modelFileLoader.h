@@ -40,7 +40,10 @@ namespace Renderer
 
 		std::vector<std::string> texturePath;
 
-		std::vector<int> offset_idx;
+		std::vector<int> pos_offset_idx;
+		std::vector<int> normal_offset_idx;
+		std::vector<int> texcoord_offset_idx;
+		std::vector<int> face_offset_idx;
 
 	};
 
