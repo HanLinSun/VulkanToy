@@ -174,8 +174,10 @@
     <ClInclude Include="Source\Headers\Scene.h" />
     <ClInclude Include="Source\Headers\SceneStructs.h" />
     <ClInclude Include="Source\Headers\Timestep.h" />
+    <ClInclude Include="Source\Headers\Vulkan\FrameBuffer.h" />
     <ClInclude Include="Source\Headers\Vulkan\Instance.h" />
     <ClInclude Include="Source\Headers\Vulkan\QueueFlags.h" />
+    <ClInclude Include="Source\Headers\Vulkan\RenderPass.h" />
     <ClInclude Include="Source\Headers\Vulkan\ShaderModule.h" />
     <ClInclude Include="Source\Headers\Vulkan\Textures.h" />
     <ClInclude Include="Source\Headers\Vulkan\VulkanBaseRenderer.h" />

@@ -49,9 +49,6 @@
     <Filter Include="Header\Renderer">
       <UniqueIdentifier>{796aac14-8112-48c5-bdff-3c88c598ab56}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Renderer">
-      <UniqueIdentifier>{955fc731-f9f8-4833-a499-c4846499cc3b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header\Vulkan">
       <UniqueIdentifier>{600c34b8-2fa7-4d28-8bdb-3f56a0bab420}</UniqueIdentifier>
     </Filter>
@@ -275,6 +272,12 @@
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Vulkan\Instance.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\RenderPass.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\FrameBuffer.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>

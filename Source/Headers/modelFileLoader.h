@@ -40,9 +40,16 @@ namespace Renderer
 
 		std::vector<std::string> texturePath;
 
+		std::vector<int> offset_idx;
+
 	};
 
 	class PlyFiileLoader : public ModelFileLoader
+	{
+
+	};
+
+	class GltfFileLoader :public ModelFileLoader
 	{
 
 	};
