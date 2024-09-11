@@ -70,6 +70,10 @@ namespace Renderer
 		std::vector<std::string> element_1 = stringSplitHelper(faceIdxStr[1], '/');
 		std::vector<std::string> element_2 = stringSplitHelper(faceIdxStr[2], '/');
 
+
+		std::cout << element_0[0]<< "," << element_1[0] << "," <<element_2[0] << std::endl;
+		std::cout << std::stoi(element_0[0]) << "," << std::stoi(element_1[0]) << "," << std::stoi(element_2[0]) << std::endl;
+
 		pos_idx = glm::vec3(std::stoi(element_0[0]),std::stoi(element_1[0]),std::stoi( element_2[0]));
 		normal_idx = glm::vec3(std::stoi(element_0[2]),std::stoi(element_1[2]), std::stoi(element_2[2]));
 		uv_idx = glm::vec3(std::stoi(element_0[1]), std::stoi(element_1[1]),std::stoi (element_2[1]));
@@ -86,8 +90,7 @@ namespace Renderer
 		for (int fast = 0; fast< s.size(); fast++)
 		{
 			if (s[fast] == ' ' && s[fast+1]==' ') continue;
-			s[slow] = s[fast];
-			slow++;
+			s[slow++] = s[fast];
 		}
 	}
 
@@ -139,11 +142,11 @@ namespace Renderer
 			if (lastReadline[0] == 'f' && s[0]!='f' && s[0]!='s')
 			{
 				//one model read finished
-				pos_offset_idx.push_back(vertex_pos.size());
-				normal_offset_idx.push_back(vertex_normal.size());
-				texcoord_offset_idx.push_back(vertex_texCoord.size());
-				face_offset_idx.push_back(face_pos_idx.size());
-				lastReadline = s;
+				//pos_offset_idx.push_back(vertex_pos.size());
+				//normal_offset_idx.push_back(vertex_normal.size());
+				//texcoord_offset_idx.push_back(vertex_texCoord.size());
+				//face_offset_idx.push_back(face_pos_idx.size());
+				//lastReadline = s;
 			}
 		}
 	}
