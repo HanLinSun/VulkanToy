@@ -11,7 +11,7 @@
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
 
-const std::string MODEL_PATH = "./Models/viking_obj.obj";
+const std::string MODEL_PATH = "./Models/57-estancia_comedor_obj/room.obj";
 const std::string TEXTURE_PATH = "./Textures/viking_room.png";
 
 //const int MAX_FRAMES_IN_FLIGHT = 2;
