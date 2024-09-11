@@ -5,6 +5,7 @@
 #include<glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 #include "Scene.h"
+#include <tiny_obj_loader.h>
 
 
 namespace Renderer
@@ -38,7 +39,10 @@ namespace Renderer
 		std::vector<glm::vec3> face_normal_idx;
 		std::vector<glm::vec3> face_uv_idx;
 
-		std::vector<std::string> texturePath;
+		//tiny obj
+		tinyobj::attrib_t attrib;
+		std::vector<tinyobj::shape_t> shapes;
+		std::vector<tinyobj::material_t> materials;
 
 		std::vector<int> offset_idx;
 
