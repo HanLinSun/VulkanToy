@@ -9,7 +9,7 @@ namespace Renderer
 		glm::vec3 position;
 		glm::vec3 normal;
 		glm::vec3 color;
-		glm::vec2 texCoords;
+		glm::vec2 texCoord;
 
 		static VkVertexInputBindingDescription getBindingDescription() {
 			VkVertexInputBindingDescription bindingDescription{};
@@ -41,13 +41,13 @@ namespace Renderer
 			attributeDescriptions[3].binding = 0;
 			attributeDescriptions[3].location = 3;
 			attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT;
-			attributeDescriptions[3].offset = offsetof(Vertex, texCoords);
+			attributeDescriptions[3].offset = offsetof(Vertex, texCoord);
 
 			return attributeDescriptions;
 		}
 
 		bool operator==(const Vertex& other) const {
-			return position == other.position && color == other.color&& normal==other.normal && texCoords == other.texCoords;
+			return position == other.position && color == other.color&& normal==other.normal && texCoord == other.texCoord;
 		}
 
 	};
