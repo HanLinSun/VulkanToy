@@ -25,20 +25,21 @@ namespace Renderer
 	{
 	public:
 		ObjFileLoader();
-		~ObjFileLoader();
+		virtual ~ObjFileLoader();
 
 		void loadFileData(std::string modelFilePath) override;
 
 		std::vector<MeshData> m_meshes;
 	};
 
-	class PlyFiileLoader : public ModelFileLoader
+	class GLTFFileLoader :public ModelFileLoader
 	{
+	public:
+		GLTFFileLoader();
+		virtual ~GLTFFileLoader();
 
-	};
+		void loadFileData(std::string modelFilePath) override;
 
-	class GltfFileLoader :public ModelFileLoader
-	{
-
+		std::vector<GLTFMeshData> m_meshes;
 	};
 }

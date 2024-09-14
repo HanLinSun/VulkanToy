@@ -167,6 +167,7 @@
     <ClInclude Include="Source\Headers\Light.h" />
     <ClInclude Include="Source\Headers\Log.h" />
     <ClInclude Include="Source\Headers\Material.h" />
+    <ClInclude Include="Source\Headers\Model.h" />
     <ClInclude Include="Source\Headers\modelFileLoader.h" />
     <ClInclude Include="Source\Headers\MouseButtonCodes.h" />
     <ClInclude Include="Source\Headers\RenderApplication.h" />
@@ -179,7 +180,7 @@
     <ClInclude Include="Source\Headers\Vulkan\QueueFlags.h" />
     <ClInclude Include="Source\Headers\Vulkan\RenderPass.h" />
     <ClInclude Include="Source\Headers\Vulkan\ShaderModule.h" />
-    <ClInclude Include="Source\Headers\Vulkan\Textures.h" />
+    <ClInclude Include="Source\Headers\Vulkan\Texture.h" />
     <ClInclude Include="Source\Headers\Vulkan\VulkanBaseRenderer.h" />
     <ClInclude Include="Source\Headers\Vulkan\BufferUtils.h" />
     <ClInclude Include="Source\Headers\Vulkan\Device.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="Source\Light.cpp" />
     <ClCompile Include="Source\Log.cpp" />
     <ClCompile Include="Source\Materials.cpp" />
+    <ClCompile Include="Source\Model.cpp" />
     <ClCompile Include="Source\ModelFileLoader.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\SwapChain.cpp" />

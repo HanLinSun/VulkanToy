@@ -152,6 +152,9 @@
     <ClCompile Include="include\ImGUI\backends\imgui_impl_glfw.cpp">
       <Filter>Source\ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Model.cpp">
+      <Filter>Source\Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -174,9 +177,6 @@
     </ClInclude>
     <ClInclude Include="include\imconfig.h">
       <Filter>Header\ImGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Material.h">
-      <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Event\ApplicationEvent.h">
       <Filter>Header\Event</Filter>
@@ -268,7 +268,7 @@
     <ClInclude Include="Source\Headers\Vulkan\ShaderModule.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\Textures.h">
+    <ClInclude Include="Source\Headers\Vulkan\Texture.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Vulkan\Instance.h">
@@ -279,6 +279,12 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\Vulkan\FrameBuffer.h">
       <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Model.h">
+      <Filter>Header\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Material.h">
+      <Filter>Header\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

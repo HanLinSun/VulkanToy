@@ -19,7 +19,6 @@ namespace Renderer
 {
 
 	ModelFileLoader::ModelFileLoader() {}
-
 	void ModelFileLoader::loadFileData(std::string path) {}
 	ObjFileLoader::ObjFileLoader() {}
 

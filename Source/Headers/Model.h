@@ -2,12 +2,28 @@
 #include "Vulkan/Device.h"
 #include "SceneStructs.h"
 #include "Vulkan/Texture.h"
+#include "Material.h"
+#include <glm/glm.hpp>
 namespace Renderer
 {
 
-	struct ModelUniformBuffer
+	struct ModelBufferObject
 	{
-
+		glm::mat4 modelMatrix;
+	};
+	enum TextureType
+	{
+		BaseColor,
+		Metallic,
+		Roughness,
+		Albedo,
+		Glossiness,
+		Specular,
+		AmbientOcclusion,
+		Emissive, 
+		Opacity,
+		Displacement,
+		Anisotropic
 	};
 
 	class Model
@@ -17,7 +33,7 @@ namespace Renderer
 		Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 		virtual ~Model();
 
-		void SetTexture(VkImage texture);
+		void SetTexture(Texture texture,TextureType type);
 
 		const std::vector<Vertex>& GetVertices() const;
 
@@ -27,11 +43,9 @@ namespace Renderer
 
 		VkBuffer GetIndexBuffer() const;
 
-		const ModelUniformBuffer& GetModelUniformBuffer() const;
+		const ModelBufferObject& GetModelBufferObject() const;
 
-		VkBuffer GetModelBuffer() const;
-		VkImageView GetTextureView() const;
-		VkSampler GetTextureSampler() const;
+		VkBuffer GetModelUniformBuffer() const;
 
 	protected:
 		Device* m_device;
@@ -43,7 +57,12 @@ namespace Renderer
 		VkBuffer m_indexBuffer;
 		VkDeviceMemory m_indexBufferMemory;
 
-		std::vector<Texture> m_textures;
+		VkBuffer m_modelUniformBuffer;
+		VkDeviceMemory m_modelUniformMemory;
+
+		ModelBufferObject m_modelBufferObject;
+
+		std::unordered_map<TextureType, Texture> m_textures;
 		std::vector<Material> m_materials;
 	};
 }

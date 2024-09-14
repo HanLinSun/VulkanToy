@@ -34,7 +34,7 @@ namespace Renderer
 		m_meshes.push_back(mesh);
 	}
 
-	void Scene::loadModel(std::string path)
+	void Scene::LoadModel(std::string path)
 	{
 		//Default only have 1 polygon in one obj file
 		MeshData mesh;
@@ -57,30 +57,17 @@ namespace Renderer
 		m_meshes.push_back(mesh);
 	}
 
-	void Scene::loadPolygonDiffuseTexture(Polygon& in_polygon, std::string texture_path)
-	{
-		Texture diffuse_texture;
-		stbi_uc* pixels = stbi_load(texture_path.c_str(), &diffuse_texture.width, &diffuse_texture.height, &diffuse_texture.channels, STBI_rgb_alpha);
-		in_polygon.m_diffuseColorTexture.pixels = pixels;
-		in_polygon.m_diffuseColorTexture.width = diffuse_texture.width;
-		in_polygon.m_diffuseColorTexture.height = diffuse_texture.height;
-		in_polygon.m_diffuseColorTexture.channels = diffuse_texture.channels;
-	}
 
 	void Scene::loadMeshTexture(MeshData& m_mesh, std::string texture_path)
 	{
-		Texture diffuse_texture;
-		stbi_uc* pixels = stbi_load(texture_path.c_str(), &diffuse_texture.width, &diffuse_texture.height, &diffuse_texture.channels, STBI_rgb_alpha);
-		m_mesh.m_diffuseColorTexture.pixels = pixels;
-		m_mesh.m_diffuseColorTexture.width = diffuse_texture.width;
-		m_mesh.m_diffuseColorTexture.height = diffuse_texture.height;
-		m_mesh.m_diffuseColorTexture.channels = diffuse_texture.channels;
+		//Texture diffuse_texture;
+		//stbi_uc* pixels = stbi_load(texture_path.c_str(), &diffuse_texture.width, &diffuse_texture.height, &diffuse_texture.channels, STBI_rgb_alpha);
+		//m_mesh.m_diffuseColorTexture.pixels = pixels;
+		//m_mesh.m_diffuseColorTexture.width = diffuse_texture.width;
+		//m_mesh.m_diffuseColorTexture.height = diffuse_texture.height;
+		//m_mesh.m_diffuseColorTexture.channels = diffuse_texture.channels;
 	}
 
-	const std::vector<Polygon> Scene::getScenePolygons()
-	{
-		return m_polygons;
-	}
 
 	const std::vector<MeshData> Scene::getSceneMeshDatas()
 	{
@@ -90,10 +77,6 @@ namespace Renderer
 	const MeshData Scene::getSceneMeshData(int index)
 	{
 		return m_meshes[index];
-	}
-	const Polygon Scene::getScenePolygon(int index)
-	{
-		return m_polygons[index];
 	}
 
 	Camera Scene::getSceneCamera()

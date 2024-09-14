@@ -6,12 +6,7 @@
 
 namespace Renderer
 {
-	enum AlphaBlendMode
-	{
-		MODE_OPAQUE,
-		MODE_MASK,
-		MODE_BLEND,
-	};
+
 	struct Vertex
 	{
 		glm::vec3 position;
@@ -60,39 +55,15 @@ namespace Renderer
 
 	};
 
-	struct Material
-	{
-		Device* device = nullptr;
-		AlphaBlendMode alphaMode = MODE_OPAQUE;
-		float alphaCutoff = 1.0f;
-		float metallicFactor = 1.0f;
-		float roughnessFactor = 1.0f;
-		glm::vec4 baseColorFactor = glm::vec4(1.0f);
-		Texture* baseColorTexture = nullptr;
-		Texture* metallicRoughnessTexture = nullptr;
-		Texture* normalTexture = nullptr;
-		Texture* occlusionTexture = nullptr;
-		Texture* emissiveTexture = nullptr;
-
-		Texture* specularGlossinessTexture;
-		Texture* diffuseTexture;
-
-		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
-
-		Material(Device* device) : device(device) {};
-		void createDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
-	};
-
-
-
 	struct MeshData
 	{
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
+	};
 
-		Texture m_diffuseColorTexture;
-		Texture m_normalTexture;
-		Texture m_specularColorTexture;
+	struct GLTFMeshData
+	{
+
 	};
 
 }
