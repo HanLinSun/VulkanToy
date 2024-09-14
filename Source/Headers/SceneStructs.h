@@ -114,7 +114,7 @@ namespace Renderer
 	struct MeshData
 	{
 		std::vector<Vertex> m_vertices;
-		std::vector<uint32_t> m_index;
+		std::vector<uint32_t> m_indices;
 
 		Texture m_diffuseColorTexture;
 		Texture m_normalTexture;

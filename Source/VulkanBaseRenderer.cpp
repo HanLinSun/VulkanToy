@@ -70,7 +70,7 @@ namespace Renderer
         init_info.PhysicalDevice = m_physicalDevice;
         init_info.Device = m_device->GetVkDevice();
         init_info.QueueFamily = m_device->GetInstance()->GetQueueFamilyIndices()[QueueFlags::Graphics];
-        init_info.Queue = m_graphicsQueue;
+        init_info.Queue = m_device->GetQueue(QueueFlags::Graphics);
         init_info.PipelineCache = VK_NULL_HANDLE;
 
         init_info.DescriptorPool = m_ImGuiLayer->m_imGuiDescriptorPool;
@@ -605,7 +605,7 @@ namespace Renderer
     void VulkanBaseRenderer::GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
         // Check if image format supports linear blitting
         VkFormatProperties formatProperties;
-        vkGetPhysicalDeviceFormatProperties(m_physicalDevice, imageFormat, &formatProperties);
+        vkGetPhysicalDeviceFormatProperties(m_device->GetInstance()->GetPhysicalDevice(), imageFormat, &formatProperties);
 
         if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
             throw std::runtime_error("texture image format does not support linear blitting!");
@@ -876,14 +876,14 @@ namespace Renderer
     }
     void VulkanBaseRenderer::CreateIndexBuffer(MeshData mesh)
     {
-        VkDeviceSize bufferSize = sizeof(uint32_t) * mesh.m_index.size();
+        VkDeviceSize bufferSize = sizeof(uint32_t) * mesh.m_indices.size();
         VkBuffer stagingBuffer;
         VkDeviceMemory stagingBufferMemory;
         CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
         void* data;
         vkMapMemory(m_device->GetVkDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, mesh.m_index.data(), (size_t)bufferSize);
+        memcpy(data, mesh.m_indices.data(), (size_t)bufferSize);
         vkUnmapMemory(m_device->GetVkDevice(), stagingBufferMemory);
 
         CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
@@ -1022,8 +1022,8 @@ namespace Renderer
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
 
-        vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(m_graphicsQueue);
+        vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Graphics));
 
         vkFreeCommandBuffers(m_device->GetVkDevice(), m_commandPool, 1, &commandBuffer);
     }
@@ -1112,7 +1112,7 @@ namespace Renderer
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.m_index.size()), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(mesh.m_indices.size()), 1, 0, 0, 0);
 
         vkCmdEndRenderPass(commandBuffer);
 
@@ -1210,7 +1210,7 @@ namespace Renderer
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
 

@@ -1,7 +1,9 @@
 #include "modelFileLoader.h"
 #include <iostream>
 #include <set>
+#include <Log.h>
 #define TINYOBJLOADER_IMPLEMENTATION 
+#include <tiny_obj_loader.h>
 
 namespace std {
 	template<> struct hash<Renderer::Vertex> {
@@ -9,7 +11,7 @@ namespace std {
 			return ((hash<glm::vec3>()(vertex.position) ^
 				(hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
 				(hash<glm::vec2>()(vertex.texCoord) << 1);
-		}s
+		}
 	};
 }
 
@@ -19,25 +21,13 @@ namespace Renderer
 	ModelFileLoader::ModelFileLoader() {}
 
 	void ModelFileLoader::loadFileData(std::string path) {}
-	void ModelFileLoader::loadDataToMesh(MeshData& meshdata) {}
-
 	ObjFileLoader::ObjFileLoader() {}
 
 	ObjFileLoader:: ~ObjFileLoader()
 	{
 		//Clear will nt set capacity to 0, so need to use swap to free the real memory 
-		vertex_pos.clear();
-		std::vector<glm::vec3>().swap(vertex_pos);
-		vertex_normal.clear();
-		std::vector<glm::vec3>().swap(vertex_normal);
-		vertex_texCoord.clear();
-		std::vector<glm::vec2>().swap(vertex_texCoord);
-		face_pos_idx.clear();
-		std::vector<glm::vec3>().swap(face_pos_idx);
-		face_normal_idx.clear();
-		std::vector<glm::vec3>().swap(face_normal_idx);
-		face_uv_idx.clear();
-		std::vector<glm::vec3> swap(face_uv_idx);
+		m_meshes.clear();
+		std::vector<MeshData>().swap(m_meshes);
 	};
 
 
@@ -65,93 +55,68 @@ namespace Renderer
 		auto& materials = reader.GetMaterials();
 
 		glm::vec3 temp_position;
-		glm::vec3 temp_normal;
-		glm::vec2 temp_uv;
+        glm::vec3 temp_normal;
+		glm::vec3 temp_color=glm::vec3(1,1,1);
+        glm::vec2 temp_uv;
 
-		//while (getline(file, s))
-		//{
-		//	if (s[0] == 'v' && s[1] == ' ')
-		//	{
-		//		//vertex
-		//		std::vector<std::string> vert_pos = stringSplitHelper(s.substr(2, s.size() - 2), ' ');
-		//		temp_position = glm::vec3(std::stof(vert_pos[0]), std::stof(vert_pos[1]), std::stof(vert_pos[2]));
-		//		vertex_pos.push_back(temp_position);
-		//	}
-		//	else if (s[0] == 'v' && s[1] == 't')
-		//	{
-		//		//Texcoord 
+		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
-		//		std::vector<std::string> uv_pos = stringSplitHelper(s.substr(3, s.size() - 2), ' ');
-		//		temp_uv = glm::vec2(std::stof(uv_pos[0]), 1.f - std::stof(uv_pos[1]));
-		//		vertex_texCoord.push_back(temp_uv);
-		//	}
-		//	else if (s[0] == 'v' && s[1] == 'n')
-		//	{
-		//		//normal
-		//		std::vector<std::string> vert_normal = stringSplitHelper(s.substr(3, s.size() - 2), ' ');
-		//		temp_position = glm::vec3(std::stof(vert_normal[0]), std::stof(vert_normal[1]), std::stof(vert_normal[2]));
-		//		vertex_normal.push_back(temp_position);
-		//	}
-		//	else if (s[0] == 'f')
-		//	{
-		//		//Face index
-		//		std::vector<std::string> face_idxStr = stringSplitHelper(s.substr(2, s.size() - 2), ' ');
-		//		splitAndLoadFaceIndex(face_idxStr, face_pos_idx, face_uv_idx, face_normal_idx);
-		//	}
-		//}
-
-
-	}
-
-	void ObjFileLoader::loadDataToMesh(MeshData& m_mesh)
-	{
-		Triangle temp_triangle;
-		Vertex vert_1, vert_2, vert_3;
-
-		std::unordered_map<Vertex,uint32_t> vertexMap;
-		
-		for (int i = 0; i < face_pos_idx.size(); i++)
+		for (size_t s = 0; s < shapes.size(); s++)
 		{
-			vert_1.position = vertex_pos[face_pos_idx[i].x-1];
-			vert_1.normal = vertex_normal[face_normal_idx[i].x-1];
-			vert_1.texCoord = vertex_texCoord[face_uv_idx[i].x-1];
-			vert_1.color = glm::vec3(1, 1, 1);
-
-			vert_2.position = vertex_pos[face_pos_idx[i].y-1];
-			vert_2.normal = vertex_normal[face_normal_idx[i].y-1];
-			vert_2.texCoord = vertex_texCoord[face_uv_idx[i].y-1];
-			vert_2.color = glm::vec3(1, 1, 1);
-
-			vert_3.position = vertex_pos[face_pos_idx[i].z-1];
-			vert_3.normal = vertex_normal[face_normal_idx[i].z-1];
-			vert_3.texCoord = vertex_texCoord[face_uv_idx[i].z-1];
-			vert_3.color = glm::vec3(1, 1, 1);
-
-			//vert_1 is new
-			if (vertexMap.count(vert_1) ==0)
+			size_t index_offset = 0;
+			MeshData mesh;
+			uniqueVertices.clear();
+			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
 			{
-				vertexMap[vert_1] = static_cast<uint32_t>(m_mesh.m_vertices.size());
-			    m_mesh.m_vertices.push_back(vert_1);
-			}
+				size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
+				for (size_t v = 0; v < fv; v++)
+				{
+					//access to vertex
+					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+					tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
+					tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
+					tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+					temp_position = glm::vec3(vx, vy, vz);
 
-			if (vertexMap.count(vert_2) == 0)
-			{
-				vertexMap[vert_2] = static_cast<uint32_t>(m_mesh.m_vertices.size());
-				m_mesh.m_vertices.push_back(vert_2);
-			}
+					if (idx.normal_index >= 0) {
+						tinyobj::real_t nx = attrib.normals[3 * size_t(idx.normal_index) + 0];
+						tinyobj::real_t ny = attrib.normals[3 * size_t(idx.normal_index) + 1];
+						tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
+						temp_normal = glm::vec3(nx, ny, nz);
+					}
 
-			if (vertexMap.count(vert_3) == 0)
-			{
-				vertexMap[vert_3] = static_cast<uint32_t>(m_mesh.m_vertices.size());
-				m_mesh.m_vertices.push_back(vert_3);
+					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
+					if (idx.texcoord_index >= 0) {
+						tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
+						tinyobj::real_t ty =  1.0f -attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+						temp_uv = glm::vec2(tx, ty);
+					}
+
+					if (attrib.colors.size() != 0)
+					{
+						tinyobj::real_t red = attrib.colors[3 * size_t(idx.vertex_index) + 0];
+						tinyobj::real_t green = attrib.colors[3 * size_t(idx.vertex_index) + 1];
+						tinyobj::real_t blue = attrib.colors[3 * size_t(idx.vertex_index) + 2];
+						temp_color = glm::vec3(red, green, blue);
+					}
+
+					Vertex vert = { temp_position,temp_normal,temp_color,temp_uv };
+					if (uniqueVertices.count(vert) == 0) {
+						uniqueVertices[vert] = static_cast<uint32_t>(mesh.m_vertices.size());
+						mesh.m_vertices.push_back(vert);
+					}
+					mesh.m_indices.push_back(uniqueVertices[vert]);
+				}
+				index_offset += fv;
+				// per-face material
+				//shapes[s].mesh.material_ids[f];
 			}
-			
-			m_mesh.m_index.push_back(vertexMap[vert_1]);
-			m_mesh.m_index.push_back(vertexMap[vert_2]);
-			m_mesh.m_index.push_back(vertexMap[vert_3]);
+			m_meshes.push_back(mesh);
 		}
+
 	}
+
 }
 
 

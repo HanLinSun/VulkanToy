@@ -28,7 +28,6 @@ namespace Renderer
 		{
 			file_loader = new ObjFileLoader;
 			file_loader->loadFileData(path);
-			file_loader->loadDataToMesh(mesh);
 		}
 		//load texture
 		if (texture_path != "") loadMeshTexture(mesh, texture_path);
@@ -54,7 +53,6 @@ namespace Renderer
 		{
 			file_loader = new ObjFileLoader;
 			file_loader->loadFileData(path);
-			file_loader->loadDataToMesh(mesh);
 		}
 		m_meshes.push_back(mesh);
 	}

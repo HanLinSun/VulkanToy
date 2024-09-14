@@ -11,7 +11,7 @@
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
 
-const std::string MODEL_PATH = "./Models/57-estancia_comedor_obj/room.obj";
+const std::string MODEL_PATH = "./Models/cyberpunk-scene/Habitacion completa v1.obj";
 const std::string TEXTURE_PATH = "./Textures/viking_room.png";
 
 //const int MAX_FRAMES_IN_FLIGHT = 2;
@@ -84,7 +84,8 @@ namespace Renderer
 		VkSurfaceKHR m_surface;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-		VkQueue m_graphicsQueue;
+
+
 		VkQueue m_presentQueue;
 		//VkSwapchainKHR m_swapChain;
 

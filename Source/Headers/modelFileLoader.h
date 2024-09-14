@@ -5,7 +5,7 @@
 #include<glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 #include "Scene.h"
-#include <tiny_obj_loader.h>
+
 
 
 namespace Renderer
@@ -18,7 +18,6 @@ namespace Renderer
 		virtual ~ModelFileLoader() {};
 
 		virtual void loadFileData(std::string modelFilePath);
-		virtual void loadDataToMesh(MeshData& m_mesh);
 	};
 
 
@@ -29,26 +28,8 @@ namespace Renderer
 		~ObjFileLoader();
 
 		void loadFileData(std::string modelFilePath) override;
-		void loadDataToMesh(MeshData& m_mesh) override;
 
-		std::vector<glm::vec3> vertex_pos;
-		std::vector<glm::vec3> vertex_normal;
-		std::vector<glm::vec2> vertex_texCoord;
-
-		std::vector<glm::vec3> face_pos_idx;
-		std::vector<glm::vec3> face_normal_idx;
-		std::vector<glm::vec3> face_uv_idx;
-
-		//tiny obj
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-
-		std::vector<int> pos_offset_idx;
-		std::vector<int> normal_offset_idx;
-		std::vector<int> texcoord_offset_idx;
-		std::vector<int> face_offset_idx;
-
+		std::vector<MeshData> m_meshes;
 	};
 
 	class PlyFiileLoader : public ModelFileLoader
