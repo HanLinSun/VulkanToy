@@ -6,9 +6,9 @@
 
 namespace Renderer
 {
-	Scene::Scene() :m_polygons() {}
+	Scene::Scene() :m_models() {}
 
-	void Scene::loadModel(std::string path, std::string texture_path="")
+	void Scene::LoadModel(std::string path, std::string texture_path="")
 	{
 		//Default only have 1 polygon in one obj file
 		MeshData mesh;
@@ -30,8 +30,8 @@ namespace Renderer
 			file_loader->loadFileData(path);
 		}
 		//load texture
-		if (texture_path != "") loadMeshTexture(mesh, texture_path);
-		m_meshes.push_back(mesh);
+		//if (texture_path != "") loadMeshTexture(mesh, texture_path);
+		//m_meshes.push_back(mesh);
 	}
 
 	void Scene::LoadModel(std::string path)
@@ -54,7 +54,8 @@ namespace Renderer
 			file_loader = new ObjFileLoader;
 			file_loader->loadFileData(path);
 		}
-		m_meshes.push_back(mesh);
+		//Model model(m_device, nullptr, mesh.m_vertices, mesh.m_indices);
+		//m_models.push_back(model);
 	}
 
 
@@ -69,17 +70,17 @@ namespace Renderer
 	}
 
 
-	const std::vector<MeshData> Scene::getSceneMeshDatas()
+	const std::vector<std::unique_ptr<Model>> Scene::GetSceneModels()
 	{
-		return m_meshes;
+		return m_models;
 	}
 
-	const MeshData Scene::getSceneMeshData(int index)
+	const Model* Scene::GetSceneModel(int index)
 	{
-		return m_meshes[index];
+		return m_models[index].get();
 	}
 
-	Camera Scene::getSceneCamera()
+	Camera Scene::GetSceneCamera()
 	{
 		return m_camera;
 	}

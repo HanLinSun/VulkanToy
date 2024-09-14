@@ -96,7 +96,7 @@ namespace Renderer
         if (m_Scene == nullptr)
         {
             m_Scene = new Scene();
-            m_Camera = m_Scene->getSceneCamera();
+            m_Camera = m_Scene->GetSceneCamera();
         }
     }
     void VulkanBaseRenderer::LoadModel(std::string model_path, std::string model_texture_path)
