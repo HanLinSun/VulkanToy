@@ -16,6 +16,7 @@ public:
 
 	void UpdateDescriptor();
 	void Destroy();
+
 };
 
 class Texture2D : public Texture

@@ -1,9 +1,17 @@
 #pragma once
 #include <stb_image.h>
 #include "RendererInclude.h"
+#include "Vulkan/Device.h"
+#include "Vulkan/Texture.h"
 
 namespace Renderer
 {
+	enum AlphaBlendMode
+	{
+		MODE_OPAQUE,
+		MODE_MASK,
+		MODE_BLEND,
+	};
 	struct Vertex
 	{
 		glm::vec3 position;
@@ -51,65 +59,31 @@ namespace Renderer
 		}
 
 	};
-	struct Triangle
-	{
-		std::array<Vertex, 3> verts;
-	};
 
 	struct Material
 	{
-		glm::vec3  diffuseColor;
-		struct Specular
-		{
-			float exponent;
-			float color;
-		};
-		float hasReflective;
-		float hasRefractive;
-		float emittance;
-	};
+		Device* device = nullptr;
+		AlphaBlendMode alphaMode = MODE_OPAQUE;
+		float alphaCutoff = 1.0f;
+		float metallicFactor = 1.0f;
+		float roughnessFactor = 1.0f;
+		glm::vec4 baseColorFactor = glm::vec4(1.0f);
+		Texture* baseColorTexture = nullptr;
+		Texture* metallicRoughnessTexture = nullptr;
+		Texture* normalTexture = nullptr;
+		Texture* occlusionTexture = nullptr;
+		Texture* emissiveTexture = nullptr;
 
-	struct CamInputListener
-	{
-		bool left = false;
-		bool right = false;
-		bool up = false;
-		bool down = false;
+		Texture* specularGlossinessTexture;
+		Texture* diffuseTexture;
 
-		bool rotateLeft;
-		bool rotateRight;
+		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
-		bool mouseScrollForward=false;
-		bool mouseScrollBack = false;
+		Material(Device* device) : device(device) {};
+		void createDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
 	};
 
 
-	struct Texture
-	{
-		stbi_uc* pixels;
-		int width;
-		int height;
-		int channels;
-		Texture()
-		{
-			pixels = nullptr;
-			width = height = channels = 0;
-		}
-	};
-
-	struct PBRMaterial
-	{
-		glm::vec3 albedoColor;
-
-		float roughness;
-		float metalness;
-		float clearCoat;
-
-		Texture roughness_texture;
-		Texture metalness_texture;
-		Texture albedo_Texture;
-		Texture normal_Texture;
-	};
 
 	struct MeshData
 	{
@@ -121,22 +95,4 @@ namespace Renderer
 		Texture m_specularColorTexture;
 	};
 
-
-	struct Polygon
-	{
-		std::vector<Triangle> p_triangles;
-		int material_id;
-		Texture m_diffuseColorTexture;
-		Texture m_normalTexture;
-		Texture m_specularColorTexture;
-
-		Polygon()
-		{
-			p_triangles = std::vector<Triangle>();
-			m_diffuseColorTexture = Texture();
-			m_normalTexture = Texture();
-			m_specularColorTexture = Texture();
-		};
-
-	};
 }
