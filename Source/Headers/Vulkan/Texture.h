@@ -1,22 +1,29 @@
 #include "Device.h"
+#include "Instance.h"
+#include <RendererInclude.h>
+#include <stb_image.h>
 
 class Texture
 {
 public:
-	Device* device;
-	VkImage  image;
-	VkImageLayout imageLayout;
-	VkDeviceMemory deviceMemory;
-	VkImageView view;
+	Device* m_device;
+	VkImage  m_image;
+	VkImageLayout m_imageLayout;
+	VkDeviceMemory m_imageDeviceMemory;
+	VkImageView m_imageView;
 	uint32_t  width, height;
 	uint32_t  mipLevels;
 	uint32_t  layerCount;
 	VkDescriptorImageInfo descriptor;
-	VkSampler sampler;
+	VkSampler m_sampler;
+	//stb_image
+	stbi_uc* m_pixels;
 
 	void UpdateDescriptor();
 	void Destroy();
-
+protected:
+	void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+	void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 };
 
 class Texture2D : public Texture

@@ -70,6 +70,7 @@ namespace Renderer
 		void Destroy();
 		void Cleanup();
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
+
 		void SetLayerStack(LayerStack* layer);
 		void InitGUILayerAttribute();
 		void InitVulkan();
@@ -84,7 +85,6 @@ namespace Renderer
 		VkSurfaceKHR m_surface;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-
 
 		VkQueue m_presentQueue;
 		//VkSwapchainKHR m_swapChain;
@@ -102,10 +102,8 @@ namespace Renderer
 		VkPipelineLayout m_pipelineLayout;
 
 		VkPipeline m_graphicsPipeline;
-
 		//RayTrace compute pipeline
 		VkPipeline m_computePipeline;
-
 
 		VkCommandPool m_commandPool;
 		VkImage m_colorImage;
@@ -116,7 +114,6 @@ namespace Renderer
 		VkDeviceMemory depthImageMemory;
 		VkImageView depthImageView;
 
-
 		uint32_t mipLevels;
 
 		VkImage textureImage;
@@ -124,19 +121,12 @@ namespace Renderer
 		VkImageView textureImageView;
 		VkSampler textureSampler;
 
-		std::vector<Vertex> vertices;
-		std::vector<uint32_t> indices;
-		VkBuffer vertexBuffer;
-		VkDeviceMemory vertexBufferMemory;
-		VkBuffer indexBuffer;
-		VkDeviceMemory indexBufferMemory;
 
-		std::vector<VkBuffer> uniformBuffers;
-		std::vector<VkDeviceMemory> uniformBuffersMemory;
-		std::vector<void*> uniformBuffersMapped;
+		VkDescriptorPool m_descriptorPool;
+		VkDescriptorSet m_cameraDescriptorSet;
 
-		VkDescriptorPool descriptorPool;
-		std::vector<VkDescriptorSet> descriptorSets;
+		std::vector<VkDescriptorSet> m_modelDescriptorSets;
+		std::vector<VkDescriptorSet> m_computeDescriptorSets;
 
 		VkDescriptorPool m_imGuiDescriptorPool;
 		std::vector<VkDescriptorSet> m_imGuiDescriptorSet;
@@ -208,39 +198,16 @@ namespace Renderer
 
 		bool HasStencilComponent(VkFormat format);
 
-		void CreateTextureImage(Texture m_texture);
-
-		void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-
-		VkSampleCountFlagBits GetMaxUsableSampleCount(VkPhysicalDevice physicalDevice);
-
-		void CreateTextureImageView();
-
-		void CreateTextureSampler();
-
-		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
-
 		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-
-		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
-
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-
-		void CreateVertexBuffer(MeshData mesh);
-
-		void CreateIndexBuffer(MeshData mesh);
-
-		void CreateUniformBuffers();
-
 		void CreateDescriptorPool();
 
-		void CreateDescriptorSets();
+		void CreateModelDescriptorSets(int shaderBindings);
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
 		VkCommandBuffer beginSingleTimeCommands();
 
-		void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+		void EndSingleTimeGraphicCommands(VkCommandBuffer commandBuffer);
 
 		void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
@@ -248,7 +215,7 @@ namespace Renderer
 
 		void createCommandBuffers();
 
-		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, MeshData mesh);
+		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 		void createSyncObjects();
 
@@ -264,7 +231,7 @@ namespace Renderer
 
 		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 

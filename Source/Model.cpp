@@ -19,8 +19,25 @@ namespace Renderer
 		m_modelBufferObject.modelMatrix = glm::mat4(1.0f);
 		BufferUtils::CreateBufferFromData(device, commandPool, &m_modelBufferObject, sizeof(ModelBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, m_modelUniformBuffer, m_modelUniformBufferMemory);
 
+		m_textures = std::vector<Texture>(11);
 	}
 
+	Model::~Model()
+	{
+		if (m_indices.size() > 0) {
+			vkDestroyBuffer(m_device->GetVkDevice(), m_indexBuffer, nullptr);
+			vkFreeMemory(m_device->GetVkDevice(), m_indexBufferMemory, nullptr);
+		}
+
+		if (m_vertices.size() > 0) {
+			vkDestroyBuffer(m_device->GetVkDevice(), m_vertexBuffer, nullptr);
+			vkFreeMemory(m_device->GetVkDevice(), m_vertexBufferMemory, nullptr);
+		}
+
+		vkDestroyBuffer(m_device->GetVkDevice(), m_modelUniformBuffer, nullptr);
+		vkFreeMemory(m_device->GetVkDevice(), m_modelUniformBufferMemory, nullptr);
+
+	}
 
 	const std::vector<Vertex>& Model::GetVertices() const {
 		return m_vertices;
@@ -44,6 +61,11 @@ namespace Renderer
 
 	VkBuffer Model::GetModelUniformBuffer() const {
 		return m_modelUniformBuffer;
+	}
+
+	Texture Model::GetBindTextureOfType(TextureType type) const
+	{
+		
 	}
 
 	void Model::SetTexture(Texture _texture, TextureType type)

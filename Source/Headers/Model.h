@@ -13,17 +13,17 @@ namespace Renderer
 	};
 	enum TextureType
 	{
-		BaseColor,
-		Metallic,
-		Roughness,
-		Albedo,
-		Glossiness,
-		Specular,
-		AmbientOcclusion,
-		Emissive, 
-		Opacity,
-		Displacement,
-		Anisotropic
+		BaseColor =0,
+		Metallic=1,
+		Roughness=2,
+		Albedo=3,
+		Glossiness=4,
+		Specular=5,
+		AmbientOcclusion=6,
+		Emissive=7, 
+		Opacity=8,
+		Displacement=9,
+		Anisotropic=10,
 	};
 
 	class Model
@@ -31,6 +31,8 @@ namespace Renderer
 	public:
 		Model() = delete;
 		Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+		Model(Model& model);
+
 		virtual ~Model();
 
 		void SetTexture(Texture texture,TextureType type);
@@ -47,9 +49,11 @@ namespace Renderer
 
 		VkBuffer GetModelUniformBuffer() const;
 
+		Texture GetBindTextureOfType(TextureType type) const;
+
 	protected:
 		Device* m_device;
-		std::vector<Vertex> m_vertices;
+		std::vector<Vertex> m_vertices; 
 		VkBuffer m_vertexBuffer;
 		VkDeviceMemory m_vertexBufferMemory;
 
@@ -58,11 +62,12 @@ namespace Renderer
 		VkDeviceMemory m_indexBufferMemory;
 
 		VkBuffer m_modelUniformBuffer;
-		VkDeviceMemory m_modelUniformMemory;
+		VkDeviceMemory m_modelUniformBufferMemory;
 
 		ModelBufferObject m_modelBufferObject;
 
-		std::unordered_map<TextureType, Texture> m_textures;
+		std::vector<Texture> m_textures;
+
 		std::vector<Material> m_materials;
 	};
 }

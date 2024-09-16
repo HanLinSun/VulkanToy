@@ -1,0 +1,156 @@
+#include "Vulkan/Texture.h"
+#include "Vulkan/BufferUtils.h"
+#include "Tools.h"
+void Texture::UpdateDescriptor()
+{
+	descriptor.sampler = m_sampler;
+	descriptor.imageView = m_imageView;
+	descriptor.imageLayout = m_imageLayout;
+}
+
+void Texture::Destroy()
+{
+	vkDestroyImageView(m_device->GetVkDevice(),m_imageView, nullptr);
+	vkDestroyImage(m_device->GetVkDevice(), m_image, nullptr);
+	if (m_sampler)
+	{
+		vkDestroySampler(m_device->GetVkDevice(), m_sampler, nullptr);
+	}
+	vkFreeMemory(m_device->GetVkDevice(), m_imageDeviceMemory, nullptr);
+}
+
+void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
+	VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, bool forceLinear = false)
+{ 
+        this->m_device = device;
+    
+	    int texWidth, texHeight;
+		int texChannels;
+        stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+	    this->m_pixels = pixels;
+        this->width = texWidth;
+        this->height = texHeight;
+        
+        VkDeviceSize imageSize = texWidth * texHeight * 4;
+        mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+        
+        this->mipLevels = mipLevels;
+
+        if (!this->m_pixels) {
+            throw std::runtime_error("input texture missing critical information, may have load error");
+        }
+
+       VkBuffer stagingBuffer;
+       VkDeviceMemory stagingBufferMemory;
+	   BufferUtils::CreateBuffer(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+       void* data;
+       vkMapMemory(m_device->GetVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+       memcpy(data, this->m_pixels, static_cast<size_t>(imageSize));
+       vkUnmapMemory(m_device->GetVkDevice(), stagingBufferMemory);
+
+       stbi_image_free(this->m_pixels);
+
+       CreateImage(this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_image, this->m_imageDeviceMemory);
+       Tools::TransitionImageLayout(m_device, this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+       Tools::CopyBufferToImage(m_device,stagingBuffer, this->m_image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+
+       vkDestroyBuffer(m_device->GetVkDevice(), stagingBuffer, nullptr);
+       vkFreeMemory(m_device->GetVkDevice(), stagingBufferMemory, nullptr);
+
+       Tools::GenerateMipmaps(m_device,this->m_image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
+
+       // Create a default sampler
+        VkPhysicalDeviceProperties properties{};
+        vkGetPhysicalDeviceProperties(this->m_device->GetInstance()->GetPhysicalDevice(), &properties);
+       VkSamplerCreateInfo samplerCreateInfo = {};
+       samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+       samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+       samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+       samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+       samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+       samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+       samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+       samplerCreateInfo.mipLodBias = 0.0f;
+       samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
+       samplerCreateInfo.minLod = 0.0f;
+       // Max level-of-detail should match mip level count
+       samplerCreateInfo.maxLod = (float)mipLevels;
+       // Only enable anisotropic filtering if enabled on the device
+       samplerCreateInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+       samplerCreateInfo.anisotropyEnable = VK_TRUE;
+       samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+       if (vkCreateSampler(this->m_device->GetVkDevice(), &samplerCreateInfo, nullptr, &this->m_sampler) == VK_SUCCESS)
+       {
+           throw std::runtime_error("failed to create texture sampler!");
+       }
+
+       // Create image view
+       // Textures are not directly accessed by the shaders and
+       // are abstracted by image views containing additional
+       // information and sub resource ranges
+       VkImageViewCreateInfo viewCreateInfo = {};
+       viewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+       viewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+       viewCreateInfo.format = format;
+       viewCreateInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+       viewCreateInfo.subresourceRange.levelCount = mipLevels;
+       viewCreateInfo.image = this->m_image;
+       if (vkCreateImageView(this->m_device->GetVkDevice(), &viewCreateInfo, nullptr, &this->m_imageView))
+       {
+           throw std::runtime_error("failed to create texture image view!");
+       }
+
+       // Update descriptor image info member that can be used for setting up descriptor sets
+       UpdateDescriptor();
+}
+
+
+void Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
+    VkImageCreateInfo imageInfo{};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = width;
+    imageInfo.extent.height = height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = mipLevels;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = format;
+    imageInfo.tiling = tiling;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = usage;
+    imageInfo.samples = numSamples;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateImage(m_device->GetVkDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create image!");
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(m_device->GetVkDevice(), image, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = m_device->GetInstance()->GetMemoryTypeIndex(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    if (vkAllocateMemory(m_device->GetVkDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate image memory!");
+    }
+
+    vkBindImageMemory(m_device->GetVkDevice(), image, imageMemory, 0);
+}
+
+
+void Texture2D::LoadFromBuffer(void* buffer, VkDeviceSize bufferSize, VkFormat format, uint32_t texWidth, uint32_t texHeight, Device* device, VkQueue copyQueue,
+	VkFilter filter = VK_FILTER_LINEAR, VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+{
+
+}
+
+void Texture2DArray::LoadFromFile(std::string filename, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+{
+
+}

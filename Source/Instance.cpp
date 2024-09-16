@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <vector>
 #include "Headers/Vulkan/Instance.h"
+#include "Tools.h"
 #include <iostream>
 
 #ifdef NDEBUG
@@ -382,7 +383,9 @@ Device* Instance::CreateDevice(QueueFlagBits requiredQueues, VkPhysicalDeviceFea
             vkGetDeviceQueue(vkDevice, m_queueFamilyIndices[i], 0, &queues[i]);
         }
     }
-    return new Device(this, vkDevice, queues);
+    Device* device = new Device(this, vkDevice, queues);
+    device->m_commandPool = Tools::CreateCommandPool(device, QueueFlags::Graphics, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    return device;
 }
 
 Instance::~Instance() {

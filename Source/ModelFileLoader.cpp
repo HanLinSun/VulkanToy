@@ -18,8 +18,8 @@ namespace std {
 namespace Renderer
 {
 
-	ModelFileLoader::ModelFileLoader() {}
-	void ModelFileLoader::loadFileData(std::string path) {}
+	FileLoader::FileLoader() {}
+	void FileLoader::loadFileData(std::string path) {}
 	ObjFileLoader::ObjFileLoader() {}
 
 	ObjFileLoader:: ~ObjFileLoader()

@@ -1,7 +1,7 @@
 #include "Headers/Vulkan/Device.h"
 #include "Headers/Vulkan/Instance.h"
 
-Device::Device(Instance* instance, VkDevice vkDevice, Queues queues):m_instance(instance),m_vkDevice(vkDevice),m_queues(queues){}
+Device::Device(Instance* instance, VkDevice vkDevice,Queues queues):m_instance(instance),m_vkDevice(vkDevice),m_queues(queues) {}
 Instance* Device::GetInstance()
 {
 	return m_instance;
@@ -19,6 +19,11 @@ VkQueue Device::GetQueue(QueueFlags flag)
 
 unsigned int Device::GetQueueIndex(QueueFlags flag) {
 	return GetInstance()->GetQueueFamilyIndices()[flag];
+}
+
+VkCommandPool Device::GetCommandPool()
+{
+	return m_commandPool;
 }
 
 SwapChain* Device::CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers, GLFWwindow* window)

@@ -160,11 +160,11 @@
     <ClInclude Include="Source\Headers\Event\ApplicationEvent.h" />
     <ClInclude Include="Source\Headers\ImGUILayer.h" />
     <ClInclude Include="Source\Headers\IncludeUtils.h" />
-    <ClInclude Include="Source\Headers\Input.h" />
     <ClInclude Include="Source\Headers\Keycodes.h" />
     <ClInclude Include="Source\Headers\Layer.h" />
     <ClInclude Include="Source\Headers\LayerStack.h" />
     <ClInclude Include="Source\Headers\Light.h" />
+    <ClInclude Include="Source\Headers\Loader.h" />
     <ClInclude Include="Source\Headers\Log.h" />
     <ClInclude Include="Source\Headers\Material.h" />
     <ClInclude Include="Source\Headers\Model.h" />
@@ -184,7 +184,7 @@
     <ClInclude Include="Source\Headers\Vulkan\VulkanBaseRenderer.h" />
     <ClInclude Include="Source\Headers\Vulkan\BufferUtils.h" />
     <ClInclude Include="Source\Headers\Vulkan\Device.h" />
-    <ClInclude Include="Source\Headers\Vulkan\VulkanInitializer.h" />
+    <ClInclude Include="Source\Headers\Vulkan\Utils.h" />
     <ClInclude Include="Source\Headers\Vulkan\SwapChain.h" />
     <ClInclude Include="Source\Headers\Window.h" />
     <ClInclude Include="Source\Headers\WindowsInput.h" />
@@ -208,15 +208,18 @@
     <ClCompile Include="Source\Layer.cpp" />
     <ClCompile Include="Source\LayerStack.cpp" />
     <ClCompile Include="Source\Light.cpp" />
+    <ClCompile Include="Source\Loader.cpp" />
     <ClCompile Include="Source\Log.cpp" />
     <ClCompile Include="Source\Materials.cpp" />
     <ClCompile Include="Source\Model.cpp" />
     <ClCompile Include="Source\ModelFileLoader.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\SwapChain.cpp" />
+    <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\VulkanBaseRenderer.cpp" />
     <ClCompile Include="Source\WindowsInput.cpp" />
     <ClCompile Include="Source\WindowsPlatform.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

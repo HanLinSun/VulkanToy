@@ -10,18 +10,18 @@
 
 namespace Renderer
 {
-	class ModelFileLoader
+	class FileLoader
 	{
 	public:
 
-		ModelFileLoader();
-		virtual ~ModelFileLoader() {};
+		FileLoader();
+		virtual ~FileLoader() {};
 
 		virtual void loadFileData(std::string modelFilePath);
 	};
 
 
-	class ObjFileLoader : public ModelFileLoader
+	class ObjFileLoader : public FileLoader
 	{
 	public:
 		ObjFileLoader();
@@ -32,7 +32,7 @@ namespace Renderer
 		std::vector<MeshData> m_meshes;
 	};
 
-	class GLTFFileLoader :public ModelFileLoader
+	class GLTFFileLoader :public FileLoader
 	{
 	public:
 		GLTFFileLoader();

@@ -19,9 +19,6 @@
     <Filter Include="Source\Shader">
       <UniqueIdentifier>{82b17347-ba25-4ab3-bc57-3e594f8dedd2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\RenderUtils">
-      <UniqueIdentifier>{70eb96dd-5ad3-46a6-a88e-d4cb31d04d4c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\ImGUI">
       <UniqueIdentifier>{a76c9db7-7501-4ce3-a2a0-86d8bbae4141}</UniqueIdentifier>
     </Filter>
@@ -61,6 +58,9 @@
     <Filter Include="Header\Core">
       <UniqueIdentifier>{e3f8a481-5219-4341-b064-74e30dcad7e9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Utils">
+      <UniqueIdentifier>{70eb96dd-5ad3-46a6-a88e-d4cb31d04d4c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat">
@@ -81,7 +81,7 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\ModelFileLoader.cpp">
-      <Filter>Source\RenderUtils</Filter>
+      <Filter>Source\Utils</Filter>
     </ClCompile>
     <ClCompile Include="Source\Camera.cpp">
       <Filter>Source\Scene</Filter>
@@ -155,6 +155,15 @@
     <ClCompile Include="Source\Model.cpp">
       <Filter>Source\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Loader.cpp">
+      <Filter>Source\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Texture.cpp">
+      <Filter>Source\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils.cpp">
+      <Filter>Source\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -192,9 +201,6 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\WindowsPlatform.h">
       <Filter>Header\Window</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\Input.h">
-      <Filter>Header\Utils</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\modelFileLoader.h">
       <Filter>Header\Utils</Filter>
@@ -247,9 +253,6 @@
     <ClInclude Include="Source\Headers\Vulkan\SwapChain.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\VulkanInitializer.h">
-      <Filter>Header\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Headers\Vulkan\BufferUtils.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
@@ -285,6 +288,12 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\Material.h">
       <Filter>Header\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\Utils.h">
+      <Filter>Header\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Loader.h">
+      <Filter>Header\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
