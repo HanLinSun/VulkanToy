@@ -37,6 +37,14 @@ namespace Renderer
 		vkDestroyBuffer(m_device->GetVkDevice(), m_modelUniformBuffer, nullptr);
 		vkFreeMemory(m_device->GetVkDevice(), m_modelUniformBufferMemory, nullptr);
 
+		for (int i = 0; i < m_textures.size(); i++)
+		{
+			if (m_textures[i].m_image!=nullptr && m_textures[i].m_imageView!=nullptr)
+			{
+				m_textures[i].Destroy();
+			}
+		}
+
 	}
 
 	const std::vector<Vertex>& Model::GetVertices() const {
@@ -65,7 +73,7 @@ namespace Renderer
 
 	Texture Model::GetBindTextureOfType(TextureType type) const
 	{
-		
+		return m_textures[type];
 	}
 
 	void Model::SetTexture(Texture _texture, TextureType type)
@@ -107,7 +115,7 @@ namespace Renderer
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 0.0f;
 
-		if (vkCreateSampler(m_device->GetVkDevice(), &samplerInfo, nullptr, &_texture.sampler) != VK_SUCCESS) {
+		if (vkCreateSampler(m_device->GetVkDevice(), &samplerInfo, nullptr, &_texture.m_sampler) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create texture sampler");
 		}
 

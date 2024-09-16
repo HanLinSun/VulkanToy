@@ -6,7 +6,6 @@
 
 namespace Renderer
 {
-
 	struct Vertex
 	{
 		glm::vec3 position;
@@ -54,13 +53,11 @@ namespace Renderer
 		}
 
 	};
-
 	struct MeshData
 	{
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
 	};
-
 	struct GLTFMeshData
 	{
 

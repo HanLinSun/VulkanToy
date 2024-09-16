@@ -109,7 +109,7 @@ namespace Renderer
 				}
 				index_offset += fv;
 				// per-face material
-				//shapes[s].mesh.material_ids[f];
+				shapes[s].mesh.material_ids[f];
 			}
 			m_meshes.push_back(mesh);
 		}

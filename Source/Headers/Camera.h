@@ -26,9 +26,6 @@ namespace Renderer
 		void setCameraWH(float width, float height);
 		void setPerspectiveMatrix(float fov,float znear, float zfar);
 		void updateViewMatrix();
-
-		CamInputListener keyListener;
-
 		void updateMove();
 
 	private:

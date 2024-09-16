@@ -1,3 +1,4 @@
+#pragma once
 #include "Device.h"
 #include "Instance.h"
 #include <RendererInclude.h>
@@ -6,6 +7,7 @@
 class Texture
 {
 public:
+
 	Device* m_device;
 	VkImage  m_image;
 	VkImageLayout m_imageLayout;
@@ -23,7 +25,6 @@ public:
 	void Destroy();
 protected:
 	void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-	void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 };
 
 class Texture2D : public Texture

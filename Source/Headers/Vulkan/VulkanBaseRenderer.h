@@ -11,8 +11,8 @@
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
 
-const std::string MODEL_PATH = "./Models/cyberpunk-scene/Habitacion completa v1.obj";
-const std::string TEXTURE_PATH = "./Textures/viking_room.png";
+const std::string MODEL_PATH = "./Models/Sponza/sponza.obj";
+const std::string TEXTURE_PATH = "./Models/Sponza/textures";
 
 //const int MAX_FRAMES_IN_FLIGHT = 2;
 

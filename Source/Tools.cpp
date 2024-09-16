@@ -2,8 +2,7 @@
 
 void Tools::SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
 	VkImageSubresourceRange subresourceRange,
-	VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-	VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT)
+	VkPipelineStageFlags srcStageMask,VkPipelineStageFlags dstStageMask)
 {
 	VkImageMemoryBarrier imageMemoryBarrier = {};
 	imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -175,6 +174,7 @@ VkCommandPool Tools::CreateCommandPool(Device* device, QueueFlags flag, VkComman
 	}
 	return cmdPool;
 }
+
 void Tools::EndCommandBuffer(Device* device, VkCommandBuffer commandBuffer,VkCommandPool pool, QueueFlags flag)
 {
 	vkEndCommandBuffer(commandBuffer);

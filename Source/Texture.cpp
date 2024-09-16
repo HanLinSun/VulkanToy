@@ -19,8 +19,8 @@ void Texture::Destroy()
 	vkFreeMemory(m_device->GetVkDevice(), m_imageDeviceMemory, nullptr);
 }
 
-void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
-	VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, bool forceLinear = false)
+void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags,
+	VkImageLayout imageLayout , bool forceLinear)
 { 
         this->m_device = device;
     
@@ -145,12 +145,12 @@ void Texture::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, V
 
 
 void Texture2D::LoadFromBuffer(void* buffer, VkDeviceSize bufferSize, VkFormat format, uint32_t texWidth, uint32_t texHeight, Device* device, VkQueue copyQueue,
-	VkFilter filter = VK_FILTER_LINEAR, VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	VkFilter filter, VkImageUsageFlags imageUsageFlags, VkImageLayout imageLayout)
 {
 
 }
 
-void Texture2DArray::LoadFromFile(std::string filename, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+void Texture2DArray::LoadFromFile(std::string filename, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags, VkImageLayout imageLayout)
 {
 
 }

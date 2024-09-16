@@ -161,7 +161,7 @@
     <ClCompile Include="Source\Texture.cpp">
       <Filter>Source\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="Utils.cpp">
+    <ClCompile Include="Source\Tools.cpp">
       <Filter>Source\Utils</Filter>
     </ClCompile>
   </ItemGroup>
@@ -217,9 +217,6 @@
     <ClInclude Include="Source\Headers\LayerStack.h">
       <Filter>Header\Layer</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\IncludeUtils.h">
-      <Filter>Header</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Headers\Camera.h">
       <Filter>Header\Renderer</Filter>
     </ClInclude>
@@ -240,9 +237,6 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\Log.h">
       <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Headers\WindowsInput.h">
-      <Filter>Header\Window</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Keycodes.h">
       <Filter>Header\Event</Filter>
@@ -289,11 +283,20 @@
     <ClInclude Include="Source\Headers\Material.h">
       <Filter>Header\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\Vulkan\Utils.h">
-      <Filter>Header\Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Headers\Loader.h">
       <Filter>Header\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Tools.h">
+      <Filter>Header\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Input.h">
+      <Filter>Header\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\IncludeUtils.h">
+      <Filter>Header\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\WindowsInput.h">
+      <Filter>Header\Window</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

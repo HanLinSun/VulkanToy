@@ -3,7 +3,10 @@
 namespace Renderer
 {
 	Loader::Loader(Device* device, VkCommandPool commandPool):m_device(device),m_commandPool(commandPool){}
-
+	Loader::~Loader() 
+	{
+		vkDestroyCommandPool(m_device->GetVkDevice(),m_commandPool,nullptr);
+	}
 	void Loader::LoadModel(std::string path, std::string texture_path, std::vector<Model*>& models)
 	{
 		MeshData mesh;
