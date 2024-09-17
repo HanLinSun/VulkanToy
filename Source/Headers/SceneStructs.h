@@ -1,6 +1,7 @@
 #pragma once
 #include <stb_image.h>
 #include "RendererInclude.h"
+#include "Material.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/Texture.h"
 
@@ -57,6 +58,7 @@ namespace Renderer
 	{
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
+		LambertMaterial m_defaultMaterial;
 	};
 	struct GLTFMeshData
 	{

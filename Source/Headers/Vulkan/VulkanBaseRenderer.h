@@ -205,11 +205,11 @@ namespace Renderer
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
-		VkCommandBuffer beginSingleTimeCommands();
+		VkCommandBuffer BeginSingleTimeCommands();
 
 		void EndSingleTimeGraphicCommands(VkCommandBuffer commandBuffer);
 
-		void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 

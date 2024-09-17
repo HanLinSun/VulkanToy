@@ -9,18 +9,18 @@ enum AlphaBlendMode
 	MODE_BLEND,
 };
 
-class Material
+struct LambertMaterial
 {
-public:
-		Material(Device* device) : m_device(device) {};
-		void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
-protected:
 	    Device* m_device = nullptr;
 	    AlphaBlendMode m_alphaMode = MODE_OPAQUE;
-	    float m_alphaCutoff = 1.0f;
-	    float m_metallicFactor = 1.0f;
-	    float m_roughnessFactor = 1.0f;
-	    glm::vec4 m_baseColorFactor = glm::vec4(1.0f);
+
+		float m_opticalDensity = 1.0f;
+		float m_dissolve=0.0f;
+
+		glm::vec3 m_ambientColor = glm::vec3(1.0f);
+	    glm::vec3 m_diffuseColor = glm::vec3(1.0f);
+		glm::vec3 m_specularColor = glm::vec3(1.0f);
+
 	    Texture* m_baseColorTexture = nullptr;
 	    Texture* m_metallicRoughnessTexture = nullptr;
 	    Texture* m_normalTexture = nullptr;
@@ -30,4 +30,30 @@ protected:
 	    Texture* m_specularGlossinessTexture;
 	    Texture* m_diffuseTexture;
 	    VkDescriptorSet m_descriptorSet = VK_NULL_HANDLE;
+		void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
+};
+
+struct PBRMaterial
+{
+	Device* device = nullptr;
+	AlphaBlendMode alphaMode = MODE_OPAQUE;
+
+	float alphaCutoff = 1.0f;
+	float metallicFactor = 1.0f;
+	float roughnessFactor = 1.0f;
+
+	glm::vec4 baseColorFactor = glm::vec4(1.0f);
+
+	Texture* baseColorTexture = nullptr;
+	Texture* metallicRoughnessTexture = nullptr;
+	Texture* normalTexture = nullptr;
+	Texture* occlusionTexture = nullptr;
+	Texture* emissiveTexture = nullptr;
+
+	Texture* specularGlossinessTexture;
+	Texture* diffuseTexture;
+
+	VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+
+	void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
 };

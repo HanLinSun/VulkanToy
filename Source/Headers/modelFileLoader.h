@@ -30,6 +30,7 @@ namespace Renderer
 		void loadFileData(std::string modelFilePath) override;
 
 		std::vector<MeshData> m_meshes;
+		std::vector<LambertMaterial> m_lambertMaterials;
 	};
 
 	class GLTFFileLoader :public FileLoader

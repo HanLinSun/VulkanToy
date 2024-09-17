@@ -113,6 +113,7 @@ namespace Renderer
 			}
 			m_meshes.push_back(mesh);
 		}
+		m_lambertMaterials = materials;
 
 	}
 

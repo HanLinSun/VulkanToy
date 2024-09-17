@@ -10,7 +10,6 @@ namespace Renderer
 	void Loader::LoadModel(std::string path, std::string texture_path, std::vector<Model*>& models)
 	{
 		MeshData mesh;
-		FileLoader* file_loader = new FileLoader();
 		int fileSplit = 0;
 		for (int i = path.size() - 1; i > 0; i--)
 		{
@@ -23,7 +22,7 @@ namespace Renderer
 		std::string fileType = path.substr(fileSplit, path.size() - fileSplit);
 		if (fileType == ".obj")
 		{
-			ObjFileLoader* objFileloader = dynamic_cast<ObjFileLoader*>(file_loader);
+			ObjFileLoader* objFileloader = new ObjFileLoader();
 			if (objFileloader != nullptr)
 			{
 				objFileloader->loadFileData(path);
@@ -34,7 +33,7 @@ namespace Renderer
 				}
 			}
 		}
-
+		
 	}
 	void Loader::LoadModel(std::string path, std::vector<Model*>& models)
 	{

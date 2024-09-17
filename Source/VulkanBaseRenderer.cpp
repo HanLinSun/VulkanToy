@@ -42,6 +42,7 @@ namespace Renderer
         m_device= m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, deviceFeatures);
         m_swapChain = m_device->CreateSwapChain(m_surface, 5 , m_window);
 
+        imageCount=2;
         //msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
 
     }
@@ -67,7 +68,7 @@ namespace Renderer
         ImGui_ImplGlfw_InitForVulkan(m_window, true);
         ImGui_ImplVulkan_InitInfo init_info = {};
         init_info.Instance = m_instance->GetVkInstance();
-        init_info.PhysicalDevice = m_physicalDevice;
+        init_info.PhysicalDevice = m_instance->GetPhysicalDevice();
         init_info.Device = m_device->GetVkDevice();
         init_info.QueueFamily = m_device->GetInstance()->GetQueueFamilyIndices()[QueueFlags::Graphics];
         init_info.Queue = m_device->GetQueue(QueueFlags::Graphics);
@@ -101,7 +102,7 @@ namespace Renderer
     }
     void VulkanBaseRenderer::LoadModel(std::string model_path, std::string model_texture_path)
     {
-        Loader loader(m_device, m_commandPool);
+        Loader loader(m_device, m_device->GetCommandPool());
         std::vector<Model*> scene_model;
         loader.LoadModel(model_path, model_texture_path, scene_model);
         m_Scene->AddModels(scene_model);
@@ -129,7 +130,7 @@ namespace Renderer
         CreateFramebuffers();
 
         CreateDescriptorPool();
-        CreateModelDescriptorSets(2);
+        CreateModelDescriptorSets(1);
         createCommandBuffers();
         createSyncObjects();
     }
@@ -716,7 +717,7 @@ namespace Renderer
         vkBindBufferMemory(m_device->GetVkDevice(), buffer, bufferMemory, 0);
     }
 
-    VkCommandBuffer VulkanBaseRenderer::beginSingleTimeCommands() {
+    VkCommandBuffer VulkanBaseRenderer::BeginSingleTimeCommands() {
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -749,8 +750,8 @@ namespace Renderer
         vkFreeCommandBuffers(m_device->GetVkDevice(), m_commandPool, 1, &commandBuffer);
     }
 
-    void VulkanBaseRenderer::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+    void VulkanBaseRenderer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+        VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
         VkBufferCopy copyRegion{};
         copyRegion.size = size;
