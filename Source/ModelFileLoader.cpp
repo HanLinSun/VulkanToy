@@ -20,7 +20,8 @@ namespace Renderer
 
 	FileLoader::FileLoader() {}
 	void FileLoader::loadFileData(std::string path) {}
-	ObjFileLoader::ObjFileLoader() {}
+
+	ObjFileLoader::ObjFileLoader(Device* device):m_device(device) {}
 
 	ObjFileLoader:: ~ObjFileLoader()
 	{
@@ -29,6 +30,21 @@ namespace Renderer
 		std::vector<MeshData>().swap(m_meshes);
 	};
 
+
+	std::vector<MeshData> ObjFileLoader::GetMeshes()
+	{
+		return m_meshes;
+	}
+
+	std::vector<Material> ObjFileLoader::GetMaterials()
+	{
+		return m_materials;
+	}
+
+	Device* ObjFileLoader::GetDevice()
+	{
+		return m_device;
+	}
 
 	void ObjFileLoader::loadFileData(std::string modelFilePath)
 	{
@@ -52,6 +68,48 @@ namespace Renderer
 		auto& attrib = reader.GetAttrib();
 		auto& shapes = reader.GetShapes();
 		auto& materials = reader.GetMaterials();
+
+		//Read material
+		for (auto& material : materials)
+		{
+			Material load_mat;
+			load_mat.SetAmbientColor(glm::vec4(material.ambient[0], material.ambient[1], material.ambient[2], 1));
+			load_mat.SetDiffuseColor(glm::vec4(material.diffuse[0], material.diffuse[1], material.diffuse[2], 1));
+			load_mat.SetEmissiveColor(glm::vec4(material.emission[0], material.emission[1], material.emission[2], 1));
+			load_mat.SetSpecularColor(glm::vec4(material.specular[0], material.specular[1], material.specular[2], 1));
+			load_mat.SetIndexOfRefraction((float)material.ior);
+		
+			if (material.ambient_texname.size()!=0)
+			{ 
+				std::shared_ptr<Texture2D> ambient_texture=std::make_shared<Texture2D>();
+				ambient_texture->LoadFromFile(material.ambient_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice());
+				load_mat.SetTexture(ambient_texture, TextureType::Ambient);
+			}
+
+			if (material.normal_texname.size() != 0)
+			{
+				std::shared_ptr<Texture2D> normal_texture = std::make_shared<Texture2D>();
+				normal_texture->LoadFromFile(material.normal_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice());
+				load_mat.SetTexture(normal_texture, TextureType::Normal);
+			}
+
+			if (material.alpha_texname.size() != 0)
+			{
+
+				std::shared_ptr<Texture2D> alpha_texture = std::shared_ptr<Texture2D>();
+				alpha_texture->LoadFromFile(material.alpha_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice());
+				load_mat.SetTexture(alpha_texture, TextureType::Opacity);
+			}
+
+			if (material.bump_texname.size() != 0)
+			{
+				std::shared_ptr<Texture2D> bump_texture = std::shared_ptr<Texture2D>();
+				bump_texture->LoadFromFile(material.normal_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice());
+				load_mat.SetTexture(bump_texture, TextureType::Bump);
+			}
+
+			m_materials.push_back(load_mat);
+		}
 
 		glm::vec3 temp_position;
         glm::vec3 temp_normal;
@@ -109,11 +167,11 @@ namespace Renderer
 				}
 				index_offset += fv;
 				// per-face material
-				shapes[s].mesh.material_ids[f];
+				//shapes[s].mesh.material_ids[f];
 			}
 			m_meshes.push_back(mesh);
 		}
-		m_lambertMaterials = materials;
+
 
 	}
 

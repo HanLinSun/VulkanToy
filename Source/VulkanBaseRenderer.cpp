@@ -667,10 +667,10 @@ namespace Renderer
                 modelUniformBufferInfo.offset = 0;
                 modelUniformBufferInfo.range = sizeof(UniformBufferObject);
 
-                VkDescriptorImageInfo imageInfo{};
-                imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                imageInfo.imageView = m_Scene->GetSceneModel(j)->GetBindTextureOfType(TextureType::BaseColor).m_imageView;
-                imageInfo.sampler = m_Scene->GetSceneModel(j)->GetBindTextureOfType(TextureType::BaseColor).m_sampler;
+                //VkDescriptorImageInfo imageInfo{};
+                //imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                //imageInfo.imageView = m_Scene->GetSceneModel(j)->GetBindTextureOfType(TextureType::BaseColor).m_imageView;
+                //imageInfo.sampler = m_Scene->GetSceneModel(j)->GetBindTextureOfType(TextureType::BaseColor).m_sampler;
 
                 descriptorWrites[i*offset +shaderBindingNums * j + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 descriptorWrites[i*offset +shaderBindingNums * j + 0].dstSet = m_modelDescriptorSets[i];
@@ -680,13 +680,13 @@ namespace Renderer
                 descriptorWrites[i*offset +shaderBindingNums * j + 0].descriptorCount = 1;
                 descriptorWrites[i*offset +shaderBindingNums * j + 0].pBufferInfo = &modelUniformBufferInfo;
 
-                descriptorWrites[i*offset +shaderBindingNums * j + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWrites[i*offset +shaderBindingNums * j + 1].dstSet = m_modelDescriptorSets[i];
-                descriptorWrites[i*offset +shaderBindingNums * j + 1].dstBinding = 1;
-                descriptorWrites[i*offset +shaderBindingNums * j + 1].dstArrayElement = 0;
-                descriptorWrites[i*offset +shaderBindingNums * j + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                descriptorWrites[i*offset +shaderBindingNums * j + 1].descriptorCount = 1;
-                descriptorWrites[i*offset +shaderBindingNums * j + 1].pImageInfo = &imageInfo;
+                //descriptorWrites[i*offset +shaderBindingNums * j + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                //descriptorWrites[i*offset +shaderBindingNums * j + 1].dstSet = m_modelDescriptorSets[i];
+                //descriptorWrites[i*offset +shaderBindingNums * j + 1].dstBinding = 1;
+                //descriptorWrites[i*offset +shaderBindingNums * j + 1].dstArrayElement = 0;
+                //descriptorWrites[i*offset +shaderBindingNums * j + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                //descriptorWrites[i*offset +shaderBindingNums * j + 1].descriptorCount = 1;
+                //descriptorWrites[i*offset +shaderBindingNums * j + 1].pImageInfo = &imageInfo;
             }
         }
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);

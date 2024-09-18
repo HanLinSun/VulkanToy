@@ -58,7 +58,7 @@ namespace Renderer
 	{
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
-		LambertMaterial m_defaultMaterial;
+		uint32_t m_materialID;
 	};
 	struct GLTFMeshData
 	{

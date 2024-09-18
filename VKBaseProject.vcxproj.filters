@@ -92,9 +92,6 @@
     <ClCompile Include="Source\Scene.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Materials.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Source\WindowsPlatform.cpp">
       <Filter>Source\Window</Filter>
     </ClCompile>
@@ -163,6 +160,9 @@
     </ClCompile>
     <ClCompile Include="Source\Tools.cpp">
       <Filter>Source\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Materials.cpp">
+      <Filter>Source\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

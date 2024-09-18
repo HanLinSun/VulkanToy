@@ -2,58 +2,139 @@
 #include "Vulkan/Device.h"
 #include "Vulkan/Texture.h"
 #include <glm/glm.hpp>
-enum AlphaBlendMode
+#include <map>
+#include <memory>
+
+struct MaterialProperties
 {
-	MODE_OPAQUE,
-	MODE_MASK,
-	MODE_BLEND,
+
+    MaterialProperties(
+        const glm::vec4 diffuse = { 1, 1, 1, 1 },
+        const glm::vec4 specular = { 1, 1, 1, 1 },
+        const float specularPower = 128.0f,
+        const glm::vec4 ambient = { 0, 0, 0, 1 },
+        const glm::vec4 emissive = { 0, 0, 0, 1 },
+        const glm::vec4 reflectance = { 0, 0, 0, 0 }, const float opacity = 1.0f,
+        const float indexOfRefraction = 0.0f, const float bumpIntensity = 1.0f,
+        const float alphaThreshold = 0.1f
+    )
+        : Diffuse(diffuse)
+        , Specular(specular)
+        , Emissive(emissive)
+        , Ambient(ambient)
+        , Reflectance(reflectance)
+        , Opacity(opacity)
+        , SpecularPower(specularPower)
+        , IndexOfRefraction(indexOfRefraction)
+        , BumpIntensity(bumpIntensity)
+        , HasAmbientTexture(false)
+        , HasEmissiveTexture(false)
+        , HasDiffuseTexture(false)
+        , HasSpecularTexture(false)
+        , HasSpecularPowerTexture(false)
+        , HasNormalTexture(false)
+        , HasBumpTexture(false)
+        , HasOpacityTexture(false)
+        ,HasAlbedoTexture(false)
+        ,HasMetallicTexture(false)
+        ,HasRoughnessTexture(false)
+        ,isPBRMat(false)
+    {}
+		glm::vec4 Diffuse ;
+		glm::vec4 Specular ;
+
+		glm::vec4 Ambient ;
+		glm::vec4 Emissive ;
+		glm::vec4 Reflectance ;
+
+        float Opacity;                       // If Opacity < 1, then the material is transparent.
+        float SpecularPower;
+        float IndexOfRefraction;             // For transparent materials, IOR > 0.
+        float BumpIntensity;                 // When using bump textures (height maps) will need to scale the height values so the normals are visible.
+
+        uint32_t HasAmbientTexture;
+        uint32_t HasEmissiveTexture;
+        uint32_t HasDiffuseTexture;
+        uint32_t HasSpecularTexture;
+
+        uint32_t HasSpecularPowerTexture;
+        uint32_t HasNormalTexture;
+        uint32_t HasBumpTexture;
+        uint32_t HasOpacityTexture;
+
+        uint32_t HasAlbedoTexture;
+        uint32_t HasRoughnessTexture;
+        uint32_t HasMetallicTexture;
+        bool isPBRMat;
 };
 
-struct LambertMaterial
+enum TextureType
 {
-	    Device* m_device = nullptr;
-	    AlphaBlendMode m_alphaMode = MODE_OPAQUE;
-
-		float m_opticalDensity = 1.0f;
-		float m_dissolve=0.0f;
-
-		glm::vec3 m_ambientColor = glm::vec3(1.0f);
-	    glm::vec3 m_diffuseColor = glm::vec3(1.0f);
-		glm::vec3 m_specularColor = glm::vec3(1.0f);
-
-	    Texture* m_baseColorTexture = nullptr;
-	    Texture* m_metallicRoughnessTexture = nullptr;
-	    Texture* m_normalTexture = nullptr;
-	    Texture* m_occlusionTexture = nullptr;
-	    Texture* m_emissiveTexture = nullptr;
-	    
-	    Texture* m_specularGlossinessTexture;
-	    Texture* m_diffuseTexture;
-	    VkDescriptorSet m_descriptorSet = VK_NULL_HANDLE;
-		void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
+    Ambient,
+    Emissive,
+    Diffuse,
+    Specular,
+    SpecularPower,
+    Normal,
+    Bump,
+    Opacity,
+    NumTypes,
+    Albedo,
+    Roughness,
+    Metallic,
 };
 
-struct PBRMaterial
+enum PBRTextureType
 {
-	Device* device = nullptr;
-	AlphaBlendMode alphaMode = MODE_OPAQUE;
 
-	float alphaCutoff = 1.0f;
-	float metallicFactor = 1.0f;
-	float roughnessFactor = 1.0f;
+};
 
-	glm::vec4 baseColorFactor = glm::vec4(1.0f);
+using TextureMap = std::map<TextureType, std::shared_ptr<Texture>>;
 
-	Texture* baseColorTexture = nullptr;
-	Texture* metallicRoughnessTexture = nullptr;
-	Texture* normalTexture = nullptr;
-	Texture* occlusionTexture = nullptr;
-	Texture* emissiveTexture = nullptr;
+class Material
+{
+public:
+	Material(const MaterialProperties& materialProperties = MaterialProperties());
+	Material(const Material& copy);
 
-	Texture* specularGlossinessTexture;
-	Texture* diffuseTexture;
+	~Material() = default;
 
-	VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+    const glm::vec4 GetAmbientColor() const;
+    void SetAmbientColor(const glm::vec4& ambient);
 
+    const glm::vec4 GetDiffuseColor() const;
+    void SetDiffuseColor(const glm::vec4& diffuse);
+
+    const glm::vec4 GetEmissiveColor() const;
+    void SetEmissiveColor(const glm::vec4& emissive);
+
+    const glm::vec4 GetSpecularColor() const;
+    void SetSpecularColor(const glm::vec4& specular);
+
+    float GetSpecularPower() const;
+    void  SetSpecularPower(float specularPower);
+
+    const float GetOpacity() const;
+    void SetOpacity(float opacity);
+
+    float GetIndexOfRefraction() const;
+    void SetIndexOfRefraction(float indexOfRefraction);
+
+    float GetBumpIntensity() const;
+    void SetBumpIntensity(float bumpIntensity);
+
+    void SetTexture(std::shared_ptr<Texture> texture, TextureType type);
+    bool IsTransparent() const;
+
+    const MaterialProperties& GetMaterialProperties() const;
+    void SetMaterialProperties(const MaterialProperties& materialProperties);
+private:
+
+	std::unique_ptr<MaterialProperties, void (*)(MaterialProperties*)> m_MaterialProperties;
+    TextureMap m_textures;
+
+	Device* m_device = nullptr;
+	VkDescriptorSet m_descriptorSet = VK_NULL_HANDLE;
 	void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
+
 };

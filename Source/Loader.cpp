@@ -20,13 +20,14 @@ namespace Renderer
 			}
 		}
 		std::string fileType = path.substr(fileSplit, path.size() - fileSplit);
+
 		if (fileType == ".obj")
 		{
-			ObjFileLoader* objFileloader = new ObjFileLoader();
+			ObjFileLoader* objFileloader = new ObjFileLoader(m_device);
 			if (objFileloader != nullptr)
 			{
 				objFileloader->loadFileData(path);
-				for (auto& mesh : objFileloader->m_meshes)
+				for (auto& mesh : objFileloader->GetMeshes())
 				{
 					Model* model=new Model(m_device, m_commandPool, mesh.m_vertices, mesh.m_indices);
 					models.push_back(model);
@@ -55,7 +56,7 @@ namespace Renderer
 			if (objFileloader != nullptr)
 			{
 				objFileloader->loadFileData(path);
-				for (auto& mesh : objFileloader->m_meshes)
+				for (auto& mesh : objFileloader->GetMeshes())
 				{
 					Model* model = new Model(m_device, m_commandPool, mesh.m_vertices, mesh.m_indices);
 					models.push_back(model);

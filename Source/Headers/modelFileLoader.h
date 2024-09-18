@@ -24,13 +24,19 @@ namespace Renderer
 	class ObjFileLoader : public FileLoader
 	{
 	public:
-		ObjFileLoader();
+		ObjFileLoader() = delete;
+		ObjFileLoader(Device* device);
 		virtual ~ObjFileLoader();
 
 		void loadFileData(std::string modelFilePath) override;
+		std::vector<MeshData> GetMeshes();
+		std::vector<Material> GetMaterials();
+		Device* GetDevice();
 
+	protected:
+		Device* m_device;
 		std::vector<MeshData> m_meshes;
-		std::vector<LambertMaterial> m_lambertMaterials;
+		std::vector<Material> m_materials;
 	};
 
 	class GLTFFileLoader :public FileLoader

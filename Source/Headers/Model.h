@@ -4,6 +4,7 @@
 #include "Vulkan/Texture.h"
 #include "Material.h"
 #include <glm/glm.hpp>
+#include <map>
 namespace Renderer
 {
 
@@ -11,20 +12,7 @@ namespace Renderer
 	{
 		glm::mat4 modelMatrix;
 	};
-	enum TextureType
-	{
-		BaseColor =0,
-		Metallic=1,
-		Roughness=2,
-		Albedo=3,
-		Glossiness=4,
-		Specular=5,
-		AmbientOcclusion=6,
-		Emissive=7, 
-		Opacity=8,
-		Displacement=9,
-		Anisotropic=10,
-	};
+
 
 	class Model
 	{
@@ -33,9 +21,8 @@ namespace Renderer
 		Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
 		Model(Model& model);
 
-		virtual ~Model();
+		~Model();
 
-		void SetTexture(Texture texture,TextureType type);
 
 		const std::vector<Vertex>& GetVertices() const;
 
@@ -49,7 +36,7 @@ namespace Renderer
 
 		VkBuffer GetModelUniformBuffer() const;
 
-		Texture GetBindTextureOfType(TextureType type) const;
+		std::shared_ptr<Texture> GetBindTextureOfType(TextureType type) const;
 
 	protected:
 		Device* m_device;
@@ -66,8 +53,7 @@ namespace Renderer
 
 		ModelBufferObject m_modelBufferObject;
 
-		std::vector<Texture> m_textures;
 
-		std::vector<Material> m_materials;
+
 	};
 }

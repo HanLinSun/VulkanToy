@@ -19,7 +19,7 @@ void Texture::Destroy()
 	vkFreeMemory(m_device->GetVkDevice(), m_imageDeviceMemory, nullptr);
 }
 
-void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags,
+void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* device, VkImageUsageFlags  imageUsageFlags,
 	VkImageLayout imageLayout , bool forceLinear)
 { 
         this->m_device = device;
