@@ -59,6 +59,7 @@ struct MaterialProperties
 		glm::vec4 Ambient ;
 		glm::vec4 Emissive ;
 		glm::vec4 Reflectance ;
+        
 
         float AlphaThreshold;
         float Opacity;                       // If Opacity < 1, then the material is transparent.
@@ -82,6 +83,7 @@ struct MaterialProperties
         float ClearCoatThickness;
         float Metallic;
         float Sheen;
+
         uint32_t HasAlbedoTexture;
         uint32_t HasRoughnessTexture;
         uint32_t HasMetallicTexture;
@@ -113,6 +115,8 @@ class Material
 public:
 	Material(const MaterialProperties& materialProperties = MaterialProperties());
 	Material(const Material& copy);
+    Material(const Material* copy);
+
 
 	~Material() = default;
 
@@ -157,13 +161,15 @@ public:
 
     const MaterialProperties& GetMaterialProperties() const;
     void SetMaterialProperties(const MaterialProperties& materialProperties);
+
+    std::shared_ptr<Texture> GetTexture(TextureType type) const;
+
 private:
 
 	std::unique_ptr<MaterialProperties, void (*)(MaterialProperties*)> m_MaterialProperties;
     TextureMap m_textures;
 
-	Device* m_device = nullptr;
-	VkDescriptorSet m_descriptorSet = VK_NULL_HANDLE;
-	void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
+    //std::string m_name;
+	//void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
 
 };

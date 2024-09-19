@@ -17,7 +17,7 @@ namespace Renderer
 		FileLoader();
 		virtual ~FileLoader() {};
 
-		virtual void loadFileData(std::string modelFilePath);
+		virtual void loadFileData(std::string modelFilePath, std::string modelFolderPath);
 	};
 
 
@@ -28,7 +28,7 @@ namespace Renderer
 		ObjFileLoader(Device* device);
 		virtual ~ObjFileLoader();
 
-		void loadFileData(std::string modelFilePath) override;
+		void loadFileData(std::string modelFilePath, std::string modelFolderPath) override;
 		std::vector<MeshData> GetMeshes();
 		std::vector<Material> GetMaterials();
 		Device* GetDevice();
@@ -45,7 +45,7 @@ namespace Renderer
 		GLTFFileLoader();
 		virtual ~GLTFFileLoader();
 
-		void loadFileData(std::string modelFilePath) override;
+		void loadFileData(std::string modelFilePath,std::string modelFolderPath) override;
 
 		std::vector<GLTFMeshData> m_meshes;
 	};

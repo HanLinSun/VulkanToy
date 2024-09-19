@@ -18,6 +18,9 @@ Material::Material(const MaterialProperties& materialProperties):m_MaterialPrope
 Material::Material(const Material& copy):m_MaterialProperties(NewMaterialProperties(*copy.m_MaterialProperties), &DeleteMaterialProperties)
 ,m_textures(copy.m_textures){}
 
+Material::Material(const Material* copy) :m_MaterialProperties(NewMaterialProperties(*copy->m_MaterialProperties), &DeleteMaterialProperties)
+, m_textures(copy->m_textures) {}
+
 const glm::vec4 Material::GetAmbientColor() const
 {
 	return m_MaterialProperties->Ambient;
@@ -128,6 +131,16 @@ void Material::SetBumpIntensity(float bumpIntensity)
 {
 	m_MaterialProperties->BumpIntensity = bumpIntensity;
 }
+std::shared_ptr<Texture> Material::GetTexture(TextureType type) const
+{
+    TextureMap::const_iterator iter = m_textures.find(type);
+    if (iter != m_textures.end())
+    {
+        return iter->second;
+    }
+
+    return nullptr;
+}
 
 void Material::SetTexture(std::shared_ptr<Texture> texture, TextureType type)
 {
@@ -205,6 +218,7 @@ const MaterialProperties& Material::GetMaterialProperties() const
 {
 	return *m_MaterialProperties;
 }
+
 void Material::SetMaterialProperties(const MaterialProperties& materialProperties)
 {
 	*m_MaterialProperties = materialProperties;

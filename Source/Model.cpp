@@ -2,8 +2,8 @@
 #include "Vulkan/BufferUtils.h"
 namespace Renderer
 {
-	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
-		:m_device(device),m_vertices(vertices),m_indices(indices)
+	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,Material* mat)
+		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(std::make_unique<Material>(mat))
 	{
 		if (m_vertices.size() > 0)
 		{
@@ -36,6 +36,7 @@ namespace Renderer
 		vkDestroyBuffer(m_device->GetVkDevice(), m_modelUniformBuffer, nullptr);
 		vkFreeMemory(m_device->GetVkDevice(), m_modelUniformBufferMemory, nullptr);
 
+		
 	}
 
 	const std::vector<Vertex>& Model::GetVertices() const {
@@ -60,6 +61,16 @@ namespace Renderer
 
 	VkBuffer Model::GetModelUniformBuffer() const {
 		return m_modelUniformBuffer;
+	}
+
+	Material* Model::GetMaterial() const
+	{
+		return m_material.get();
+	}
+
+	void Model::SetMaterial(Material* mat)
+	{
+		m_material = std::make_unique<Material>(std::move(mat));
 	}
 
  }

@@ -57,15 +57,16 @@ namespace Renderer
 
 	struct Triangle
 	{
-		Vertex vert_1;
-		Vertex vert_2;
-		Vertex vert_3;
+		std::vector<Vertex> verts;
+		uint32_t material_ID;
 	};
 
 	struct MeshData
 	{
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
+
+		std::vector<Triangle> m_triangles;
 		uint32_t m_materialID;
 	};
 	struct GLTFMeshData

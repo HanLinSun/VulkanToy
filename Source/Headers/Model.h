@@ -18,7 +18,7 @@ namespace Renderer
 	{
 	public:
 		Model() = delete;
-		Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+		Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, Material* mat);
 		Model(Model& model);
 
 		~Model();
@@ -35,8 +35,8 @@ namespace Renderer
 		const ModelBufferObject& GetModelBufferObject() const;
 
 		VkBuffer GetModelUniformBuffer() const;
-
-		std::shared_ptr<Texture> GetBindTextureOfType(TextureType type) const;
+		Material* GetMaterial() const;
+		void SetMaterial(Material* mat);
 
 	protected:
 		Device* m_device;
@@ -52,8 +52,8 @@ namespace Renderer
 		VkDeviceMemory m_modelUniformBufferMemory;
 
 		ModelBufferObject m_modelBufferObject;
-
-
+		std::unique_ptr<Material> m_material;
+		
 
 	};
 }

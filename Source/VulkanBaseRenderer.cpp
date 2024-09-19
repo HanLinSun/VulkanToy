@@ -100,11 +100,11 @@ namespace Renderer
             m_Camera = m_Scene->GetSceneCamera();
         }
     }
-    void VulkanBaseRenderer::LoadModel(std::string model_path, std::string model_texture_path)
+    void VulkanBaseRenderer::LoadModel(std::string model_path, std::string model_folder_path)
     {
         Loader loader(m_device, m_device->GetCommandPool());
         std::vector<Model*> scene_model;
-        loader.LoadModel(model_path, model_texture_path, scene_model);
+        loader.LoadModel(model_path, model_folder_path, scene_model);
         m_Scene->AddModels(scene_model);
     }
     void VulkanBaseRenderer::CompileShader(std::string vertexShader, std::string fragmentShader)
@@ -118,7 +118,7 @@ namespace Renderer
         CreateScene();
 
         //By default we use this
-        LoadModel(MODEL_PATH,TEXTURE_PATH);
+        LoadModel(MODEL_PATH,MODEL_FILE_PATH);
 
         CreateImageViews();
         CreateRenderPass();
@@ -667,10 +667,11 @@ namespace Renderer
                 modelUniformBufferInfo.offset = 0;
                 modelUniformBufferInfo.range = sizeof(UniformBufferObject);
 
+                //Material* mat = m_Scene->GetSceneModel(j)->GetMaterial();
                 //VkDescriptorImageInfo imageInfo{};
                 //imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                //imageInfo.imageView = m_Scene->GetSceneModel(j)->GetBindTextureOfType(TextureType::BaseColor).m_imageView;
-                //imageInfo.sampler = m_Scene->GetSceneModel(j)->GetBindTextureOfType(TextureType::BaseColor).m_sampler;
+                //imageInfo.imageView = mat->GetTexture(TextureType::Ambient)->m_imageView;
+                //imageInfo.sampler = mat->GetTexture(TextureType::Ambient)->m_sampler;
 
                 descriptorWrites[i*offset +shaderBindingNums * j + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 descriptorWrites[i*offset +shaderBindingNums * j + 0].dstSet = m_modelDescriptorSets[i];

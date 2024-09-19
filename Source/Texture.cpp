@@ -1,6 +1,7 @@
 #include "Vulkan/Texture.h"
 #include "Vulkan/BufferUtils.h"
 #include "Tools.h"
+#include "Log.h"
 void Texture::UpdateDescriptor()
 {
 	descriptor.sampler = m_sampler;
@@ -19,7 +20,7 @@ void Texture::Destroy()
 	vkFreeMemory(m_device->GetVkDevice(), m_imageDeviceMemory, nullptr);
 }
 
-void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* device, VkImageUsageFlags  imageUsageFlags,
+int Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* device, VkImageUsageFlags  imageUsageFlags,
 	VkImageLayout imageLayout , bool forceLinear)
 { 
         this->m_device = device;
@@ -28,6 +29,12 @@ void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devi
 		int texChannels;
         stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
+        if (pixels == nullptr)
+        {
+            LOG_CORE_ERROR("pixel data is null, " + filename + " might be empty, loading stopped.");
+            return -1;
+        }
+        
 	    this->m_pixels = pixels;
         this->width = texWidth;
         this->height = texHeight;
@@ -36,10 +43,6 @@ void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devi
         mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
         
         this->mipLevels = mipLevels;
-
-        if (!this->m_pixels) {
-            throw std::runtime_error("input texture missing critical information, may have load error");
-        }
 
        VkBuffer stagingBuffer;
        VkDeviceMemory stagingBufferMemory;
@@ -62,27 +65,47 @@ void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devi
        Tools::GenerateMipmaps(m_device,this->m_image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
 
        // Create a default sampler
-        VkPhysicalDeviceProperties properties{};
-        vkGetPhysicalDeviceProperties(this->m_device->GetInstance()->GetPhysicalDevice(), &properties);
-       VkSamplerCreateInfo samplerCreateInfo = {};
-       samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-       samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-       samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-       samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-       samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-       samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-       samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-       samplerCreateInfo.mipLodBias = 0.0f;
-       samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
-       samplerCreateInfo.minLod = 0.0f;
-       // Max level-of-detail should match mip level count
-       samplerCreateInfo.maxLod = (float)mipLevels;
-       // Only enable anisotropic filtering if enabled on the device
-       samplerCreateInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-       samplerCreateInfo.anisotropyEnable = VK_TRUE;
-       samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-       if (vkCreateSampler(this->m_device->GetVkDevice(), &samplerCreateInfo, nullptr, &this->m_sampler) == VK_SUCCESS)
-       {
+
+       //VkSamplerCreateInfo samplerCreateInfo = {};
+       //samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+       //samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+       //samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+       //samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+       //samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+       //samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+       //samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+       //samplerCreateInfo.mipLodBias = 0.0f;
+       //samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
+       //samplerCreateInfo.minLod = 0.0f;
+       //// Max level-of-detail should match mip level count
+       //samplerCreateInfo.maxLod = (float)mipLevels;
+       //// Only enable anisotropic filtering if enabled on the device
+       //samplerCreateInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+       //samplerCreateInfo.anisotropyEnable = VK_TRUE;
+       //samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+
+       VkPhysicalDeviceProperties properties{};
+       vkGetPhysicalDeviceProperties(device->GetInstance()->GetPhysicalDevice(), &properties);
+       
+      VkSamplerCreateInfo samplerInfo{};
+       samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+       samplerInfo.magFilter = VK_FILTER_LINEAR;
+       samplerInfo.minFilter = VK_FILTER_LINEAR;
+       samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+       samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+       samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+       samplerInfo.anisotropyEnable = VK_TRUE;
+       samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+       samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+       samplerInfo.unnormalizedCoordinates = VK_FALSE;
+       samplerInfo.compareEnable = VK_FALSE;
+       samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+       samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+       samplerInfo.minLod = 0.0f;
+       samplerInfo.maxLod = static_cast<float>(mipLevels);
+       samplerInfo.mipLodBias = 0.0f;
+       
+      if (vkCreateSampler(m_device->GetVkDevice(), &samplerInfo, nullptr, &this->m_sampler) != VK_SUCCESS) {
            throw std::runtime_error("failed to create texture sampler!");
        }
 
@@ -98,13 +121,14 @@ void Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devi
 
        viewCreateInfo.subresourceRange.levelCount = mipLevels;
        viewCreateInfo.image = this->m_image;
-       if (vkCreateImageView(this->m_device->GetVkDevice(), &viewCreateInfo, nullptr, &this->m_imageView))
+       if (vkCreateImageView(this->m_device->GetVkDevice(), &viewCreateInfo, nullptr, &this->m_imageView)!=VK_SUCCESS)
        {
            throw std::runtime_error("failed to create texture image view!");
        }
 
        // Update descriptor image info member that can be used for setting up descriptor sets
        UpdateDescriptor();
+       return 0;
 }
 
 
