@@ -14,10 +14,17 @@ struct MaterialProperties
         const float specularPower = 128.0f,
         const glm::vec4 ambient = { 0, 0, 0, 1 },
         const glm::vec4 emissive = { 0, 0, 0, 1 },
-        const glm::vec4 reflectance = { 0, 0, 0, 0 }, const float opacity = 1.0f,
-        const float indexOfRefraction = 0.0f, const float bumpIntensity = 1.0f,
-        const float alphaThreshold = 0.1f
-    )
+        const glm::vec4 reflectance = { 0, 0, 0, 0 }, 
+        const float opacity = 1.0f,
+        const float indexOfRefraction = 0.0f, 
+        const float bumpIntensity = 1.0f,
+        const float alphaThreshold = 0.1f,
+        const float roughness = 1.0f,
+        const float sheen =1.0f,
+        const float clearcoatRoughness = 1.0f,
+        const float clearcoatThickness=1.0f,
+        const float metallic = 1.0f
+    )   
         : Diffuse(diffuse)
         , Specular(specular)
         , Emissive(emissive)
@@ -27,6 +34,12 @@ struct MaterialProperties
         , SpecularPower(specularPower)
         , IndexOfRefraction(indexOfRefraction)
         , BumpIntensity(bumpIntensity)
+        , AlphaThreshold(alphaThreshold)
+        , Roughness(roughness)
+        , ClearCoatRoughness(clearcoatRoughness)
+        , ClearCoatThickness(clearcoatThickness)
+        , Sheen(sheen)
+        , Metallic(metallic)
         , HasAmbientTexture(false)
         , HasEmissiveTexture(false)
         , HasDiffuseTexture(false)
@@ -38,7 +51,7 @@ struct MaterialProperties
         ,HasAlbedoTexture(false)
         ,HasMetallicTexture(false)
         ,HasRoughnessTexture(false)
-        ,isPBRMat(false)
+        ,HasReflectionTexture(false)
     {}
 		glm::vec4 Diffuse ;
 		glm::vec4 Specular ;
@@ -47,6 +60,7 @@ struct MaterialProperties
 		glm::vec4 Emissive ;
 		glm::vec4 Reflectance ;
 
+        float AlphaThreshold;
         float Opacity;                       // If Opacity < 1, then the material is transparent.
         float SpecularPower;
         float IndexOfRefraction;             // For transparent materials, IOR > 0.
@@ -62,10 +76,17 @@ struct MaterialProperties
         uint32_t HasBumpTexture;
         uint32_t HasOpacityTexture;
 
+
+        float Roughness;
+        float ClearCoatRoughness;
+        float ClearCoatThickness;
+        float Metallic;
+        float Sheen;
         uint32_t HasAlbedoTexture;
         uint32_t HasRoughnessTexture;
         uint32_t HasMetallicTexture;
-        bool isPBRMat;
+        uint32_t HasReflectionTexture;
+
 };
 
 enum TextureType
@@ -82,11 +103,7 @@ enum TextureType
     Albedo,
     Roughness,
     Metallic,
-};
-
-enum PBRTextureType
-{
-
+    Reflection,
 };
 
 using TextureMap = std::map<TextureType, std::shared_ptr<Texture>>;
@@ -119,6 +136,18 @@ public:
 
     float GetIndexOfRefraction() const;
     void SetIndexOfRefraction(float indexOfRefraction);
+
+    float GetRoughness() const;
+    void SetRoughness(float roughness);
+
+    float GetMetallic() const;
+    void SetMetallic(float metallic);
+
+    float GetClearCoatRoughness() const;
+    void SetClearCoatRoughness(float clearCoarRoughness);
+
+    float GetClearCoatThickness() const;
+    void SetClearCoatThickness(float clearCoatThickness);
 
     float GetBumpIntensity() const;
     void SetBumpIntensity(float bumpIntensity);

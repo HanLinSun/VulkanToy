@@ -54,6 +54,14 @@ namespace Renderer
 		}
 
 	};
+
+	struct Triangle
+	{
+		Vertex vert_1;
+		Vertex vert_2;
+		Vertex vert_3;
+	};
+
 	struct MeshData
 	{
 		std::vector<Vertex> m_vertices;

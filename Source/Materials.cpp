@@ -81,6 +81,45 @@ void Material::SetIndexOfRefraction(float indexOfRefraction)
 	m_MaterialProperties->IndexOfRefraction = indexOfRefraction;
 }
 
+float Material::GetClearCoatThickness() const
+{
+    return m_MaterialProperties->ClearCoatThickness;
+}
+void Material::SetClearCoatThickness(float clearCoatThickness)
+{
+    m_MaterialProperties->ClearCoatThickness = clearCoatThickness;
+}
+
+float Material::GetRoughness() const
+{
+    return m_MaterialProperties->Roughness;
+}
+
+void Material::SetRoughness(float roughness) 
+{
+    m_MaterialProperties->Roughness = roughness;
+}
+
+float Material::GetMetallic() const
+{
+    return m_MaterialProperties->Metallic;
+}
+
+void Material::SetMetallic(float metallic)
+{
+    m_MaterialProperties->Metallic = metallic;
+}
+
+float Material::GetClearCoatRoughness() const
+{
+    return m_MaterialProperties->ClearCoatRoughness;
+}
+
+void Material::SetClearCoatRoughness(float clearCoatRoughness)
+{
+    m_MaterialProperties->ClearCoatRoughness = clearCoatRoughness;
+}
+
 float Material::GetBumpIntensity() const
 {
 	return m_MaterialProperties->BumpIntensity;
@@ -148,6 +187,11 @@ void Material::SetTexture(std::shared_ptr<Texture> texture, TextureType type)
         case TextureType::Roughness:
         {
             m_MaterialProperties->HasRoughnessTexture = (texture != nullptr);
+        }
+        break;
+        case TextureType::Reflection:
+        {
+            m_MaterialProperties->HasReflectionTexture = (texture != nullptr);
         }
         break;
         }

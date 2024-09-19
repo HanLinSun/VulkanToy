@@ -78,7 +78,13 @@ namespace Renderer
 			load_mat.SetEmissiveColor(glm::vec4(material.emission[0], material.emission[1], material.emission[2], 1));
 			load_mat.SetSpecularColor(glm::vec4(material.specular[0], material.specular[1], material.specular[2], 1));
 			load_mat.SetIndexOfRefraction((float)material.ior);
-		
+
+			load_mat.SetRoughness(material.roughness);
+			load_mat.SetMetallic(material.metallic);
+
+			load_mat.SetClearCoatRoughness(material.clearcoat_roughness);
+			load_mat.SetClearCoatThickness(material.clearcoat_thickness);
+
 			if (material.ambient_texname.size()!=0)
 			{ 
 				std::shared_ptr<Texture2D> ambient_texture=std::make_shared<Texture2D>();
@@ -95,7 +101,6 @@ namespace Renderer
 
 			if (material.alpha_texname.size() != 0)
 			{
-
 				std::shared_ptr<Texture2D> alpha_texture = std::shared_ptr<Texture2D>();
 				alpha_texture->LoadFromFile(material.alpha_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice());
 				load_mat.SetTexture(alpha_texture, TextureType::Opacity);
@@ -108,6 +113,12 @@ namespace Renderer
 				load_mat.SetTexture(bump_texture, TextureType::Bump);
 			}
 
+			if (material.reflection_texname.size() != 0)
+			{
+				std::shared_ptr<Texture2D> reflection_texture = std::shared_ptr<Texture2D>();
+				reflection_texture->LoadFromFile(material.reflection_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice());
+				load_mat.SetTexture(reflection_texture, TextureType::Reflection);
+			}
 			m_materials.push_back(load_mat);
 		}
 
