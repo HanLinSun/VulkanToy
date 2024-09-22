@@ -18,10 +18,6 @@ namespace Renderer
 		return m_models[index];
 	}
 
-	Camera Scene::GetSceneCamera()
-	{
-		return m_camera;
-	}
 
 	void Scene::AddModels(std::vector<Model*>& _models)
 	{

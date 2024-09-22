@@ -45,6 +45,7 @@ namespace Renderer
 
         imageCount = m_swapChain->GetCount();
         //msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
+        m_Camera = new Camera(m_device, m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
 
     }
     void VulkanBaseRenderer::Run() {
@@ -66,7 +67,6 @@ namespace Renderer
         m_ImGuiLayer->CreateImGuiCommandBuffers();
         m_ImGuiLayer->CreateImGuiFramebuffer(m_imageViews);
 
-        m_Camera.setCameraPosition(glm::vec3(2.0, 2.0, 2.0));
 
         ImGui_ImplGlfw_InitForVulkan(m_window, true);
         ImGui_ImplVulkan_InitInfo init_info = {};
@@ -100,7 +100,6 @@ namespace Renderer
         if (m_Scene == nullptr)
         {
             m_Scene = new Scene();
-            m_Camera = m_Scene->GetSceneCamera();
         }
     }
     void VulkanBaseRenderer::LoadModel(std::string model_path, std::string model_folder_path)
@@ -118,14 +117,15 @@ namespace Renderer
         //By default we use this
         LoadModel(MODEL_PATH,MODEL_FILE_PATH);
 
-        CreateImageViews();
         CreateRenderPass();
-        CreateDescriptorSetLayout();
+        CreateCameraDescriptorSetLayout();
+        CreateModelDescriptorSetLayout();
         CreateGraphicsPipeline();
         CreateCommandPool(&m_commandPool);
         CreateFrameResources();
         CreateUniformBuffer();
         CreateDescriptorPool();
+        CreateCameraDescriptorSets();
         CreateModelDescriptorSets(1);
         CreateCommandBuffers();
         CreateSyncObjects();
@@ -169,7 +169,7 @@ namespace Renderer
         vkDestroyDescriptorPool(m_device->GetVkDevice(), m_descriptorPool, nullptr);
 
 
-        vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_descriptorSetLayout, nullptr);
+        vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_modelDescriptorSetLayout, nullptr);
 
 
         for (size_t i = 0; i < m_swapChain->GetCount(); i++) {
@@ -239,9 +239,6 @@ namespace Renderer
         }
     }
 
-    void VulkanBaseRenderer::CreateImageViews() {
-
-    }
     void VulkanBaseRenderer::CreateRenderPass() {
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format = m_swapChain->GetVkImageFormat();
@@ -315,7 +312,7 @@ namespace Renderer
         }
     }
     //GUI Pass
-    void VulkanBaseRenderer::CreateDescriptorSetLayout() {
+    void VulkanBaseRenderer::CreateCameraDescriptorSetLayout() {
         VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding = 0;
         uboLayoutBinding.descriptorCount = 1;
@@ -323,21 +320,35 @@ namespace Renderer
         uboLayoutBinding.pImmutableSamplers = nullptr;
         uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-        samplerLayoutBinding.binding = 1;
-        samplerLayoutBinding.descriptorCount = 1;
-        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerLayoutBinding.pImmutableSamplers = nullptr;
-        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+        VkDescriptorSetLayoutBinding bindings[] = {uboLayoutBinding};
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = 1;
+        layoutInfo.pBindings = bindings;
+
+        if (vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &layoutInfo, nullptr, &m_cameraDescriptorSetLayout) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor set layout!");
+        }
+    }
+
+    void VulkanBaseRenderer::CreateModelDescriptorSetLayout() {
+        VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.descriptorCount = 1;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBinding.pImmutableSamplers = nullptr;
+
+        std::vector<VkDescriptorSetLayoutBinding> bindings = { uboLayoutBinding};
+
+        // Create the descriptor set layout
+        VkDescriptorSetLayoutCreateInfo layoutInfo = {};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
         layoutInfo.pBindings = bindings.data();
 
-        if (vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor set layout!");
+        if (vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &layoutInfo, nullptr, &m_modelDescriptorSetLayout) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create descriptor set layout");
         }
     }
 
@@ -445,10 +456,13 @@ namespace Renderer
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         dynamicState.pDynamicStates = dynamicStates.data();
 
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts = { m_cameraDescriptorSetLayout, m_modelDescriptorSetLayout };
+
+
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutInfo.setLayoutCount = 1;
-        pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
+        pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
 
         if (vkCreatePipelineLayout(m_device->GetVkDevice(), &pipelineLayoutInfo, nullptr, &m_graphicPipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
@@ -537,45 +551,85 @@ namespace Renderer
     }
 
     void VulkanBaseRenderer::CreateDescriptorPool() {
-        std::array<VkDescriptorPoolSize, 2> poolSizes{};
-        poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSizes[0].descriptorCount = static_cast<uint32_t>(m_swapChain->GetCount());
-        //Diffuse Texture
-        poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        poolSizes[1].descriptorCount = static_cast<uint32_t>(m_swapChain->GetCount());
+        std::vector<VkDescriptorPoolSize> poolSizes=  {
+            //Camera
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ,1},
+            //Model UBO
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER , static_cast<uint32_t>(m_Scene->GetSceneModels().size())},
+
+            //{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,static_cast<uint32_t>(m_Scene->GetSceneModels().size())},
+        };
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
         poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = static_cast<uint32_t>(m_swapChain->GetCount());
+        //// Max. number of descriptor sets that can be allocated from this pool (one per object)
+        poolInfo.maxSets =1 + static_cast<uint32_t>(m_Scene->GetSceneModels().size());
 
         if (vkCreateDescriptorPool(m_device->GetVkDevice(), &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
     }
-    void VulkanBaseRenderer::CreateModelDescriptorSets(int shaderBindingNums) {
-        std::vector<VkDescriptorSetLayout> layouts(m_swapChain->GetCount(), m_descriptorSetLayout);
+
+    void VulkanBaseRenderer::CreateCameraDescriptorSets()
+    {
+        VkDescriptorSetLayout layouts[] = {m_cameraDescriptorSetLayout};
+        VkDescriptorSetAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = m_descriptorPool;
+        allocInfo.descriptorSetCount = 1;
+        allocInfo.pSetLayouts = layouts;
+
+        // Allocate descriptor sets
+        if (vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, &m_cameraDescriptorSet) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to allocate descriptor set");
+        }
+
+        // Configure the descriptors to refer to buffers
+        VkDescriptorBufferInfo cameraBufferInfo = {};
+        cameraBufferInfo.buffer = m_Camera->GetBuffer();
+        cameraBufferInfo.offset = 0;
+        cameraBufferInfo.range = sizeof(CameraUniformBuffer);
+
+        std::array<VkWriteDescriptorSet, 1> descriptorWrites = {};
+        descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[0].dstSet = m_cameraDescriptorSet;
+        descriptorWrites[0].dstBinding = 0;
+        descriptorWrites[0].dstArrayElement = 0;
+        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[0].descriptorCount = 1;
+        descriptorWrites[0].pBufferInfo = &cameraBufferInfo;
+        descriptorWrites[0].pImageInfo = nullptr;
+        descriptorWrites[0].pTexelBufferView = nullptr;
+
+        // Update descriptor sets
+        vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
+    }
+    void VulkanBaseRenderer::CreateModelDescriptorSets(int shaderBindingNums) 
+    {
+        m_modelDescriptorSets.resize(m_Scene->GetSceneModels().size());
+        std::vector<VkDescriptorSetLayout> layouts = { m_modelDescriptorSets.size(), m_modelDescriptorSetLayout };
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = m_descriptorPool;
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(m_swapChain->GetCount());
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(m_modelDescriptorSets.size());
         allocInfo.pSetLayouts = layouts.data();
 
-        m_modelDescriptorSets.resize(m_Scene->GetSceneModels().size());
 
         if (vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, m_modelDescriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
+
         std::vector<VkWriteDescriptorSet> descriptorWrites(shaderBindingNums *m_modelDescriptorSets.size());
 
-
-            for (size_t i = 0; i< m_Scene->GetSceneModels().size(); i++)
+        for (size_t i = 0; i< m_Scene->GetSceneModels().size(); i++)
             {
                 VkDescriptorBufferInfo bufferInfo{};
-                bufferInfo.buffer = uniformBuffers[i];
+                bufferInfo.buffer = m_Scene->GetSceneModel(i)->GetModelUniformBuffer();
                 bufferInfo.offset = 0;
-                bufferInfo.range = sizeof(UniformBufferObject);
+                bufferInfo.range = sizeof(ModelBufferObject);
 
                 //Material* mat = m_Scene->GetSceneModel(j)->GetMaterial();
                 //VkDescriptorImageInfo imageInfo{};
@@ -583,13 +637,13 @@ namespace Renderer
                 //imageInfo.imageView = mat->GetTexture(TextureType::Ambient)->m_imageView;
                 //imageInfo.sampler = mat->GetTexture(TextureType::Ambient)->m_sampler;
 
-                descriptorWrites[i + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWrites[i + 0].dstSet = m_modelDescriptorSets[i];
-                descriptorWrites[i + 0].dstBinding = 0;
-                descriptorWrites[i + 0].dstArrayElement = 0;
-                descriptorWrites[i + 0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                descriptorWrites[i + 0].descriptorCount = 1;
-                descriptorWrites[i + 0].pBufferInfo = &bufferInfo;
+                descriptorWrites[shaderBindingNums*i + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                descriptorWrites[shaderBindingNums*i + 0].dstSet = m_modelDescriptorSets[i];
+                descriptorWrites[shaderBindingNums*i + 0].dstBinding = 0;
+                descriptorWrites[shaderBindingNums*i + 0].dstArrayElement = 0;
+                descriptorWrites[shaderBindingNums*i + 0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                descriptorWrites[shaderBindingNums*i + 0].descriptorCount = 1;
+                descriptorWrites[shaderBindingNums*i + 0].pBufferInfo = &bufferInfo;
 
                 //descriptorWrites[i*offset +shaderBindingNums * j + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 //descriptorWrites[i*offset +shaderBindingNums * j + 1].dstSet = m_modelDescriptorSets[i];
@@ -601,7 +655,6 @@ namespace Renderer
              
             }   
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
     }
 
     void VulkanBaseRenderer::CreateUniformBuffer()
@@ -703,7 +756,7 @@ namespace Renderer
 
             vkCmdBindIndexBuffer(commandBuffer, m_Scene->GetSceneModel(j)->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_modelDescriptorSets[currentFrame], 0, nullptr);
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_modelDescriptorSets[j], 0, nullptr);
            
             std::vector<uint32_t> indices = m_Scene->GetSceneModel(j)->GetIndices();
             vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
@@ -736,24 +789,6 @@ namespace Renderer
         }
     }
 
-    void VulkanBaseRenderer::UpdateUniformBuffer(uint32_t currentImage) 
-    {
-        //static auto startTime = std::chrono::high_resolution_clock::now();
-
-        //auto currentTime = std::chrono::high_resolution_clock::now();
-        //float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-        UniformBufferObject ubo{};
-        //ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-        ubo.model = glm::mat4(1.0f);
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.proj = glm::perspective(glm::radians(45.0f), (float)m_swapChain->GetVkExtent().width / (float)m_swapChain->GetVkExtent().height, 0.1f, 10.0f);
-        ubo.proj[1][1] *= -1;
-
-        memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
-    }
-
     void VulkanBaseRenderer::DrawFrame() {
         vkWaitForFences(m_device->GetVkDevice(), 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
         lastTimeStamp = std::chrono::high_resolution_clock::now();
@@ -779,7 +814,7 @@ namespace Renderer
 
         m_ImGuiLayer->DrawUI(currentFrame, imageIndex);
 
-        UpdateUniformBuffer(currentFrame);
+        //UpdateUniformBuffer(currentFrame);
 
         //After record new command buffer need to submit them
         VkSubmitInfo submitInfo{};
@@ -859,7 +894,6 @@ namespace Renderer
                 return availablePresentMode;
             }
         }
-
         return VK_PRESENT_MODE_FIFO_KHR;
     }
 

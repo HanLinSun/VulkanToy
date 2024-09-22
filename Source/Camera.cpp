@@ -2,92 +2,50 @@
 
 namespace Renderer
 {
-	Camera::Camera() :m_position(glm::vec3(0, 0, 0)), m_rotation(glm::vec3(0, 0, 0)),m_farClipPlane(2000),m_nearClipPlane(0.1),m_fieldOfView(60),
-	m_modelMatrix(glm::mat4()),m_viewMatrix(glm::mat4()),m_projectionMatrix(glm::mat4()),m_mvpMatrix(glm::mat4()),
-		m_invProjMatrix(glm::mat4()),m_invViewMatrix(glm::mat4()),m_aspectRatio(1.0),m_upVector(glm::vec3(0,1,0)),
-		m_refPosition(glm::vec3(0,0,2)),m_rightVector(glm::vec3(1,0,0)),m_lookAt(glm::normalize(m_refPosition - m_position)){}
-
-	Camera::Camera(glm::vec3 init_position) :m_position(init_position), m_rotation(glm::vec3(0, 0, 0)), m_farClipPlane(2000), m_nearClipPlane(0.1), m_fieldOfView(60),
-		m_modelMatrix(glm::mat4()), m_viewMatrix(glm::mat4()), m_projectionMatrix(glm::mat4()), m_mvpMatrix(glm::mat4()),
-		m_invProjMatrix(glm::mat4()), m_invViewMatrix(glm::mat4()), m_aspectRatio(1.0), m_upVector(glm::vec3(0, 1, 0)),
-		m_refPosition(glm::vec3(0, 0, 2)), m_rightVector(glm::vec3(1, 0, 0)), m_lookAt(glm::normalize(m_refPosition - m_position)) {}
-
-	Camera::~Camera(){}
-
-	glm::vec3 Camera::getCameraPosition()
+	Camera::Camera(Device* device, float aspectRatio) :m_device(device)
 	{
-		return m_position;
+		r = 20.0f;
+		theta = 45.0f;
+		phi = -45.0f;
+
+		m_cameraBufferObject.viewMatrix = glm::lookAt(glm::vec3(0.0f, 1.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		m_cameraBufferObject.projectionMatrix = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+		m_cameraBufferObject.projectionMatrix[1][1] *= -1; // y-coordinate is flipped
+
+		BufferUtils::CreateBuffer(device, sizeof(CameraUniformBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_buffer, m_bufferMemory);
+
+		vkMapMemory(device->GetVkDevice(), m_bufferMemory, 0, sizeof(CameraUniformBuffer), 0, &m_mappedData);
+		memcpy(m_mappedData, &m_cameraBufferObject, sizeof(CameraUniformBuffer));
 	}
+
+	VkBuffer Camera::GetBuffer() const
+	{
+		return m_buffer;
+	}
+
+	void Camera::UpdateOrbit(float deltaX, float deltaY, float deltaZ)
+	{
+		theta += deltaX;
+		phi += deltaY;
+		r = glm::clamp(r - deltaZ, 1.0f, 50.0f);
+
+		float radTheta = glm::radians(theta);
+		float radPhi = glm::radians(phi);
+
+		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), radTheta, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), radPhi, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 finalTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)) * rotation * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, r));
+
+		m_cameraBufferObject.viewMatrix = glm::inverse(finalTransform);
+
+		memcpy(m_mappedData, &m_cameraBufferObject, sizeof(CameraUniformBuffer));
+	}
+
+	Camera::~Camera() {
+		vkUnmapMemory(m_device->GetVkDevice(), m_bufferMemory);
+		vkDestroyBuffer(m_device->GetVkDevice(), m_buffer, nullptr);
+		vkFreeMemory(m_device->GetVkDevice(), m_bufferMemory, nullptr);
+	}
+
 	
-	void Camera::setCameraPosition(glm::vec3 in_position) 
-	{
-		m_position = in_position;
-		updateViewMatrix();
-	}
-
-	void Camera::setCameraRotation(glm::vec3 in_rotation)
-	{
-		m_rotation = in_rotation;
-		updateViewMatrix();
-	}
-
-	glm::mat4 Camera::getProjectionMatrix()
-	{
-		return m_projectionMatrix;
-	}
-
-	glm::mat4 Camera::getViewMatrix()
-	{
-		return m_viewMatrix;
-	}
-
-	glm::mat4 Camera::getMVPMatrix()
-	{
-		return m_mvpMatrix;
-	}
-
-	// Z is the direction of the lookAt
-	// up is y, right is x
-	void Camera::translateCamera(glm::vec3 translation)
-	{
-		this->m_position += translation;
-		updateViewMatrix();
-	}
-
-
-	void Camera::rotateCamera(glm::vec3 in_rotation)
-	{
-		m_rotation += in_rotation;
-		updateViewMatrix();
-	}
-
-	void Camera::setCameraWH(float width, float height)
-	{
-		m_screenWidth = width;
-		m_screenHeight = height;
-		m_aspectRatio = width / height;
-	}
-
-	void Camera::setPerspectiveMatrix(float fov, float nearPlane, float farPlane)
-	{
-		glm::mat4 currentMatrix = m_projectionMatrix;
-		this->m_farClipPlane = farPlane;
-		this->m_nearClipPlane = nearPlane;
-		m_projectionMatrix = glm::perspective(glm::radians(fov), m_aspectRatio, m_nearClipPlane, m_farClipPlane);
-
-		if (flipY) {
-			m_projectionMatrix[1][1] *= -1.0f;
-		}
-	}
-	
-
-	void Camera::updateViewMatrix()
-	{
-		m_viewMatrix = glm::lookAt(m_position, glm::vec3(0, 0, 0), glm::vec3(0, 0, 1));
-	}
-
-	void Camera::updateMove()
-	{
-			updateViewMatrix();
-	}
 }

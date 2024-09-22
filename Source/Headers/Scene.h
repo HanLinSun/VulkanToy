@@ -19,11 +19,11 @@ namespace Renderer
 		void AddModels(std::vector<Model*>& _models);
 		void AddModel(Model* _model);
 
-		Camera GetSceneCamera();
+		//Camera GetSceneCamera();
 
 	private:
 		std::vector<Model*> m_models;
-		Camera m_camera; //This is the main Camera
+		//Camera m_camera; //This is the main Camera
 
 	};
 

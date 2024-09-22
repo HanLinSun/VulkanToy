@@ -95,7 +95,10 @@ namespace Renderer
 		VkRenderPass m_renderPass;
 		VkRenderPass m_imGuiRenderPass;
 
-		VkDescriptorSetLayout m_descriptorSetLayout;
+		VkDescriptorSetLayout m_cameraDescriptorSetLayout;
+		VkDescriptorSetLayout m_modelDescriptorSetLayout;
+
+
 		VkPipelineLayout m_graphicPipelineLayout;
 
 		VkPipeline m_graphicsPipeline;
@@ -137,7 +140,7 @@ namespace Renderer
 		uint32_t currentFrame = 0;
 
 		Scene* m_Scene;
-		Camera m_Camera;
+		Camera* m_Camera;
 		bool show_demo_window = true;
 		QueueFamilyIndices queueFamilyIndices;
 		uint32_t imageCount;
@@ -171,13 +174,11 @@ namespace Renderer
 
 		void CreateSurface();
 
-		void CreateImageViews();
-
 		void CreateRenderPass();
 		//GUI Pass
-		void CreateDescriptorSetLayout();
+		void CreateCameraDescriptorSetLayout();
 
-		void CreateUniformDescriptorSets();
+		void CreateModelDescriptorSetLayout();
 
 		void CreateGraphicsPipeline();
 
@@ -193,11 +194,15 @@ namespace Renderer
 
 		void RecreateFrameResources();
 
+		void CreateCameraDescriptorSets();
+
 		void CreateModelDescriptorSets(int shaderBindings);
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
 		void CreateUniformBuffer();
+
+
 
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
