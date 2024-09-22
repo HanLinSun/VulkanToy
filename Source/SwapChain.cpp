@@ -68,7 +68,10 @@ SwapChain::SwapChain(Device* device, VkSurfaceKHR vkSurface, unsigned int numBuf
         throw std::runtime_error("Failed to create semaphores");
     }
 }
-
+std::vector<VkImage> SwapChain::GetVkImages() const
+{
+    return m_vkSwapChainImages;
+}
 void SwapChain::Create()
 {
     auto* instance = m_device->GetInstance();
@@ -81,6 +84,7 @@ void SwapChain::Create()
 
     uint32_t imageCount = surfaceCapabilities.minImageCount + 1;
     imageCount = m_numBuffers > imageCount ? m_numBuffers : imageCount;
+
     if (surfaceCapabilities.maxImageCount > 0 && imageCount > surfaceCapabilities.maxImageCount) {
         imageCount = surfaceCapabilities.maxImageCount;
     }
@@ -228,7 +232,7 @@ bool SwapChain::Present() {
         throw std::runtime_error("Failed to present swap chain image");
     }
 
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ) {
         Recreate();
         return false;
     }

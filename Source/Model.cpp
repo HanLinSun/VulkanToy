@@ -18,7 +18,6 @@ namespace Renderer
 		}
 		m_modelBufferObject.modelMatrix = glm::mat4(1.0f);
 		BufferUtils::CreateBufferFromData(device, commandPool, &m_modelBufferObject, sizeof(ModelBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, m_modelUniformBuffer, m_modelUniformBufferMemory);
-
 	}
 
 	Model::~Model()

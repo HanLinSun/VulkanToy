@@ -23,8 +23,6 @@ public:
 
 	void UpdateDescriptor();
 	void Destroy();
-protected:
-	void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 };
 
 class Texture2D : public Texture

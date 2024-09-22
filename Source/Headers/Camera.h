@@ -1,9 +1,16 @@
 #pragma once
 #include <RendererInclude.h>
 #include "SceneStructs.h"
+#include "Vulkan/Device.h"
 
 namespace Renderer
 {
+	struct CameraUniformBuffer
+	{
+		glm::mat4 viewmatrix;
+		glm::mat4 projectionMatrix;
+	};
+
 	class Camera
 	{
 	public:
@@ -29,6 +36,12 @@ namespace Renderer
 		void updateMove();
 
 	private:
+		Device* m_device;
+
+		VkBuffer m_buffer;
+		VkDeviceMemory m_bufferMemory;
+		void* mappedData;
+
 		glm::vec3 m_position;
 		glm::vec3 m_rotation;
 		glm::vec3 m_lookAt;

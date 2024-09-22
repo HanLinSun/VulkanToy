@@ -16,9 +16,12 @@ public:
 	Instance* GetInstance();
 	VkDevice GetVkDevice();
 	VkQueue GetQueue(QueueFlags flag);
-	VkCommandPool GetCommandPool();
+	VkCommandPool GetGraphicCommandPool();
 	unsigned int GetQueueIndex(QueueFlags flag);
 	~Device();
+
+	VkCommandPool m_graphicsCommandPool;
+	VkCommandPool m_computeCommandPool;
 
 private:
 	using Queues = std::array<VkQueue, sizeof(QueueFlags)>;
@@ -28,6 +31,6 @@ private:
 
 	Instance* m_instance;
 	VkDevice m_vkDevice;
-	VkCommandPool m_commandPool = nullptr;
+
 	Queues m_queues;
 };

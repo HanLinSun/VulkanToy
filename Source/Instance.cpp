@@ -384,7 +384,8 @@ Device* Instance::CreateDevice(QueueFlagBits requiredQueues, VkPhysicalDeviceFea
         }
     }
     Device* device = new Device(this, vkDevice, queues);
-    device->m_commandPool = Tools::CreateCommandPool(device, QueueFlags::Graphics, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+    Tools::CreateCommandPool(device, QueueFlags::Graphics, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, device->m_graphicsCommandPool);
+    Tools::CreateCommandPool(device, QueueFlags::Compute, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,device->m_computeCommandPool);
     return device;
 }
 

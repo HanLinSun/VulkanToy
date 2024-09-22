@@ -89,37 +89,34 @@ namespace Renderer
 		VkQueue m_presentQueue;
 		//VkSwapchainKHR m_swapChain;
 
-		std::vector<VkImage> m_swapChainImages;
-		VkFormat m_swapChainImageFormat;
-		VkExtent2D m_swapChainExtent;
-		std::vector<VkImageView> m_swapChainImageViews;
-		std::vector<VkFramebuffer> m_swapChainFramebuffers;
+		std::vector<VkImageView> m_imageViews;
+		std::vector<VkFramebuffer> m_framebuffers;
 
 		VkRenderPass m_renderPass;
 		VkRenderPass m_imGuiRenderPass;
 
 		VkDescriptorSetLayout m_descriptorSetLayout;
-		VkPipelineLayout m_pipelineLayout;
+		VkPipelineLayout m_graphicPipelineLayout;
 
 		VkPipeline m_graphicsPipeline;
 		//RayTrace compute pipeline
 		VkPipeline m_computePipeline;
 
 		VkCommandPool m_commandPool;
-		VkImage m_colorImage;
-		VkDeviceMemory m_colorImageMemory;
-		VkImageView m_colorImageView;
 
-		VkImage depthImage;
-		VkDeviceMemory depthImageMemory;
-		VkImageView depthImageView;
+		VkImage m_msaaCoIorImage;
+		VkDeviceMemory m_msaaColorImageMemory;
+		VkImageView m_msaaColorImageView;
+
+		VkImage m_depthImage;
+		VkDeviceMemory m_depthImageMemory;
+		VkImageView m_depthImageView;
 
 		uint32_t mipLevels;
 
-		VkImage textureImage;
-		VkDeviceMemory textureImageMemory;
-		VkImageView textureImageView;
-		VkSampler textureSampler;
+		std::vector<VkBuffer> uniformBuffers;
+		std::vector<VkDeviceMemory> uniformBuffersMemory;
+		std::vector<void*> uniformBuffersMapped;
 
 
 		VkDescriptorPool m_descriptorPool;
@@ -180,64 +177,51 @@ namespace Renderer
 		//GUI Pass
 		void CreateDescriptorSetLayout();
 
+		void CreateUniformDescriptorSets();
+
 		void CreateGraphicsPipeline();
 
 		void CreateComputePipeline();
 
-		void CreateFramebuffers();
+		void CreateFrameResources();
 
 		void CreateCommandPool(VkCommandPool* commandPool);
 
-		void CreateColorResources();
-
-		void CreateDepthResources();
-
-		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-
-		VkFormat FindDepthFormat();
-
 		bool HasStencilComponent(VkFormat format);
 
-		void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 		void CreateDescriptorPool();
+
+		void RecreateFrameResources();
 
 		void CreateModelDescriptorSets(int shaderBindings);
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
-		VkCommandBuffer BeginSingleTimeCommands();
-
-		void EndSingleTimeGraphicCommands(VkCommandBuffer commandBuffer);
-
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+		void CreateUniformBuffer();
 
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-		void createCommandBuffers();
+		void CreateCommandBuffers();
 
-		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
-		void createSyncObjects();
+		void CreateSyncObjects();
 
-		void updateUniformBuffer(uint32_t currentImage);
+		void UpdateUniformBuffer(uint32_t currentImage);
 
-		void drawFrame();
+		void DrawFrame();
 
-		VkShaderModule createShaderModule(const std::vector<char>& code);
+		VkShaderModule CreateShaderModule(const std::vector<char>& code);
 
-		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 
-		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+		bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 
-		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+		std::vector<const char*> GetRequiredExtensions();
 
-		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-
-		std::vector<const char*> getRequiredExtensions();
-
-		bool checkValidationLayerSupport();
+		bool CheckValidationLayerSupport();
 
 		static std::vector<char> readFile(const std::string& filename);
 

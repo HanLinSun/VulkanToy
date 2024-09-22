@@ -21,9 +21,9 @@ unsigned int Device::GetQueueIndex(QueueFlags flag) {
 	return GetInstance()->GetQueueFamilyIndices()[flag];
 }
 
-VkCommandPool Device::GetCommandPool()
+VkCommandPool Device::GetGraphicCommandPool()
 {
-	return m_commandPool;
+	return m_graphicsCommandPool;
 }
 
 SwapChain* Device::CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers, GLFWwindow* window)
@@ -32,5 +32,8 @@ SwapChain* Device::CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers
 }
 
 Device::~Device() {
+	vkDestroyCommandPool(m_vkDevice, m_graphicsCommandPool, nullptr);
+	vkDestroyCommandPool(m_vkDevice, m_computeCommandPool, nullptr);
 	vkDestroyDevice(m_vkDevice, nullptr);
+
 }
