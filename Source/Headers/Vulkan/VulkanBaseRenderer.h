@@ -109,10 +109,6 @@ namespace Renderer
 
 		VkCommandPool m_commandPool;
 
-		VkImage m_msaaCoIorImage;
-		VkDeviceMemory m_msaaColorImageMemory;
-		VkImageView m_msaaColorImageView;
-
 		VkImage m_depthImage;
 		VkDeviceMemory m_depthImageMemory;
 		VkImageView m_depthImageView;

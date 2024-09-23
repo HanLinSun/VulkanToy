@@ -138,9 +138,6 @@ namespace Renderer
         {
             vkDestroyImageView(m_device->GetVkDevice(), m_imageViews[i], nullptr);
         }
-        vkDestroyImageView(m_device->GetVkDevice(), m_msaaColorImageView, nullptr);
-        vkDestroyImage(m_device->GetVkDevice(), m_msaaCoIorImage, nullptr);
-        vkFreeMemory(m_device->GetVkDevice(), m_msaaColorImageMemory, nullptr);
 
         vkDestroyImageView(m_device->GetVkDevice(), m_depthImageView, nullptr);
         vkFreeMemory(m_device->GetVkDevice(), m_depthImageMemory, nullptr);
@@ -239,7 +236,7 @@ namespace Renderer
     void VulkanBaseRenderer::CreateRenderPass() {
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format = m_swapChain->GetVkImageFormat();
-        colorAttachment.samples = msaaSamples;
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -247,9 +244,10 @@ namespace Renderer
         colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+        VkFormat depthFormat = m_device->GetInstance()->GetSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
         VkAttachmentDescription depthAttachment{};
-        depthAttachment.format = m_device->GetInstance()->GetSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-        depthAttachment.samples = msaaSamples;
+        depthAttachment.format = depthFormat;
+        depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -275,16 +273,12 @@ namespace Renderer
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-        VkAttachmentReference colorAttachmentResolveRef{};
-        colorAttachmentResolveRef.attachment = 2;
-        colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorAttachmentRef;
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
-        subpass.pResolveAttachments = &colorAttachmentResolveRef;
+
 
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -294,7 +288,7 @@ namespace Renderer
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-        std::array<VkAttachmentDescription, 3> attachments = { colorAttachment, depthAttachment, colorAttachmentResolve };
+        std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment};
         VkRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -478,7 +472,7 @@ namespace Renderer
         pipelineInfo.pInputAssemblyState = &inputAssembly;
         pipelineInfo.pViewportState = &viewportState;
         pipelineInfo.pRasterizationState = &rasterizer;
-        pipelineInfo.pMultisampleState = &multisampling;
+        pipelineInfo.pMultisampleState = VK_NULL_HANDLE;
         pipelineInfo.pDepthStencilState = &depthStencil;
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
@@ -494,6 +488,7 @@ namespace Renderer
         vkDestroyShaderModule(m_device->GetVkDevice(), fragShaderModule, nullptr);
         vkDestroyShaderModule(m_device->GetVkDevice(), vertShaderModule, nullptr);
     }
+
     void VulkanBaseRenderer::CreateFrameResources() {
         m_imageViews.resize(m_swapChain->GetCount());
 
@@ -501,11 +496,7 @@ namespace Renderer
             m_imageViews[i] = Tools::CreateImageView(m_device,m_swapChain->GetVkImage(i), m_swapChain->GetVkImageFormat(), VK_IMAGE_ASPECT_COLOR_BIT, 1);
         }
 
-        //MSAA Sample color
-        VkFormat colorFormat = m_swapChain->GetVkImageFormat();
-        Tools::CreateImage(m_device, m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_msaaCoIorImage, m_msaaColorImageMemory);
-        m_msaaColorImageView = Tools::CreateImageView(m_device, m_msaaCoIorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-
+  
         //Depth
         VkFormat depthFormat = m_device->GetInstance()->GetSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
         Tools::CreateImage(m_device, m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
@@ -515,9 +506,8 @@ namespace Renderer
 
         for (size_t i = 0; i < m_imageViews.size(); i++) {
             std::vector<VkImageView> attachments = {
-                m_msaaColorImageView,
-                m_depthImageView,
                 m_imageViews[i],
+                m_depthImageView,
             };
 
             VkFramebufferCreateInfo framebufferInfo{};
@@ -753,7 +743,7 @@ namespace Renderer
         renderPassInfo.renderArea.extent = m_swapChain->GetVkExtent();
 
         std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+        clearValues[0].color = { {1.0f, 0.0f, 0.0f, 1.0f} };
         clearValues[1].depthStencil = { 1.0f, 0 };
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();

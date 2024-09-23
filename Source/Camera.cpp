@@ -8,8 +8,8 @@ namespace Renderer
 		theta = 45.0f;
 		phi = -45.0f;
 
-		m_cameraBufferObject.viewMatrix = glm::lookAt(glm::vec3(0.0f, 1.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		m_cameraBufferObject.projectionMatrix = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+		m_cameraBufferObject.viewMatrix = glm::lookAt(glm::vec3(0.0f, 20.0f, 120.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		m_cameraBufferObject.projectionMatrix = glm::perspective(glm::radians(60.0f), aspectRatio, 0.1f, 800.0f);
 		m_cameraBufferObject.projectionMatrix[1][1] *= -1; // y-coordinate is flipped
 
 		BufferUtils::CreateBuffer(device, sizeof(CameraUniformBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
