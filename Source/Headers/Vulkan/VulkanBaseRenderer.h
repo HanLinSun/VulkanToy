@@ -21,6 +21,8 @@ const std::vector<const char*> validationLayers = {
 };
 
 const std::vector<const char*> deviceExtensions = {
+	//Device Extensions
+    VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
@@ -201,8 +203,6 @@ namespace Renderer
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 
 		void CreateUniformBuffer();
-
-
 
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 

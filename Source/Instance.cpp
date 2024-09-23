@@ -26,6 +26,8 @@ namespace
         if (ENABLE_VALIDATION) {
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         }
+        //Partially binding
+        extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
         return extensions;
     }
 
@@ -321,7 +323,7 @@ void Instance::PickPhysicalDevice(std::vector<const char*> deviceExtensions, Que
 }
 
 
-Device* Instance::CreateDevice(QueueFlagBits requiredQueues, VkPhysicalDeviceFeatures deviceFeatures)
+Device* Instance::CreateDevice(QueueFlagBits requiredQueues)
 {
     std::set<int> uniqueQueueFamilies;
     bool queueSupport = true;
@@ -350,14 +352,41 @@ Device* Instance::CreateDevice(QueueFlagBits requiredQueues, VkPhysicalDeviceFea
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
+    //Enable descriptorBindingPartiallyBound
+
+    // 1. Descriptor indexing feature
+    VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptorIndexingFeatures = {};
+    descriptorIndexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
+    descriptorIndexingFeatures.pNext = nullptr;
+
+    // 2. Query the supported physical device features
+    VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
+    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    deviceFeatures2.pNext = &descriptorIndexingFeatures;
+
+    deviceFeatures2.features.tessellationShader = VK_TRUE;
+    deviceFeatures2.features.fillModeNonSolid = VK_TRUE;
+    deviceFeatures2.features.samplerAnisotropy = VK_TRUE;
+
+    vkGetPhysicalDeviceFeatures2(m_physicalDevice, &deviceFeatures2);
+
+    // Enable descriptorBindingPartiallyBound if supported
+    if (descriptorIndexingFeatures.descriptorBindingPartiallyBound) {
+        descriptorIndexingFeatures.descriptorBindingPartiallyBound = VK_TRUE;
+    }
+    else {
+        throw std::runtime_error("descriptorBindingPartiallyBound not supported.");
+    }
+
     // --- Create logical device ---
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo.pNext = &deviceFeatures2;
 
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
-    createInfo.pEnabledFeatures = &deviceFeatures;
+    createInfo.pEnabledFeatures =nullptr;
 
     // Enable device-specific extensions and validation layers
     createInfo.enabledExtensionCount = static_cast<uint32_t>(m_deviceExtensions.size());

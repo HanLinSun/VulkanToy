@@ -116,7 +116,7 @@ namespace Renderer
 			if (material.bump_texname.size() != 0)
 			{
 				std::shared_ptr<Texture2D> bump_texture = std::make_shared<Texture2D>();
-				if (bump_texture->LoadFromFile(modelFolderPath + material.normal_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
+				if (bump_texture->LoadFromFile(modelFolderPath + material.bump_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
 					load_mat.SetTexture(bump_texture, TextureType::Bump);
 				}

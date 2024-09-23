@@ -35,12 +35,9 @@ namespace Renderer
         const char* applicationName = "Vulkan Renderer";
         m_instance = new Instance(applicationName);
         CreateSurface();
-        m_instance->PickPhysicalDevice({ VK_KHR_SWAPCHAIN_EXTENSION_NAME }, QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, m_surface);
-        VkPhysicalDeviceFeatures deviceFeatures = {};
-        deviceFeatures.tessellationShader = VK_TRUE;
-        deviceFeatures.fillModeNonSolid = VK_TRUE;
-        deviceFeatures.samplerAnisotropy = VK_TRUE;
-        m_device= m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, deviceFeatures);
+        m_instance->PickPhysicalDevice({ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,VK_KHR_MAINTENANCE3_EXTENSION_NAME }, QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, m_surface);
+
+        m_device= m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit);
         m_swapChain = m_device->CreateSwapChain(m_surface, 3 , m_window);
 
         imageCount = m_swapChain->GetCount();
@@ -126,7 +123,7 @@ namespace Renderer
         CreateUniformBuffer();
         CreateDescriptorPool();
         CreateCameraDescriptorSets();
-        CreateModelDescriptorSets(1);
+        CreateModelDescriptorSets(2);
         CreateCommandBuffers();
         CreateSyncObjects();
     }
@@ -332,20 +329,41 @@ namespace Renderer
     }
 
     void VulkanBaseRenderer::CreateModelDescriptorSetLayout() {
-        VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-        uboLayoutBinding.binding = 0;
-        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboLayoutBinding.descriptorCount = 1;
-        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        uboLayoutBinding.pImmutableSamplers = nullptr;
 
-        std::vector<VkDescriptorSetLayoutBinding> bindings = { uboLayoutBinding};
+        VkDescriptorSetLayoutBinding layoutBindings[2] = {};
+        // Binding 0: Uniform buffer
+        layoutBindings[0].binding = 0;
+        layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        layoutBindings[0].descriptorCount = 1;
+        layoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+        // Binding 1: Image sampler (can be null)
+        layoutBindings[1].binding = 1;
+        layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        layoutBindings[1].descriptorCount = 1;
+        layoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        std::vector<VkDescriptorSetLayoutBinding> bindings = { layoutBindings[0], layoutBindings[1]};
+
+
+        // Define descriptor binding flags (allow partially bound descriptors)
+        VkDescriptorBindingFlagsEXT bindingFlags[] = {
+            0,  // No special flags for uniform buffer (binding 0)
+            VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT  // Partially bound for image sampler (binding 1)
+        };
+
+        // Create a binding flags structure
+        VkDescriptorSetLayoutBindingFlagsCreateInfoEXT bindingFlagsInfo = {};
+        bindingFlagsInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
+        bindingFlagsInfo.bindingCount = 2;  // Number of bindings
+        bindingFlagsInfo.pBindingFlags = bindingFlags;
 
         // Create the descriptor set layout
         VkDescriptorSetLayoutCreateInfo layoutInfo = {};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+        layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size()); //uniform + image
         layoutInfo.pBindings = bindings.data();
+        layoutInfo.pNext = &bindingFlagsInfo;
 
         if (vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &layoutInfo, nullptr, &m_modelDescriptorSetLayout) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create descriptor set layout");
@@ -388,21 +406,6 @@ namespace Renderer
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-        
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = (float)m_swapChain->GetVkExtent().width;
-        viewport.height = (float)m_swapChain->GetVkExtent().height;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-       // vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-        VkRect2D scissor{};
-        scissor.offset = { 0, 0 };
-        scissor.extent = m_swapChain->GetVkExtent();;
-       // vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
         VkPipelineViewportStateCreateInfo viewportState{};
         viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -458,10 +461,9 @@ namespace Renderer
 
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts = { m_cameraDescriptorSetLayout, m_modelDescriptorSetLayout };
 
-
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutInfo.setLayoutCount = 1;
+        pipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
         pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
 
         if (vkCreatePipelineLayout(m_device->GetVkDevice(), &pipelineLayoutInfo, nullptr, &m_graphicPipelineLayout) != VK_SUCCESS) {
@@ -557,7 +559,7 @@ namespace Renderer
             //Model UBO
             { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER , static_cast<uint32_t>(m_Scene->GetSceneModels().size())},
 
-            //{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,static_cast<uint32_t>(m_Scene->GetSceneModels().size())},
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,static_cast<uint32_t>(m_Scene->GetSceneModels().size())},
         };
 
         VkDescriptorPoolCreateInfo poolInfo{};
@@ -631,11 +633,23 @@ namespace Renderer
                 bufferInfo.offset = 0;
                 bufferInfo.range = sizeof(ModelBufferObject);
 
-                //Material* mat = m_Scene->GetSceneModel(j)->GetMaterial();
-                //VkDescriptorImageInfo imageInfo{};
-                //imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                //imageInfo.imageView = mat->GetTexture(TextureType::Ambient)->m_imageView;
-                //imageInfo.sampler = mat->GetTexture(TextureType::Ambient)->m_sampler;
+                Material* mat = m_Scene->GetSceneModel(i)->GetMaterial();
+                Texture* ambientTexture = mat->GetTexture(TextureType::Ambient).get();
+                VkDescriptorImageInfo imageInfo{};
+                if (ambientTexture != nullptr) {
+                    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    imageInfo.imageView = ambientTexture->m_imageView;
+                    imageInfo.sampler = ambientTexture->m_sampler;
+                }
+                else
+                {
+                    //If using VK_EXT_descriptor_indexing and VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT,
+                    // you can set imageView and sampler to VK_NULL_HANDLE, but still ensure pImageInfo is non-null.
+
+                    imageInfo.imageLayout =VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    imageInfo.imageView = VK_NULL_HANDLE;
+                    imageInfo.sampler = VK_NULL_HANDLE;
+                }
 
                 descriptorWrites[shaderBindingNums*i + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 descriptorWrites[shaderBindingNums*i + 0].dstSet = m_modelDescriptorSets[i];
@@ -645,13 +659,13 @@ namespace Renderer
                 descriptorWrites[shaderBindingNums*i + 0].descriptorCount = 1;
                 descriptorWrites[shaderBindingNums*i + 0].pBufferInfo = &bufferInfo;
 
-                //descriptorWrites[i*offset +shaderBindingNums * j + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                //descriptorWrites[i*offset +shaderBindingNums * j + 1].dstSet = m_modelDescriptorSets[i];
-                //descriptorWrites[i*offset +shaderBindingNums * j + 1].dstBinding = 1;
-                //descriptorWrites[i*offset +shaderBindingNums * j + 1].dstArrayElement = 0;
-                //descriptorWrites[i*offset +shaderBindingNums * j + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                //descriptorWrites[i*offset +shaderBindingNums * j + 1].descriptorCount = 1;
-                //descriptorWrites[i*offset +shaderBindingNums * j + 1].pImageInfo = &imageInfo;
+                descriptorWrites[shaderBindingNums*i + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                descriptorWrites[shaderBindingNums*i + 1].dstSet = m_modelDescriptorSets[i];
+                descriptorWrites[shaderBindingNums*i + 1].dstBinding = 1;
+                descriptorWrites[shaderBindingNums*i + 1].dstArrayElement = 0;
+                descriptorWrites[shaderBindingNums*i + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                descriptorWrites[shaderBindingNums*i + 1].descriptorCount = 1;
+                descriptorWrites[shaderBindingNums*i + 1].pImageInfo =&imageInfo;
              
             }   
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
@@ -744,9 +758,29 @@ namespace Renderer
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
 
+        // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_cameraDescriptorSet, 0, nullptr);
+
         vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float)m_swapChain->GetVkExtent().width;
+        viewport.height = (float)m_swapChain->GetVkExtent().height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+        // When enable the VK_DYNAMIC_STATE_SCISSOR in your pipeline, 
+        // Vulkan API expects you to explicitly set the scissor region using vkCmdSetScissor() before issuing any draw commands that rely on it.
+        VkRect2D scissor{};
+        scissor.offset = { 0, 0 };
+        scissor.extent = m_swapChain->GetVkExtent();;
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
 
         for (uint32_t j = 0; j < m_Scene->GetSceneModels().size(); j++)
         {
@@ -756,7 +790,7 @@ namespace Renderer
 
             vkCmdBindIndexBuffer(commandBuffer, m_Scene->GetSceneModel(j)->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_modelDescriptorSets[j], 0, nullptr);
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 1, 1, &m_modelDescriptorSets[j], 0, nullptr);
            
             std::vector<uint32_t> indices = m_Scene->GetSceneModel(j)->GetIndices();
             vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
@@ -810,11 +844,10 @@ namespace Renderer
         vkResetCommandBuffer(m_commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
         RecordCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
 
-    /*    m_Camera.updateMove();*/
-
         m_ImGuiLayer->DrawUI(currentFrame, imageIndex);
 
         //UpdateUniformBuffer(currentFrame);
+
 
         //After record new command buffer need to submit them
         VkSubmitInfo submitInfo{};

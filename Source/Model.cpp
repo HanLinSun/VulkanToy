@@ -34,8 +34,6 @@ namespace Renderer
 
 		vkDestroyBuffer(m_device->GetVkDevice(), m_modelUniformBuffer, nullptr);
 		vkFreeMemory(m_device->GetVkDevice(), m_modelUniformBufferMemory, nullptr);
-
-		
 	}
 
 	const std::vector<Vertex>& Model::GetVertices() const {
