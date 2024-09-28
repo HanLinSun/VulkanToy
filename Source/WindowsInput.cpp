@@ -16,6 +16,7 @@ namespace Renderer
 	{
 		auto window =static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
 		auto state = glfwGetMouseButton(window, button);
+		
 		return state == GLFW_PRESS;
 	}
 
@@ -25,6 +26,7 @@ namespace Renderer
 		double xPos, yPos;
 		glfwGetCursorPos(window, &xPos, &yPos);
 		return { (float)xPos, (float)yPos };
+
 	}
 
 	float WindowInput::GetMouseXImpl()

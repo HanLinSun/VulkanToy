@@ -3,6 +3,8 @@
 #include "Headers/Event/Event.h"
 #include "Headers/WindowsPlatform.h"
 #include "Log.h"
+
+
 namespace Renderer
 {
 	Application* Application::s_instance = nullptr;
@@ -82,7 +84,7 @@ namespace Renderer
 			{
 				layer->OnUpdate();
 			}
-			m_baseRenderer->Run();
+			m_baseRenderer->Run(timestep);
 		}
 		m_baseRenderer->Destroy();
 	}

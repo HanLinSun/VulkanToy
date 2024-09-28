@@ -45,8 +45,44 @@ namespace Renderer
         m_Camera = new Camera(m_device, m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
 
     }
-    void VulkanBaseRenderer::Run() {
+    void VulkanBaseRenderer::Run(Timestep deltaTime) 
+    {
+            UpdateCamera(deltaTime);
             DrawFrame();
+    }
+
+    void VulkanBaseRenderer::UpdateCamera(Timestep deltaTime)
+    {
+        if (Input::IsKeyPressed(APP_KEY_W))
+        {
+            m_Camera->UpdateTransform_Z(deltaTime.GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_S))
+        {
+            m_Camera->UpdateTransform_Z(-1 * deltaTime.GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_A))
+        {
+            m_Camera->UpdateTransform_X(-1*deltaTime.GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_D))
+        {
+            m_Camera->UpdateTransform_X(deltaTime.GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_Q))
+        {
+            m_Camera->UpdateTransform_Y(deltaTime.GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_E))
+        {
+            m_Camera->UpdateTransform_Y(-1*deltaTime.GetSeconds());
+        }
+
     }
 
     void VulkanBaseRenderer::InitGUILayerAttribute()

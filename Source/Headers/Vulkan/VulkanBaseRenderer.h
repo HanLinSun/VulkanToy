@@ -7,6 +7,8 @@
 #include "Instance.h"
 #include "Device.h"
 #include "QueueFlags.h"
+#include "Input.h"
+#include "Timestep.h"
 
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
@@ -68,7 +70,7 @@ namespace Renderer
 	{
 	public:
 		VulkanBaseRenderer(Window* targetWindow);
-		void Run();
+		void Run(Timestep deltaTime);
 		void Destroy();
 		void Cleanup();
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
@@ -155,6 +157,7 @@ namespace Renderer
 
 		bool framebufferResized = false;
 
+		void UpdateCamera(Timestep deltaTime);
 
 		void CreateScene();
 
