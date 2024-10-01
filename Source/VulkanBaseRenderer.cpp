@@ -4,6 +4,9 @@
 #include <Tools.h>
 #undef max
 
+double previousX = 0.0;
+double previousY = 0.0;
+
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
@@ -51,6 +54,12 @@ namespace Renderer
             DrawFrame();
     }
 
+
+    void VulkanBaseRenderer::OnEvent(Event& e)
+    {
+
+    }
+
     void VulkanBaseRenderer::UpdateCamera(Timestep deltaTime)
     {
         if (Input::IsKeyPressed(APP_KEY_W))
@@ -83,6 +92,20 @@ namespace Renderer
             m_Camera->UpdateTransform_Y(-1*deltaTime.GetSeconds());
         }
 
+        auto mousePosition = Input::GetMousePosition();
+        if (Input::IsMouseButtonPressed(APP_MOUSE_BUTTON_LEFT))
+        {
+            double sensitivity = 0.2f;
+            float deltaX = static_cast<float>(previousX - mousePosition.first)*sensitivity;
+            float deltaY = static_cast<float>(previousY - mousePosition.second)*sensitivity;
+           
+            m_Camera->RotateAroundUpAxis(deltaX*deltaTime.GetSeconds());
+            m_Camera->RotateAroundRightAxis(deltaY * deltaTime.GetSeconds());
+            previousX = mousePosition.first;
+            previousY = mousePosition.second;
+        }
+        m_Camera->UpdateViewMatrix();
+        m_Camera->UpdateBufferMemory();
     }
 
     void VulkanBaseRenderer::InitGUILayerAttribute()
@@ -633,8 +656,8 @@ namespace Renderer
 
         // Update descriptor sets
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
     }
+
     void VulkanBaseRenderer::CreateModelDescriptorSets(int shaderBindingNums) 
     {
         m_modelDescriptorSets.resize(m_Scene->GetSceneModels().size());
@@ -779,7 +802,7 @@ namespace Renderer
         renderPassInfo.renderArea.extent = m_swapChain->GetVkExtent();
 
         std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = { {1.0f, 0.0f, 0.0f, 1.0f} };
+        clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
         clearValues[1].depthStencil = { 1.0f, 0 };
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
@@ -872,8 +895,7 @@ namespace Renderer
 
         m_ImGuiLayer->DrawUI(currentFrame, imageIndex);
 
-        //UpdateUniformBuffer(currentFrame);
-
+        //m_Camera->UpdateBufferMemory();
 
         //After record new command buffer need to submit them
         VkSubmitInfo submitInfo{};

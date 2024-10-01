@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include <glm/gtx/transform.hpp>
 
 namespace Renderer
 {
@@ -8,17 +9,15 @@ namespace Renderer
 		theta = 45.0f;
 		phi = -45.0f;
 
-
-		m_position = glm::vec3(0.0f, 20.f, 120.f);
-		m_upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+		m_position = glm::vec4(0.0f, 20.f, 100.f,1.0f);
+		m_upVector = glm::vec4(0.0f, 1.0f, 0.0f,0.0f);
 		
-		m_lookAtPoint = glm::vec3(1.0f, 0.0f, 0.0);
-		m_forwardVector = glm::normalize(m_lookAtPoint -m_position);
-		m_rightVector = glm::cross(m_forwardVector,m_upVector);
+		m_forwardVector = glm::vec4(0.0f, 0.0f, -1.0f,0.0f);
+		m_rightVector = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
 
 		m_aspectRatio = aspectRatio;
 		m_nearClipPlane = 0.1f;
-		m_farClipPlane = 1500.0f;
+		m_farClipPlane = 2500.0f;
 		m_fov = 60.0f;
 
 		UpdateViewMatrix();
@@ -27,8 +26,6 @@ namespace Renderer
 		m_cameraBufferObject.viewMatrix = m_viewMatrix;
 		m_cameraBufferObject.projectionMatrix = m_projectionMatrix;
 
-		//m_cameraBufferObject.viewMatrix = glm::lookAt(glm::vec3(0.0f, 20.0f, 120.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		//m_cameraBufferObject.projectionMatrix = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearClipPlane, m_farClipPlane);
 		m_cameraBufferObject.projectionMatrix[1][1] *= -1; // y-coordinate is flipped
 
 		BufferUtils::CreateBuffer(device, sizeof(CameraUniformBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
@@ -67,8 +64,15 @@ namespace Renderer
 		translateMatrix[2] = glm::vec4(0, 0, 1, 0);
 		translateMatrix[3] = glm::vec4(-m_position.x, -m_position.y, -m_position.z, 1);
 
-		glm::mat4 viewMat_orient = { glm::vec4(m_rightVector,0),glm::vec4(m_upVector,0),glm::vec4(m_forwardVector,0),glm::vec4(0,0,0,1) };
 		m_viewMatrix = rotationMatrix * translateMatrix;
+	}
+
+	void Camera::UpdateBufferMemory()
+	{
+		m_cameraBufferObject.viewMatrix = m_viewMatrix;
+		m_cameraBufferObject.projectionMatrix = m_projectionMatrix;
+		m_cameraBufferObject.projectionMatrix[1][1] *= -1;
+		memcpy(m_mappedData, &m_cameraBufferObject, sizeof(CameraUniformBuffer));
 	}
 
 	void Camera::UpdateProjectionMatrix()
@@ -89,36 +93,42 @@ namespace Renderer
 
 	void Camera::UpdateTransform_X(float deltaTime)
 	{
-		m_position.x += m_movingSpeed * deltaTime;
+		m_position+= m_movingSpeed * deltaTime*m_rightVector;
 		UpdateViewMatrix();
 	}
 	void Camera::UpdateTransform_Y(float  deltaTime)
 	{
-		m_position.y += m_movingSpeed * deltaTime;
+		m_position+= m_movingSpeed * deltaTime*m_upVector;
 		UpdateViewMatrix();
 	}
 	void Camera::UpdateTransform_Z(float  deltaTime)
 	{
-		m_position.z += m_movingSpeed * deltaTime;
+		m_position+= m_movingSpeed * deltaTime*m_forwardVector;
 		UpdateViewMatrix();
 	}
 
-
-	void Camera::UpdateOrbit(float deltaX, float deltaY, float deltaZ)
+	void Camera::RotateAroundForwardAxis(float degree)
 	{
-		theta += deltaX;
-		phi += deltaY;
-		r = glm::clamp(r - deltaZ, 1.0f, 50.0f);
+		glm::vec3 axis = glm::vec3(m_forwardVector.x, m_forwardVector.y, m_forwardVector.z);
+		glm::mat4 _rotationMatrix = glm::rotate(degree, axis);
+		m_upVector = _rotationMatrix * m_upVector;
+		m_rightVector = _rotationMatrix * m_rightVector;
+	}
 
-		float radTheta = glm::radians(theta);
-		float radPhi = glm::radians(phi);
+	void Camera::RotateAroundRightAxis(float degree)
+	{
+		glm::vec3 axis = glm::vec3(m_rightVector.x, m_rightVector.y, m_rightVector.z);
+		glm::mat4 _rotationMatrix = glm::rotate(degree, axis);
+		m_forwardVector = _rotationMatrix * m_forwardVector;
+		m_upVector = _rotationMatrix * m_upVector;
+	}
 
-		glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), radTheta, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), radPhi, glm::vec3(1.0f, 0.0f, 0.0f));
-		glm::mat4 finalTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)) * rotation * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 1.0f, r));
-
-		m_cameraBufferObject.viewMatrix = glm::inverse(finalTransform);
-
-		memcpy(m_mappedData, &m_cameraBufferObject, sizeof(CameraUniformBuffer));
+	void Camera::RotateAroundUpAxis(float degree)
+	{
+		glm::vec3 axis = glm::vec3(m_upVector.x, m_upVector.y, m_upVector.z);
+		glm::mat4 _rotationMatrix = glm::rotate(degree, axis);
+		m_forwardVector = _rotationMatrix * m_forwardVector;
+		m_rightVector = _rotationMatrix * m_rightVector;
 	}
 
 	Camera::~Camera() {

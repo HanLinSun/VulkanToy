@@ -25,7 +25,7 @@ namespace Renderer
 	{
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNCTION(Application::OnWindowClosed));
-		LOG_CORE_INFO("{0}",e.ToString());
+	//	LOG_CORE_INFO("{0}",e.ToString());
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{
 			(*--it)->OnEvent(e);
@@ -34,6 +34,8 @@ namespace Renderer
 				break;
 			}
 		}
+		m_baseRenderer->OnEvent(e);
+		
 	}
 
 	bool Application::OnWindowClosed(WindowCloseEvent& e) 

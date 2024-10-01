@@ -75,6 +75,7 @@ namespace Renderer
 		void Cleanup();
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
 
+		void OnEvent(Event& e);
 		void SetLayerStack(LayerStack* layer);
 		void InitGUILayerAttribute();
 		void InitVulkan();
@@ -211,7 +212,7 @@ namespace Renderer
 
 		void CreateSyncObjects();
 
-		void UpdateUniformBuffer(uint32_t currentImage);
+		//void UpdateUniformBuffer(uint32_t currentImage);
 
 		void DrawFrame();
 
