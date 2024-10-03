@@ -13,17 +13,18 @@ namespace Renderer
 		Scene();
 		~Scene() {};
 
-		const std::vector<Model*> GetSceneModels();
-		const Model* GetSceneModel(int index);
+		const std::vector<std::shared_ptr<ModelGroup>> GetSceneModelGroups();
+		const std::vector<ModelGroup*> GetSceneModelGroupsRaw();
 
-		void AddModels(std::vector<Model*>& _models);
-		void AddModel(Model* _model);
+		void AddModelGroup(ModelGroup* modelgroup);
 
-		//Camera GetSceneCamera();
+		size_t GetModelGroupSize();
+		
+
 
 	private:
-		std::vector<Model*> m_models;
-		//Camera m_camera; //This is the main Camera
+		std::vector<std::shared_ptr<ModelGroup>> m_modelGroups;
+		std::vector<Material*> m_material;
 
 	};
 

@@ -72,18 +72,18 @@ namespace Renderer
 		//Read material
 		for (auto& material : materials)
 		{
-			Material load_mat;
-			load_mat.SetAmbientColor(glm::vec4(material.ambient[0], material.ambient[1], material.ambient[2], 1));
-			load_mat.SetDiffuseColor(glm::vec4(material.diffuse[0], material.diffuse[1], material.diffuse[2], 1));
-			load_mat.SetEmissiveColor(glm::vec4(material.emission[0], material.emission[1], material.emission[2], 1));
-			load_mat.SetSpecularColor(glm::vec4(material.specular[0], material.specular[1], material.specular[2], 1));
-			load_mat.SetIndexOfRefraction((float)material.ior);
+			Material* load_mat = new Material();
+			load_mat->SetAmbientColor(glm::vec4(material.ambient[0], material.ambient[1], material.ambient[2], 1));
+			load_mat->SetDiffuseColor(glm::vec4(material.diffuse[0], material.diffuse[1], material.diffuse[2], 1));
+			load_mat->SetEmissiveColor(glm::vec4(material.emission[0], material.emission[1], material.emission[2], 1));
+			load_mat->SetSpecularColor(glm::vec4(material.specular[0], material.specular[1], material.specular[2], 1));
+			load_mat->SetIndexOfRefraction((float)material.ior);
 
-			load_mat.SetRoughness(material.roughness);
-			load_mat.SetMetallic(material.metallic);
+			load_mat->SetRoughness(material.roughness);
+			load_mat->SetMetallic(material.metallic);
 
-			load_mat.SetClearCoatRoughness(material.clearcoat_roughness);
-			load_mat.SetClearCoatThickness(material.clearcoat_thickness);
+			load_mat->SetClearCoatRoughness(material.clearcoat_roughness);
+			load_mat->SetClearCoatThickness(material.clearcoat_thickness);
 
 			//This is ugly and may need to  use MACRO instead in the future
 			if (material.ambient_texname.size()!=0)
@@ -91,7 +91,7 @@ namespace Renderer
 				std::shared_ptr<Texture2D> ambient_texture=std::make_shared<Texture2D>();
 				if (ambient_texture->LoadFromFile(modelFolderPath + material.ambient_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					load_mat.SetTexture(ambient_texture, TextureType::Ambient);
+					load_mat->SetTexture(ambient_texture, TextureType::Ambient);
 				}
 			}
 
@@ -100,7 +100,7 @@ namespace Renderer
 				std::shared_ptr<Texture2D> normal_texture = std::make_shared<Texture2D>();
 				if (normal_texture->LoadFromFile(modelFolderPath + material.normal_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					load_mat.SetTexture(normal_texture, TextureType::Normal);
+					load_mat->SetTexture(normal_texture, TextureType::Normal);
 				}
 			}
 
@@ -109,7 +109,7 @@ namespace Renderer
 				std::shared_ptr<Texture2D> alpha_texture = std::make_shared<Texture2D>();
 				if (alpha_texture->LoadFromFile(modelFolderPath + material.alpha_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					load_mat.SetTexture(alpha_texture, TextureType::Opacity);
+					load_mat->SetTexture(alpha_texture, TextureType::Opacity);
 				}
 			}
 
@@ -118,7 +118,7 @@ namespace Renderer
 				std::shared_ptr<Texture2D> bump_texture = std::make_shared<Texture2D>();
 				if (bump_texture->LoadFromFile(modelFolderPath + material.bump_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					load_mat.SetTexture(bump_texture, TextureType::Bump);
+					load_mat->SetTexture(bump_texture, TextureType::Bump);
 				}
 			}
 
@@ -127,7 +127,7 @@ namespace Renderer
 				std::shared_ptr<Texture2D> reflection_texture = std::make_shared<Texture2D>();
 				if (reflection_texture->LoadFromFile(modelFolderPath + material.reflection_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					load_mat.SetTexture(reflection_texture, TextureType::Reflection);
+					load_mat->SetTexture(reflection_texture, TextureType::Reflection);
 				}
 			}
 			m_materials.push_back(load_mat);

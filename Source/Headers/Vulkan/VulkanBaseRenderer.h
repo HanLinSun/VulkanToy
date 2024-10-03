@@ -138,8 +138,8 @@ namespace Renderer
 		std::vector<VkSemaphore> m_imageAvailableSemaphores;
 		std::vector<VkSemaphore> m_renderFinishedSemaphores;
 		std::vector<VkFence> m_inFlightFences;
-		uint32_t currentFrame = 0;
 
+		uint32_t currentFrame = 0;
 		Scene* m_Scene;
 		Camera* m_Camera;
 		bool show_demo_window = true;
@@ -201,8 +201,6 @@ namespace Renderer
 		void CreateModelDescriptorSets(int shaderBindings);
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-
-		void CreateUniformBuffer();
 
 		uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 

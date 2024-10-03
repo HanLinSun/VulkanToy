@@ -7,7 +7,7 @@ namespace Renderer
 	{
 		vkDestroyCommandPool(m_device->GetVkDevice(),m_commandPool,nullptr);
 	}
-	void Loader::LoadModel(std::string path, std::string model_folder_path, std::vector<Model*>& models)
+	void Loader::LoadModel(std::string path, std::string model_folder_path, ModelGroup* modelGroup)
 	{
 		MeshData mesh;
 		int fileSplit = 0;
@@ -31,7 +31,7 @@ namespace Renderer
 				for (auto& mesh : objFileloader->GetMeshes())
 				{
 					Model* model=new Model(m_device, m_commandPool, mesh.m_vertices, mesh.m_indices, &mats[mesh.m_materialID]);
-					models.push_back(model);
+					modelGroup->AddModel(model);
 				}
 			}
 		}

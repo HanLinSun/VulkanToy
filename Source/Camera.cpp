@@ -28,6 +28,7 @@ namespace Renderer
 
 		m_cameraBufferObject.projectionMatrix[1][1] *= -1; // y-coordinate is flipped
 
+
 		BufferUtils::CreateBuffer(device, sizeof(CameraUniformBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_buffer, m_bufferMemory);
 
@@ -72,6 +73,7 @@ namespace Renderer
 		m_cameraBufferObject.viewMatrix = m_viewMatrix;
 		m_cameraBufferObject.projectionMatrix = m_projectionMatrix;
 		m_cameraBufferObject.projectionMatrix[1][1] *= -1;
+
 		memcpy(m_mappedData, &m_cameraBufferObject, sizeof(CameraUniformBuffer));
 	}
 

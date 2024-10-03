@@ -2,6 +2,32 @@
 #include "Vulkan/BufferUtils.h"
 namespace Renderer
 {
+	ModelGroup::ModelGroup() {};
+	ModelGroup::~ModelGroup() {};
+
+	void ModelGroup::AddModel(Model* _model)
+	{
+		m_models.push_back(std::unique_ptr<Model>(_model));
+	}
+
+	Model* ModelGroup::GetModelAt(int idx)
+	{
+		return m_models[idx].get();
+	}
+
+	void ModelGroup::AddModels(std::vector<Model*>& _models)
+	{
+		for (auto& model : _models)
+		{
+			m_models.push_back(std::unique_ptr<Model>(model));
+		}
+	}
+
+	size_t ModelGroup::GetModelSize()
+	{
+		return m_models.size();
+	}
+
 	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,Material* mat)
 		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(std::make_unique<Material>(mat))
 	{

@@ -142,8 +142,8 @@
   <ItemGroup>
     <None Include="Shaders\compile.bat" />
     <None Include="Shaders\ComputeShader.comp" />
-    <None Include="Shaders\fragShader.frag" />
-    <None Include="Shaders\vertShader.vert" />
+    <None Include="Shaders\fragShader.glsl" />
+    <None Include="Shaders\vertShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\backends\imgui_impl_glfw.h" />
@@ -178,6 +178,7 @@
     <ClInclude Include="Source\Headers\Timestep.h" />
     <ClInclude Include="Source\Headers\Tools.h" />
     <ClInclude Include="Source\Headers\Vulkan\FrameBuffer.h" />
+    <ClInclude Include="Source\Headers\Vulkan\Initializer.hpp" />
     <ClInclude Include="Source\Headers\Vulkan\Instance.h" />
     <ClInclude Include="Source\Headers\Vulkan\QueueFlags.h" />
     <ClInclude Include="Source\Headers\Vulkan\RenderPass.h" />

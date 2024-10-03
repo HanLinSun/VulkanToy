@@ -7,6 +7,8 @@
 double previousX = 0.0;
 double previousY = 0.0;
 
+
+
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
@@ -26,6 +28,17 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 
 namespace Renderer
 {
+     int GetSceneModelTotalSize(Scene* scene)
+    {
+        int sum = 0;
+    
+        for (auto& modelGroup : scene->GetSceneModelGroups())
+        {
+            sum += modelGroup->GetModelSize();
+        }
+        return sum;
+    }
+
     VulkanBaseRenderer::VulkanBaseRenderer(Window* windowptr)
     {
         m_window = reinterpret_cast<GLFWwindow*>(windowptr->GetNativeWindow());
@@ -161,9 +174,9 @@ namespace Renderer
     void VulkanBaseRenderer::LoadModel(std::string model_path, std::string model_folder_path)
     {
         Loader loader(m_device, m_device->GetGraphicCommandPool());
-        std::vector<Model*> scene_model;
-        loader.LoadModel(model_path, model_folder_path, scene_model);
-        m_Scene->AddModels(scene_model);
+        ModelGroup* modelgroup=new ModelGroup();
+        loader.LoadModel(model_path, model_folder_path, modelgroup);
+        m_Scene->AddModelGroup(modelgroup);
     }
     void VulkanBaseRenderer::InitVulkan() {
 
@@ -179,9 +192,10 @@ namespace Renderer
         CreateGraphicsPipeline();
         CreateCommandPool(&m_commandPool);
         CreateFrameResources();
-        CreateUniformBuffer();
+
         CreateDescriptorPool();
         CreateCameraDescriptorSets();
+        
         CreateModelDescriptorSets(2);
         CreateCommandBuffers();
         CreateSyncObjects();
@@ -213,11 +227,6 @@ namespace Renderer
         vkDestroyPipeline(m_device->GetVkDevice(), m_graphicsPipeline, nullptr);
         vkDestroyPipelineLayout(m_device->GetVkDevice(), m_graphicPipelineLayout, nullptr);
         vkDestroyRenderPass(m_device->GetVkDevice(), m_renderPass, nullptr);
-
-        for (size_t i = 0; i < m_swapChain->GetCount(); i++) {
-            vkDestroyBuffer(m_device->GetVkDevice(), uniformBuffers[i], nullptr);
-            vkFreeMemory(m_device->GetVkDevice(), uniformBuffersMemory[i], nullptr);
-        }
 
         vkDestroyDescriptorPool(m_device->GetVkDevice(), m_descriptorPool, nullptr);
 
@@ -601,14 +610,16 @@ namespace Renderer
         return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
     }
 
+    //Diffuse
     void VulkanBaseRenderer::CreateDescriptorPool() {
+
+        int modelNum = GetSceneModelTotalSize(m_Scene);
+
         std::vector<VkDescriptorPoolSize> poolSizes=  {
             //Camera
             { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ,1},
-            //Model UBO
-            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER , static_cast<uint32_t>(m_Scene->GetSceneModels().size())},
-
-            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,static_cast<uint32_t>(m_Scene->GetSceneModels().size())},
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER , static_cast<uint32_t>(modelNum)},
+            {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,static_cast<uint32_t>(modelNum)},
         };
 
         VkDescriptorPoolCreateInfo poolInfo{};
@@ -616,7 +627,7 @@ namespace Renderer
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
         poolInfo.pPoolSizes = poolSizes.data();
         //// Max. number of descriptor sets that can be allocated from this pool (one per object)
-        poolInfo.maxSets =1 + static_cast<uint32_t>(m_Scene->GetSceneModels().size());
+        poolInfo.maxSets =1 + static_cast<uint32_t>(modelNum);
 
         if (vkCreateDescriptorPool(m_device->GetVkDevice(), &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
@@ -660,7 +671,11 @@ namespace Renderer
 
     void VulkanBaseRenderer::CreateModelDescriptorSets(int shaderBindingNums) 
     {
-        m_modelDescriptorSets.resize(m_Scene->GetSceneModels().size());
+        //Need to use Model group here
+        int sceneModelTotalSize = GetSceneModelTotalSize(m_Scene);
+
+        m_modelDescriptorSets.resize(sceneModelTotalSize);
+
         std::vector<VkDescriptorSetLayout> layouts = { m_modelDescriptorSets.size(), m_modelDescriptorSetLayout };
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -675,64 +690,53 @@ namespace Renderer
 
         std::vector<VkWriteDescriptorSet> descriptorWrites(shaderBindingNums *m_modelDescriptorSets.size());
 
-        for (size_t i = 0; i< m_Scene->GetSceneModels().size(); i++)
+        std::vector<std::shared_ptr<ModelGroup>> scene_ModelGroup = m_Scene->GetSceneModelGroups();
+        
+        for (size_t i = 0; i < scene_ModelGroup.size(); i++)
+        {
+           ModelGroup* t_modelGroup =scene_ModelGroup[i].get();
+
+            for (size_t j = 0; j < t_modelGroup->GetModelSize(); j++)
             {
                 VkDescriptorBufferInfo bufferInfo{};
-                bufferInfo.buffer = m_Scene->GetSceneModel(i)->GetModelUniformBuffer();
+                bufferInfo.buffer = t_modelGroup->GetModelAt(j)->GetModelUniformBuffer();
                 bufferInfo.offset = 0;
                 bufferInfo.range = sizeof(ModelBufferObject);
 
-                Material* mat = m_Scene->GetSceneModel(i)->GetMaterial();
+                Material* mat = t_modelGroup->GetModelAt(j)->GetMaterial();
                 Texture* ambientTexture = mat->GetTexture(TextureType::Ambient).get();
-                VkDescriptorImageInfo imageInfo{};
+
+                VkDescriptorImageInfo diffuse_imageInfo{};
                 if (ambientTexture != nullptr) {
-                    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                    imageInfo.imageView = ambientTexture->m_imageView;
-                    imageInfo.sampler = ambientTexture->m_sampler;
+                    diffuse_imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    diffuse_imageInfo.imageView = ambientTexture->m_imageView;
+                    diffuse_imageInfo.sampler = ambientTexture->m_sampler;
                 }
                 else
                 {
-                    //If using VK_EXT_descriptor_indexing and VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT,
-                    // you can set imageView and sampler to VK_NULL_HANDLE, but still ensure pImageInfo is non-null.
-
-                    imageInfo.imageLayout =VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                    imageInfo.imageView = VK_NULL_HANDLE;
-                    imageInfo.sampler = VK_NULL_HANDLE;
+                    diffuse_imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    diffuse_imageInfo.imageView = VK_NULL_HANDLE;
+                    diffuse_imageInfo.sampler = VK_NULL_HANDLE;
                 }
-
-                descriptorWrites[shaderBindingNums*i + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWrites[shaderBindingNums*i + 0].dstSet = m_modelDescriptorSets[i];
-                descriptorWrites[shaderBindingNums*i + 0].dstBinding = 0;
-                descriptorWrites[shaderBindingNums*i + 0].dstArrayElement = 0;
-                descriptorWrites[shaderBindingNums*i + 0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                descriptorWrites[shaderBindingNums*i + 0].descriptorCount = 1;
-                descriptorWrites[shaderBindingNums*i + 0].pBufferInfo = &bufferInfo;
-
-                descriptorWrites[shaderBindingNums*i + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWrites[shaderBindingNums*i + 1].dstSet = m_modelDescriptorSets[i];
-                descriptorWrites[shaderBindingNums*i + 1].dstBinding = 1;
-                descriptorWrites[shaderBindingNums*i + 1].dstArrayElement = 0;
-                descriptorWrites[shaderBindingNums*i + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                descriptorWrites[shaderBindingNums*i + 1].descriptorCount = 1;
-                descriptorWrites[shaderBindingNums*i + 1].pImageInfo =&imageInfo;
-             
-            }   
-        vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-    }
-
-    void VulkanBaseRenderer::CreateUniformBuffer()
-    {
-        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
-        uniformBuffers.resize(m_swapChain->GetCount());
-        uniformBuffersMemory.resize(m_swapChain->GetCount());
-        uniformBuffersMapped.resize(m_swapChain->GetCount());
-
-        for (size_t i = 0; i < m_swapChain->GetCount(); i++) {
-            CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
-
-            vkMapMemory(m_device->GetVkDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+                                                               
+               descriptorWrites[shaderBindingNums * j + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+               descriptorWrites[shaderBindingNums * j + 0].dstSet = m_modelDescriptorSets[j];
+               descriptorWrites[shaderBindingNums * j + 0].dstBinding = 0;
+               descriptorWrites[shaderBindingNums * j + 0].dstArrayElement = 0;
+               descriptorWrites[shaderBindingNums * j + 0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+               descriptorWrites[shaderBindingNums * j + 0].descriptorCount = 1;
+               descriptorWrites[shaderBindingNums * j + 0].pBufferInfo = &bufferInfo;
+               
+               descriptorWrites[shaderBindingNums * j + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+               descriptorWrites[shaderBindingNums * j + 1].dstSet = m_modelDescriptorSets[j];
+               descriptorWrites[shaderBindingNums * j + 1].dstBinding = 1;
+               descriptorWrites[shaderBindingNums * j + 1].dstArrayElement = 0;
+               descriptorWrites[shaderBindingNums * j + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+               descriptorWrites[shaderBindingNums * j + 1].descriptorCount = 1;
+               descriptorWrites[shaderBindingNums * j + 1].pImageInfo = &diffuse_imageInfo;
+            }
         }
+        vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
 
     void VulkanBaseRenderer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
@@ -830,19 +834,25 @@ namespace Renderer
         scissor.extent = m_swapChain->GetVkExtent();;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+        std::vector<std::shared_ptr<ModelGroup>> scene_ModelGroup = m_Scene->GetSceneModelGroups();
 
-        for (uint32_t j = 0; j < m_Scene->GetSceneModels().size(); j++)
+        for (size_t i = 0; i < scene_ModelGroup.size(); i++)
         {
-            VkBuffer vertexBuffers[] = { m_Scene->GetSceneModel(j)->GetVertexBuffer()};
-            VkDeviceSize offsets[] = { 0 };
-            vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+           ModelGroup* modelGroup = scene_ModelGroup[i].get();
 
-            vkCmdBindIndexBuffer(commandBuffer, m_Scene->GetSceneModel(j)->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+            for (uint32_t j = 0; j <  modelGroup->GetModelSize(); j++)
+            {
+                VkBuffer vertexBuffers[] = { modelGroup->GetModelAt(j)->GetVertexBuffer()};
+                VkDeviceSize offsets[] = { 0 };
+                vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 1, 1, &m_modelDescriptorSets[j], 0, nullptr);
-           
-            std::vector<uint32_t> indices = m_Scene->GetSceneModel(j)->GetIndices();
-            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+                vkCmdBindIndexBuffer(commandBuffer, modelGroup->GetModelAt(j)->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 1, 1, &m_modelDescriptorSets[j], 0, nullptr);
+
+                std::vector<uint32_t> indices = modelGroup->GetModelAt(j)->GetIndices();
+                vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+            }
         }
         vkCmdEndRenderPass(commandBuffer);
 

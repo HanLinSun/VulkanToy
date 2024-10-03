@@ -10,7 +10,7 @@ namespace Renderer
 		Loader()=delete;
 		Loader(Device* device, VkCommandPool commandPool);
 		~Loader();
-		void LoadModel(std::string path, std::string folder_path, std::vector<Model*>& models);
+		void LoadModel(std::string path, std::string folder_path, ModelGroup* modelgroup);
 	protected:
 		Device* m_device;
 		VkCommandPool m_commandPool;

@@ -10,6 +10,7 @@ namespace Renderer
 	{
 		alignas(16) glm::mat4 viewMatrix;
 		alignas(16) glm::mat4 projectionMatrix;
+		alignas(16) glm::mat4 modelMatrix;
 	};
 
 	// Perform a linear interpolation

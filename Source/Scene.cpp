@@ -8,34 +8,27 @@ namespace Renderer
 {
 	Scene::Scene() {}
 
-	const std::vector<Model*> Scene::GetSceneModels()
+	const std::vector<std::shared_ptr<ModelGroup>> Scene::GetSceneModelGroups()
 	{
-		return m_models;
+		return m_modelGroups;
 	}
 
-	const Model* Scene::GetSceneModel(int index)
+	const std::vector<ModelGroup*> Scene::GetSceneModelGroupsRaw()
 	{
-		return m_models[index];
-	}
-
-
-	void Scene::AddModels(std::vector<Model*>& _models)
-	{
-		if (m_models.size() == 0)
-		{
-			m_models = _models;
+		std::vector<ModelGroup*> rawPointers;
+		for (const auto& modelGroup : m_modelGroups) {
+			rawPointers.push_back(modelGroup.get()); // Get raw pointer
 		}
-		else
-		{
-			for (auto& model : _models)
-			{
-				m_models.push_back(model);
-			}
-		}
-	}
-	void Scene::AddModel(Model* _model)
-	{
-		m_models.push_back(_model);
+		return rawPointers; // Return the vector of raw pointers
 	}
 
+	size_t Scene::GetModelGroupSize()
+	{
+		return m_modelGroups.size();
+	}
+
+	void Scene::AddModelGroup(ModelGroup* modelgroup)
+	{
+		m_modelGroups.push_back(std::unique_ptr<ModelGroup>(modelgroup));
+	}
 }

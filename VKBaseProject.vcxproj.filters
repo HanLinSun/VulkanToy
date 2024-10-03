@@ -66,10 +66,10 @@
     <None Include="Shaders\compile.bat">
       <Filter>Source\Shader</Filter>
     </None>
-    <None Include="Shaders\fragShader.frag">
+    <None Include="Shaders\fragShader.glsl">
       <Filter>Source\Shader</Filter>
     </None>
-    <None Include="Shaders\vertShader.vert">
+    <None Include="Shaders\vertShader.glsl">
       <Filter>Source\Shader</Filter>
     </None>
     <None Include="Shaders\ComputeShader.comp">
@@ -297,6 +297,9 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\WindowsInput.h">
       <Filter>Header\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\Initializer.hpp">
+      <Filter>Header\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

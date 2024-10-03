@@ -13,7 +13,6 @@ namespace Renderer
 		glm::mat4 modelMatrix;
 	};
 
-
 	class Model
 	{
 	public:
@@ -56,4 +55,24 @@ namespace Renderer
 		
 
 	};
+	class ModelGroup
+	{
+	public:
+		ModelGroup();
+		~ModelGroup();
+
+		Model* GetModelAt(int idx);
+		void AddModel(Model* _model);
+		void AddModels(std::vector<Model*>& _models);
+		size_t GetModelSize();
+
+		std::vector<std::unique_ptr<Material>> GetMaterials();
+		Material* GetMaterial(int idx);
+		void AddMaterial(Material* mat);
+
+	protected:
+		std::vector<std::unique_ptr<Model>> m_models;
+		std::vector<std::unique_ptr<Material>> m_materials;
+	};
+
 }
