@@ -36,7 +36,7 @@ namespace Renderer
 		return m_meshes;
 	}
 
-	std::vector<Material> ObjFileLoader::GetMaterials()
+	std::vector<std::shared_ptr<Material>> ObjFileLoader::GetMaterials()
 	{
 		return m_materials;
 	}
@@ -69,6 +69,7 @@ namespace Renderer
 		auto& shapes = reader.GetShapes();
 		auto& materials = reader.GetMaterials();
 
+	
 		//Read material
 		for (auto& material : materials)
 		{
@@ -84,7 +85,8 @@ namespace Renderer
 
 			load_mat->SetClearCoatRoughness(material.clearcoat_roughness);
 			load_mat->SetClearCoatThickness(material.clearcoat_thickness);
-
+			
+			load_mat->m_name = material.name;
 			//This is ugly and may need to  use MACRO instead in the future
 			if (material.ambient_texname.size()!=0)
 			{ 
@@ -130,7 +132,7 @@ namespace Renderer
 					load_mat->SetTexture(reflection_texture, TextureType::Reflection);
 				}
 			}
-			m_materials.push_back(load_mat);
+			m_materials.push_back(std::shared_ptr<Material>(load_mat));
 		}
 
 		glm::vec3 temp_position;

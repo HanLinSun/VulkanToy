@@ -353,20 +353,25 @@ Device* Instance::CreateDevice(QueueFlagBits requiredQueues)
     }
 
     //Enable descriptorBindingPartiallyBound
+    VkPhysicalDeviceRobustness2FeaturesEXT descriptorRobustness2Feature = {};
+    descriptorRobustness2Feature.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
+    descriptorRobustness2Feature.nullDescriptor = VK_TRUE;
 
     // 1. Descriptor indexing feature
     VkPhysicalDeviceDescriptorIndexingFeaturesEXT descriptorIndexingFeatures = {};
     descriptorIndexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT;
-    descriptorIndexingFeatures.pNext = nullptr;
+    descriptorIndexingFeatures.pNext = &descriptorRobustness2Feature;
 
     // 2. Query the supported physical device features
     VkPhysicalDeviceFeatures2 deviceFeatures2 = {};
     deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     deviceFeatures2.pNext = &descriptorIndexingFeatures;
+    deviceFeatures2.features.shaderSampledImageArrayDynamicIndexing = VK_TRUE;
 
     deviceFeatures2.features.tessellationShader = VK_TRUE;
     deviceFeatures2.features.fillModeNonSolid = VK_TRUE;
     deviceFeatures2.features.samplerAnisotropy = VK_TRUE;
+  
 
     vkGetPhysicalDeviceFeatures2(m_physicalDevice, &deviceFeatures2);
 

@@ -21,6 +21,7 @@ public:
 	//stb_image
 	stbi_uc* m_pixels;
 
+	std::string fileName;
 	void UpdateDescriptor();
 	void Destroy();
 };

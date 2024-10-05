@@ -89,6 +89,8 @@ struct MaterialProperties
         uint32_t HasMetallicTexture;
         uint32_t HasReflectionTexture;
 
+
+
 };
 
 enum TextureType
@@ -164,12 +166,14 @@ public:
 
     std::shared_ptr<Texture> GetTexture(TextureType type) const;
 
+    std::string m_name;
+
 private:
 
 	std::unique_ptr<MaterialProperties, void (*)(MaterialProperties*)> m_MaterialProperties;
     TextureMap m_textures;
 
-    //std::string m_name;
+  
 	//void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
 
 };

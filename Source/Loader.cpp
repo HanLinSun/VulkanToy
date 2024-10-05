@@ -27,10 +27,10 @@ namespace Renderer
 			if (objFileloader != nullptr)
 			{
 				objFileloader->loadFileData(path, model_folder_path);
-				std::vector<Material> mats = objFileloader->GetMaterials();
+				std::vector<std::shared_ptr<Material>> mats = objFileloader->GetMaterials();
 				for (auto& mesh : objFileloader->GetMeshes())
 				{
-					Model* model=new Model(m_device, m_commandPool, mesh.m_vertices, mesh.m_indices, &mats[mesh.m_materialID]);
+					Model* model=new Model(m_device, m_commandPool, mesh.m_vertices, mesh.m_indices, mats[mesh.m_materialID]);
 					modelGroup->AddModel(model);
 				}
 			}

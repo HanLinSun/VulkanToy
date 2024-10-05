@@ -689,6 +689,7 @@ namespace Renderer
         }
 
         std::vector<VkWriteDescriptorSet> descriptorWrites(shaderBindingNums *m_modelDescriptorSets.size());
+        std::vector<VkDescriptorImageInfo> diffuse_imageInfo(m_modelDescriptorSets.size());
 
         std::vector<std::shared_ptr<ModelGroup>> scene_ModelGroup = m_Scene->GetSceneModelGroups();
         
@@ -706,17 +707,21 @@ namespace Renderer
                 Material* mat = t_modelGroup->GetModelAt(j)->GetMaterial();
                 Texture* ambientTexture = mat->GetTexture(TextureType::Ambient).get();
 
-                VkDescriptorImageInfo diffuse_imageInfo{};
+                std::cout << "Material name: " << mat->m_name << std::endl;
+      
                 if (ambientTexture != nullptr) {
-                    diffuse_imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                    diffuse_imageInfo.imageView = ambientTexture->m_imageView;
-                    diffuse_imageInfo.sampler = ambientTexture->m_sampler;
+                    diffuse_imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    diffuse_imageInfo[j].imageView = ambientTexture->m_imageView;
+                    diffuse_imageInfo[j].sampler = ambientTexture->m_sampler;
+                    std::cout << "Texture file path: " << ambientTexture->fileName << std::endl;
                 }
                 else
                 {
-                    diffuse_imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                    diffuse_imageInfo.imageView = VK_NULL_HANDLE;
-                    diffuse_imageInfo.sampler = VK_NULL_HANDLE;
+                    diffuse_imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    diffuse_imageInfo[j].imageView = VK_NULL_HANDLE;
+                    VkSampler sampler = {};
+                    Tools::CreateImageSampler(m_device, 1.0f, 0, sampler);
+                    diffuse_imageInfo[j].sampler = sampler;
                 }
                                                                
                descriptorWrites[shaderBindingNums * j + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -733,7 +738,7 @@ namespace Renderer
                descriptorWrites[shaderBindingNums * j + 1].dstArrayElement = 0;
                descriptorWrites[shaderBindingNums * j + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                descriptorWrites[shaderBindingNums * j + 1].descriptorCount = 1;
-               descriptorWrites[shaderBindingNums * j + 1].pImageInfo = &diffuse_imageInfo;
+               descriptorWrites[shaderBindingNums * j + 1].pImageInfo = &diffuse_imageInfo[j];
             }
         }
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);

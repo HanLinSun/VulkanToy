@@ -35,6 +35,7 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devic
             return -1;
         }
         
+        this->fileName = filename;
 	    this->m_pixels = pixels;
         this->width = texWidth;
         this->height = texHeight;
@@ -65,24 +66,6 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devic
        Tools::GenerateMipmaps(m_device,this->m_image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
 
        // Create a default sampler
-
-       //VkSamplerCreateInfo samplerCreateInfo = {};
-       //samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-       //samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-       //samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-       //samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-       //samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-       //samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-       //samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-       //samplerCreateInfo.mipLodBias = 0.0f;
-       //samplerCreateInfo.compareOp = VK_COMPARE_OP_NEVER;
-       //samplerCreateInfo.minLod = 0.0f;
-       //// Max level-of-detail should match mip level count
-       //samplerCreateInfo.maxLod = (float)mipLevels;
-       //// Only enable anisotropic filtering if enabled on the device
-       //samplerCreateInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-       //samplerCreateInfo.anisotropyEnable = VK_TRUE;
-       //samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 
        VkPhysicalDeviceProperties properties{};
        vkGetPhysicalDeviceProperties(device->GetInstance()->GetPhysicalDevice(), &properties);

@@ -28,8 +28,8 @@ namespace Renderer
 		return m_models.size();
 	}
 
-	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,Material* mat)
-		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(std::make_unique<Material>(mat))
+	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,std::shared_ptr<Material> mat)
+		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(mat)
 	{
 		if (m_vertices.size() > 0)
 		{
