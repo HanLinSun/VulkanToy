@@ -410,6 +410,8 @@ void Tools::CreateCubeMapImage(Device* device, uint32_t width, uint32_t height, 
 	imageInfo.usage = usage;
 	imageInfo.samples = numSamples;
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	//By default each cubemap have only one layer
+	imageInfo.arrayLayers = 6;
 	imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 	if (vkCreateImage(device->GetVkDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create image!");

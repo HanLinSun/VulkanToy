@@ -5,7 +5,6 @@
 int main() 
 {
     Renderer::Log::Init();
- 
     Renderer::RenderApplication render_app;
     try {
         render_app.Run();

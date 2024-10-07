@@ -43,9 +43,6 @@
     <Filter Include="Source\Layer">
       <UniqueIdentifier>{5b5c6fc3-be81-4924-8c7d-94090e3c8dc5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header\Renderer">
-      <UniqueIdentifier>{796aac14-8112-48c5-bdff-3c88c598ab56}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header\Vulkan">
       <UniqueIdentifier>{600c34b8-2fa7-4d28-8bdb-3f56a0bab420}</UniqueIdentifier>
     </Filter>
@@ -60,6 +57,9 @@
     </Filter>
     <Filter Include="Source\Utils">
       <UniqueIdentifier>{70eb96dd-5ad3-46a6-a88e-d4cb31d04d4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\Scene">
+      <UniqueIdentifier>{796aac14-8112-48c5-bdff-3c88c598ab56}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +164,9 @@
     <ClCompile Include="Source\Materials.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Cube.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -218,13 +221,13 @@
       <Filter>Header\Layer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Camera.h">
-      <Filter>Header\Renderer</Filter>
+      <Filter>Header\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Scene.h">
-      <Filter>Header\Renderer</Filter>
+      <Filter>Header\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\SceneStructs.h">
-      <Filter>Header\Renderer</Filter>
+      <Filter>Header\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\RenderApplication.h">
       <Filter>Header</Filter>
@@ -278,10 +281,10 @@
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Model.h">
-      <Filter>Header\Renderer</Filter>
+      <Filter>Header\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Material.h">
-      <Filter>Header\Renderer</Filter>
+      <Filter>Header\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Loader.h">
       <Filter>Header\Utils</Filter>
@@ -302,7 +305,7 @@
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\Cube.h">
-      <Filter>Header\Renderer</Filter>
+      <Filter>Header\Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

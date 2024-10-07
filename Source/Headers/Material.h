@@ -60,7 +60,6 @@ struct MaterialProperties
 		glm::vec4 Emissive ;
 		glm::vec4 Reflectance ;
         
-
         float AlphaThreshold;
         float Opacity;                       // If Opacity < 1, then the material is transparent.
         float SpecularPower;
@@ -88,8 +87,6 @@ struct MaterialProperties
         uint32_t HasRoughnessTexture;
         uint32_t HasMetallicTexture;
         uint32_t HasReflectionTexture;
-
-
 
 };
 

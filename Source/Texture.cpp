@@ -40,6 +40,7 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devic
         this->width = texWidth;
         this->height = texHeight;
         
+        //Here I force all texture to be RGBA format and have 4 channels
         VkDeviceSize imageSize = texWidth * texHeight * 4;
         mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
         
@@ -123,5 +124,96 @@ void Texture2D::LoadFromBuffer(void* buffer, VkDeviceSize bufferSize, VkFormat f
 
 void Texture2DArray::LoadFromFile(std::string filename, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags, VkImageLayout imageLayout)
 {
+
+}
+
+int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags imageUsageFlags, VkImageLayout imageLayout)
+{
+    this->m_device = device;
+    int texWidth, texHeight;
+    int texChannels;
+
+    for (int i = 0; i < 6; i++)
+    {
+        stbi_uc* face_pixels = stbi_load(filenames[i].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        if (face_pixels == nullptr)
+        {
+            LOG_CORE_ERROR("pixel data is null, " + filenames[i] + " might be empty, loading stopped.");
+            return -1;
+        }
+        m_facePixelData[i] = face_pixels;
+    }
+
+    this->width = texWidth;
+    this->height = texHeight;
+
+    unsigned char* cubemapData = (unsigned char*)malloc(6 * texWidth * texHeight * 4);
+    for (int i = 0; i < 6; i++)
+    {
+        memcpy(cubemapData + i * (texWidth * texHeight * 4), m_facePixelData[i], texWidth * texHeight * 4);
+        stbi_image_free(m_facePixelData[i]);
+    }
+
+    VkDeviceSize imageSize = 6 * texWidth * texHeight * 4;
+    mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+
+    this->mipLevels = mipLevels;
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    BufferUtils::CreateBuffer(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(m_device->GetVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+    memcpy(data, cubemapData, static_cast<size_t>(imageSize));
+    vkUnmapMemory(m_device->GetVkDevice(), stagingBufferMemory);
+
+    Tools::CreateCubeMapImage(m_device, this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_image, this->m_imageDeviceMemory);
+   
+
+    VkCommandBuffer copyCmd = Tools::CreateCommandBuffer(m_device, VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_device->GetGraphicCommandPool(), true);
+    std::vector<VkBufferImageCopy> bufferCopyRegions;
+
+    size_t offset = 0;
+    for (uint32_t face = 0; face < 6; face++)
+    {
+        for (uint32_t level = 0; level < mipLevels; level++)
+        {
+
+            VkBufferImageCopy bufferCopyRegion = {};
+            bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            bufferCopyRegion.imageSubresource.mipLevel = level;
+            bufferCopyRegion.imageSubresource.baseArrayLayer = face;
+            bufferCopyRegion.imageSubresource.layerCount = 1;
+            bufferCopyRegion.imageExtent.width =texWidth >> level;
+            bufferCopyRegion.imageExtent.height =texHeight >> level;
+            bufferCopyRegion.imageExtent.depth = 1;
+            bufferCopyRegion.bufferOffset = offset;
+            bufferCopyRegions.push_back(bufferCopyRegion);
+
+            offset += (texWidth >> level) * (texHeight >> level) * 4;
+        }
+    }
+
+    VkImageSubresourceRange subresourceRange = {};
+    subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subresourceRange.baseMipLevel = 0;
+    subresourceRange.levelCount = mipLevels;
+    //Once time loading have 6 textures, and only have 1 layer
+    subresourceRange.layerCount = 6;
+
+    Tools::TransitionImageLayout(m_device, this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+
+    vkCmdCopyBufferToImage(
+        copyCmd,
+        stagingBuffer,
+       this->m_image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        static_cast<uint32_t>(bufferCopyRegions.size()),
+        bufferCopyRegions.data()
+    );
+
+    Tools::EndCommandBuffer(m_device, copyCmd, m_device->GetGraphicCommandPool(), QueueFlags::Graphics);
+
 
 }
