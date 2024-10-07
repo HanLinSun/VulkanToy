@@ -154,6 +154,7 @@
     <ClInclude Include="Source\Headers\Application.h" />
     <ClInclude Include="Source\Headers\Camera.h" />
     <ClInclude Include="Source\Headers\Core.h" />
+    <ClInclude Include="Source\Headers\Cube.h" />
     <ClInclude Include="Source\Headers\Event\Event.h" />
     <ClInclude Include="Source\Headers\Event\KeyEvent.h" />
     <ClInclude Include="Source\Headers\Event\MouseEvent.h" />

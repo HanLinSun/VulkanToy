@@ -16,6 +16,8 @@ const uint32_t HEIGHT = 720;
 const std::string MODEL_PATH = "./Models/Sponza/sponza.obj";
 const std::string MODEL_FILE_PATH = "./Models/Sponza/";
 
+const std::string SKYBOX_CUBEMAP_PATH = "./Textures/Skybox/";
+
 //const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char*> validationLayers = {
@@ -210,7 +212,7 @@ namespace Renderer
 
 		void CreateSyncObjects();
 
-		//void UpdateUniformBuffer(uint32_t currentImage);
+		void CreateSkyboxCubeMap(std::string cubeMap_texturePath);
 
 		void DrawFrame();
 

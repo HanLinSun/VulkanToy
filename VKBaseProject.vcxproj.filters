@@ -301,5 +301,8 @@
     <ClInclude Include="Source\Headers\Vulkan\Initializer.hpp">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Headers\Cube.h">
+      <Filter>Header\Renderer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

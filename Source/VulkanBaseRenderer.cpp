@@ -114,6 +114,7 @@ namespace Renderer
            
             m_Camera->RotateAroundUpAxis(deltaX*deltaTime.GetSeconds());
             m_Camera->RotateAroundRightAxis(deltaY * deltaTime.GetSeconds());
+
             previousX = mousePosition.first;
             previousY = mousePosition.second;
         }
@@ -532,6 +533,15 @@ namespace Renderer
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
+        VkPipelineMultisampleStateCreateInfo multisampleInfo = {};
+        multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        multisampleInfo.sampleShadingEnable = VK_TRUE; // Set to VK_TRUE if using sample shading
+        multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT; // Change to desired sample count
+        multisampleInfo.minSampleShading = .2f; // Adjust if sample shading is enabled
+        multisampleInfo.pSampleMask = nullptr; // Set if using a sample mask
+        multisampleInfo.alphaToCoverageEnable = VK_FALSE; // Enable if needed
+        multisampleInfo.alphaToOneEnable = VK_FALSE;
+
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineInfo.stageCount = 2;
@@ -557,6 +567,12 @@ namespace Renderer
         vkDestroyShaderModule(m_device->GetVkDevice(), vertShaderModule, nullptr);
     }
 
+
+    void VulkanBaseRenderer::CreateSkyboxCubeMap(std::string cubeMap_texturePath)
+    {
+
+    }
+
     void VulkanBaseRenderer::CreateFrameResources() {
         m_imageViews.resize(m_swapChain->GetCount());
 
@@ -564,7 +580,6 @@ namespace Renderer
             m_imageViews[i] = Tools::CreateImageView(m_device,m_swapChain->GetVkImage(i), m_swapChain->GetVkImageFormat(), VK_IMAGE_ASPECT_COLOR_BIT, 1);
         }
 
-  
         //Depth
         VkFormat depthFormat = m_device->GetInstance()->GetSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
         Tools::CreateImage(m_device, m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);

@@ -96,4 +96,13 @@ namespace Renderer
 		m_material = std::make_unique<Material>(std::move(mat));
 	}
 
+	Material* ModelGroup::GetMaterial(int idx)
+	{
+		return m_materials[idx].get();
+	}
+	void ModelGroup::AddMaterial(Material* mat)
+	{
+
+	}
+
  }

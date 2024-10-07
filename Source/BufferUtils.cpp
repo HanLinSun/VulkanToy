@@ -1,14 +1,12 @@
 #include "Headers/Vulkan/BufferUtils.h"
 #include "Headers/Vulkan/Instance.h"
+#include "Headers/Vulkan/Initializer.hpp"
 
 void BufferUtils::CreateBuffer(Device* device, VkDeviceSize size, VkBufferUsageFlags usage, 
 	VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
 	//Create Buffer
-	VkBufferCreateInfo bufferInfo = {};
-	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = size;
-	bufferInfo.usage = usage;
+    VkBufferCreateInfo bufferInfo = VulkanInitializer::bufferCreateInfo(usage, size);
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 	if (vkCreateBuffer(device->GetVkDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
