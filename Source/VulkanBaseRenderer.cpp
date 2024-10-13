@@ -9,6 +9,7 @@ double previousY = 0.0;
 
 
 
+
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
@@ -55,7 +56,7 @@ namespace Renderer
 
         m_device= m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit);
         m_swapChain = m_device->CreateSwapChain(m_surface, 3 , m_window);
-
+        m_skyboxTexture = new TextureCubeMap();
         imageCount = m_swapChain->GetCount();
         //msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
         m_Camera = new Camera(m_device, m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
@@ -71,6 +72,14 @@ namespace Renderer
     void VulkanBaseRenderer::OnEvent(Event& e)
     {
 
+    }
+
+    void VulkanBaseRenderer::LoadCubeMapTexture()
+    {
+        if (!m_skyboxTexture->TextureCubeMap::LoadFromFiles(cubeMapPaths, VK_FORMAT_R8G8B8A8_SRGB, m_device))
+        {
+            std::cout << "Loading Skybox texture failed" << std::endl;
+        }
     }
 
     void VulkanBaseRenderer::UpdateCamera(Timestep deltaTime)

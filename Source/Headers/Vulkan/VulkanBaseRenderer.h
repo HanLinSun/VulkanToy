@@ -18,6 +18,17 @@ const std::string MODEL_FILE_PATH = "./Models/Sponza/";
 
 const std::string SKYBOX_CUBEMAP_PATH = "./Textures/Skybox/";
 
+std::vector<std::string> cubeMapPaths
+{
+	    SKYBOX_CUBEMAP_PATH + "posx.jpg",
+		SKYBOX_CUBEMAP_PATH + "negx.jpg",
+		SKYBOX_CUBEMAP_PATH + "posy.jpg",
+		SKYBOX_CUBEMAP_PATH + "negy.jpg",
+		SKYBOX_CUBEMAP_PATH + "posz.jpg",
+		SKYBOX_CUBEMAP_PATH + "negz.jpg"
+};
+
+
 //const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char*> validationLayers = {
@@ -144,6 +155,9 @@ namespace Renderer
 		uint32_t currentFrame = 0;
 		Scene* m_Scene;
 		Camera* m_Camera;
+
+		TextureCubeMap* m_skyboxTexture;
+
 		bool show_demo_window = true;
 		QueueFamilyIndices queueFamilyIndices;
 		uint32_t imageCount;
@@ -215,6 +229,10 @@ namespace Renderer
 		void CreateSkyboxCubeMap(std::string cubeMap_texturePath);
 
 		void DrawFrame();
+
+		void LoadCubeMapTexture(std::vector<std::string>& texturePath );
+
+	    void LoadCubeMapTexture();
 
 		VkShaderModule CreateShaderModule(const std::vector<char>& code);
 

@@ -307,5 +307,8 @@
     <ClInclude Include="Source\Headers\Cube.h">
       <Filter>Header\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Buffer.h">
+      <Filter>Header\Vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

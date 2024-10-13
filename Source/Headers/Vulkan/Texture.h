@@ -55,7 +55,7 @@ public:
 class TextureCubeMap : public Texture
 {
 public:
-	int LoadFromFiles(std::vector<std::string> filename,VkFormat format,Device* device,	VkQueue copyQueue,	VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	int LoadFromFiles(std::vector<std::string> filename,VkFormat format,Device* device,	VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 protected:
 	std::vector<stbi_uc*> m_facePixelData;
 };

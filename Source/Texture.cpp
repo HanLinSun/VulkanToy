@@ -1,7 +1,8 @@
-#include "Vulkan/Texture.h"
-#include "Vulkan/BufferUtils.h"
+#include <Vulkan/Texture.h>
+#include <Vulkan/BufferUtils.h>
 #include "Tools.h"
 #include "Log.h"
+#include <Vulkan/Initializer.hpp>
 void Texture::UpdateDescriptor()
 {
 	descriptor.sampler = m_sampler;
@@ -127,7 +128,7 @@ void Texture2DArray::LoadFromFile(std::string filename, VkFormat format, Device*
 
 }
 
-int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags imageUsageFlags, VkImageLayout imageLayout)
+int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat format, Device* device, VkImageUsageFlags imageUsageFlags, VkImageLayout imageLayout)
 {
     this->m_device = device;
     int texWidth, texHeight;
@@ -179,7 +180,6 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
     {
         for (uint32_t level = 0; level < mipLevels; level++)
         {
-
             VkBufferImageCopy bufferCopyRegion = {};
             bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             bufferCopyRegion.imageSubresource.mipLevel = level;
@@ -213,7 +213,37 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
         bufferCopyRegions.data()
     );
 
+    this->m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    Tools::TransitionImageLayout(m_device, this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,this->m_imageLayout , mipLevels);
     Tools::EndCommandBuffer(m_device, copyCmd, m_device->GetGraphicCommandPool(), QueueFlags::Graphics);
 
+    VkSamplerCreateInfo samplerInfo = VulkanInitializer::samplerCreateInfo();
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = samplerInfo.addressModeU;
+    samplerInfo.addressModeW = samplerInfo.addressModeU;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = static_cast<float>(mipLevels);
+    samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+    samplerInfo.maxAnisotropy = 1.0f;
 
+    if (vkCreateSampler(m_device->GetVkDevice(), &samplerInfo, nullptr, &this->m_sampler) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture sampler!");
+    }
+
+    VkImageViewCreateInfo view = VulkanInitializer::imageViewCreateInfo();
+    view.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+    view.format = format;
+    view.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+    view.subresourceRange.layerCount = 6;
+    view.subresourceRange.levelCount =this->mipLevels;
+    view.image = this->m_image;
+
+    // Clean up staging resources
+    vkFreeMemory(device->GetVkDevice(), stagingBufferMemory, nullptr);
+    vkDestroyBuffer(device->GetVkDevice(), stagingBuffer, nullptr);
 }

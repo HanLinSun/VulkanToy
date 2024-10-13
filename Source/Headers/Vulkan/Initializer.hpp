@@ -18,7 +18,6 @@ namespace VulkanInitializer
 		return rect2D;
 	}
 
-
 	inline VkDescriptorPoolCreateInfo descriptorPoolCreateInfo(
 		uint32_t poolSizeCount,
 		VkDescriptorPoolSize* pPoolSizes,
@@ -189,5 +188,20 @@ namespace VulkanInitializer
 		VkImageCreateInfo imageCreateInfo{};
 		imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		return imageCreateInfo;
+	}
+
+	inline VkSamplerCreateInfo samplerCreateInfo()
+	{
+		VkSamplerCreateInfo samplerCreateInfo{};
+		samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerCreateInfo.maxAnisotropy = 1.0f;
+		return samplerCreateInfo;
+	}
+
+	inline VkImageViewCreateInfo imageViewCreateInfo()
+	{
+		VkImageViewCreateInfo imageViewCreateInfo{};
+		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		return imageViewCreateInfo;
 	}
 }

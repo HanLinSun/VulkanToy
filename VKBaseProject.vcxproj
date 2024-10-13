@@ -146,6 +146,7 @@
     <None Include="Shaders\vertShader.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Buffer.h" />
     <ClInclude Include="include\backends\imgui_impl_glfw.h" />
     <ClInclude Include="include\backends\imgui_impl_vulkan.h" />
     <ClInclude Include="include\imconfig.h" />
