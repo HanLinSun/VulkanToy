@@ -20,8 +20,6 @@ namespace Renderer
 
 		size_t GetModelGroupSize();
 		
-
-
 	private:
 		std::vector<std::shared_ptr<ModelGroup>> m_modelGroups;
 		std::vector<Material*> m_material;

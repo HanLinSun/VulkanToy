@@ -203,7 +203,8 @@ namespace Renderer
 
         CreateDescriptorPool();
         CreateCameraDescriptorSets();
-        
+
+        //Shader binding num is 2 by now and in future may need refractor
         CreateModelDescriptorSets(2);
         CreateCommandBuffers();
         CreateSyncObjects();

@@ -1,8 +1,8 @@
 #pragma once
 #include <RendererInclude.h>
 #include "SceneStructs.h"
-#include "Vulkan/Device.h"
-#include "Headers/Vulkan/BufferUtils.h"
+#include <Vulkan/Device.h>
+#include <Vulkan/BufferUtils.h>
 
 namespace Renderer
 {
@@ -18,6 +18,14 @@ namespace Renderer
 	{
 		return x0 + a * (x1 - x0);
 	}
+
+	//Perform a sphere interpolation
+
+	enum class Handedness
+	{
+		RightHanded,
+		LeftHanded,
+	};
 
 	class Camera
 	{
@@ -39,16 +47,19 @@ namespace Renderer
 		void RotateAroundRightAxis(float degree);
 		void RotateAroundForwardAxis(float degree);
 		
-		void UpdateViewMatrix();
-
+		void UpdateViewMatrix(Handedness hand);
+		void UpdateViewMatrixFromLookAt(Handedness hand);
 		void UpdateBufferMemory();
+
+
+		inline glm::vec3 Get3DVectorComponent(const glm::vec4 vec);
+		inline glm::vec4 Set3DVectorComponent(const glm::vec3 vec);
 
 	private:
 		Device* m_device;
 		CameraUniformBuffer m_cameraBufferObject;
 		VkBuffer m_buffer;
 		VkDeviceMemory m_bufferMemory;
-
 
 		void* m_mappedData;
 		float m_aspectRatio;
@@ -60,13 +71,15 @@ namespace Renderer
 		glm::mat4 m_projectionMatrix;
 		glm::mat4 m_viewMatrix;
 
-		glm::vec4 m_upVector;
-		glm::vec4 m_forwardVector;
-		glm::vec4 m_rightVector;
+		//This is all based on World Space
+		glm::vec4 m_upVector_W;
+		glm::vec4 m_forwardVector_W;
+		glm::vec4 m_rightVector_W;
 
 		glm::vec3 m_rotation;
-		glm::vec4 m_position;
-		glm::vec4 m_lookAtPoint;
+
+		glm::vec4 m_position_W;
+		glm::vec4 m_lookTarget_W;
 
 		float r, theta, phi;
 

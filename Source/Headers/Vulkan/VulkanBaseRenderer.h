@@ -9,6 +9,7 @@
 #include "QueueFlags.h"
 #include "Input.h"
 #include "Timestep.h"
+#include "ThreadPool.hpp"
 
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
@@ -62,10 +63,21 @@ struct SwapChainSupportDetails {
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
-struct UniformBufferObject {
-	alignas(16) glm::mat4 model;
-	alignas(16) glm::mat4 view;
-	alignas(16) glm::mat4 proj;
+struct ThreadPushConstantBlock
+{
+	glm::mat4 mvp;
+    glm::vec3 color;
+};
+
+struct ThreadData
+{
+	VkCommandPool commandPool { VK_NULL_HANDLE };
+	// One command buffer per render object
+	std::vector<VkCommandBuffer> commandBuffers;
+	// One push constant block per render object
+	std::vector<ThreadPushConstantBlock> pushConstantBlocks;
+	// Per object information (position, rotation, etc.)
+	//std::vector<ObjectData> objectData;
 };
 
 static void check_vk_result(VkResult err)
@@ -157,6 +169,11 @@ namespace Renderer
 		Camera* m_Camera;
 
 		TextureCubeMap* m_skyboxTexture;
+
+		std::vector<ThreadData> m_threadDatas;
+
+		ThreadPool threadPool;
+
 
 		bool show_demo_window = true;
 		QueueFamilyIndices queueFamilyIndices;

@@ -177,6 +177,7 @@
     <ClInclude Include="Source\Headers\RendererInclude.h" />
     <ClInclude Include="Source\Headers\Scene.h" />
     <ClInclude Include="Source\Headers\SceneStructs.h" />
+    <ClInclude Include="Source\Headers\ThreadPool.hpp" />
     <ClInclude Include="Source\Headers\Timestep.h" />
     <ClInclude Include="Source\Headers\Tools.h" />
     <ClInclude Include="Source\Headers\Vulkan\FrameBuffer.h" />

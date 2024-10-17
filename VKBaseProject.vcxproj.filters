@@ -310,5 +310,8 @@
     <ClInclude Include="Buffer.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Headers\ThreadPool.hpp">
+      <Filter>Header\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
