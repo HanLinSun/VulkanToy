@@ -4,7 +4,6 @@
 #include "Headers/WindowsPlatform.h"
 #include "Log.h"
 
-
 namespace Renderer
 {
 	Application* Application::s_instance = nullptr;

@@ -18,7 +18,7 @@ const std::string MODEL_FILE_PATH = "./Models/Sponza/";
 
 const std::string SKYBOX_CUBEMAP_PATH = "./Textures/Skybox/";
 
-std::vector<std::string> cubeMapPaths
+const std::vector<std::string> cubeMapPaths
 {
 	    SKYBOX_CUBEMAP_PATH + "posx.jpg",
 		SKYBOX_CUBEMAP_PATH + "negx.jpg",
