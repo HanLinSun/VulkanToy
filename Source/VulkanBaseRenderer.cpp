@@ -54,10 +54,11 @@ namespace Renderer
 
         m_device= m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit);
         m_swapChain = m_device->CreateSwapChain(m_surface, 3 , m_window);
-        m_skyboxTexture = new TextureCubeMap();
+        m_skyboxTexture = std::make_unique<TextureCubeMap>();
         imageCount = m_swapChain->GetCount();
         //msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
-        m_Camera = new Camera(m_device, m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
+        m_Camera = std::make_shared<Camera>(m_device, m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
+        m_Scene = new Scene(m_Camera);
 
     }
     void VulkanBaseRenderer::Run(Timestep deltaTime) 
@@ -69,7 +70,7 @@ namespace Renderer
 
     void VulkanBaseRenderer::OnEvent(Event& e)
     {
-
+        std::cout << "Base Render Inside: " << e.ToString() << std::endl;
     }
 
     void VulkanBaseRenderer::LoadCubeMapTexture()
@@ -125,7 +126,12 @@ namespace Renderer
             previousX = mousePosition.first;
             previousY = mousePosition.second;
         }
-        m_Camera->UpdateViewMatrix();
+
+        if (Input::MouseMoved())
+        {
+            
+        }
+       // m_Camera->UpdateViewMatrix();
         m_Camera->UpdateBufferMemory();
     }
 
@@ -172,13 +178,6 @@ namespace Renderer
         app->framebufferResized = true;
     }
 
-    void VulkanBaseRenderer::CreateScene()
-    {
-        if (m_Scene == nullptr)
-        {
-            m_Scene = new Scene();
-        }
-    }
     void VulkanBaseRenderer::LoadModel(std::string model_path, std::string model_folder_path)
     {
         Loader loader(m_device, m_device->GetGraphicCommandPool());
@@ -189,7 +188,6 @@ namespace Renderer
     void VulkanBaseRenderer::InitVulkan() {
 
         SetupDebugMessenger();
-        CreateScene();
 
         //By default we use this
         LoadModel(MODEL_PATH,MODEL_FILE_PATH);

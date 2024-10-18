@@ -166,9 +166,9 @@ namespace Renderer
 
 		uint32_t currentFrame = 0;
 		Scene* m_Scene;
-		Camera* m_Camera;
 
-		TextureCubeMap* m_skyboxTexture;
+		std::shared_ptr<Camera> m_Camera;
+		std::unique_ptr<TextureCubeMap> m_skyboxTexture;
 
 		std::vector<ThreadData> m_threadDatas;
 
@@ -192,8 +192,6 @@ namespace Renderer
 		bool framebufferResized = false;
 
 		void UpdateCamera(Timestep deltaTime);
-
-		void CreateScene();
 
 		void LoadModel(std::string model_path, std::string model_texture_path);
 

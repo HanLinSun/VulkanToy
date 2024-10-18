@@ -6,7 +6,8 @@
 
 namespace Renderer
 {
-	Scene::Scene() {}
+	Scene::Scene(){}
+	Scene::Scene(std::shared_ptr<Camera> cam):m_Camera(cam),m_CameraController(std::make_unique<CameraController>(cam)){}
 
 	const std::vector<std::shared_ptr<ModelGroup>> Scene::GetSceneModelGroups()
 	{
@@ -20,6 +21,11 @@ namespace Renderer
 			rawPointers.push_back(modelGroup.get()); // Get raw pointer
 		}
 		return rawPointers; // Return the vector of raw pointers
+	}
+
+	const std::shared_ptr<Camera> Scene::GetCamera()
+	{
+		return m_Camera;
 	}
 
 	size_t Scene::GetModelGroupSize()

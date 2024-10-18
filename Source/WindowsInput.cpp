@@ -25,7 +25,6 @@ namespace Renderer
 		double xPos, yPos;
 		glfwGetCursorPos(window, &xPos, &yPos);
 		return { (float)xPos, (float)yPos };
-
 	}
 
 	float WindowInput::GetMouseXImpl()
@@ -38,6 +37,21 @@ namespace Renderer
 	{
 		auto [x, y] = GetMousePositionImpl();
 		return y;
+	}
+
+	bool WindowInput::IsMouseMoved()
+	{
+		auto currentMousePosition = GetMousePositionImpl();
+
+		if (currentMousePosition != m_lastMousePosition) {
+			m_mouseMoved = true;
+			m_lastMousePosition = currentMousePosition;
+		}
+		else {
+			m_mouseMoved = false;
+		}
+
+		return m_mouseMoved;
 	}
 
 }

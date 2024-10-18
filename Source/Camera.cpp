@@ -5,10 +5,6 @@ namespace Renderer
 {
 	Camera::Camera(Device* device, float aspectRatio) :m_device(device)
 	{
-		r = 20.0f;
-		theta = 45.0f;
-		phi = -45.0f;
-
 		m_position_W = glm::vec4(0.0f, 20.f, 100.f,1.0f);
 		m_upVector_W = glm::vec4(0.0f, 1.0f, 0.0f,0.0f);
 		

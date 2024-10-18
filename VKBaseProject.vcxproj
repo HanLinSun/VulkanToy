@@ -154,6 +154,7 @@
     <ClInclude Include="include\imgui_internal.h" />
     <ClInclude Include="Source\Headers\Application.h" />
     <ClInclude Include="Source\Headers\Camera.h" />
+    <ClInclude Include="Source\Headers\CameraController.h" />
     <ClInclude Include="Source\Headers\Core.h" />
     <ClInclude Include="Source\Headers\Cube.h" />
     <ClInclude Include="Source\Headers\Event\Event.h" />
@@ -206,6 +207,7 @@
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\BufferUtils.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
+    <ClCompile Include="Source\CameraController.cpp" />
     <ClCompile Include="Source\Cube.cpp" />
     <ClCompile Include="Source\Device.cpp" />
     <ClCompile Include="Source\EntryPoint.cpp" />

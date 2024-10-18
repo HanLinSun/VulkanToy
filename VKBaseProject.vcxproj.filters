@@ -167,6 +167,9 @@
     <ClCompile Include="Source\Cube.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Source\CameraController.cpp">
+      <Filter>Source\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -312,6 +315,9 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\ThreadPool.hpp">
       <Filter>Header\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\CameraController.h">
+      <Filter>Header\Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

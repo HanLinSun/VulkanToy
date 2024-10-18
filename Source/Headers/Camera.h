@@ -34,8 +34,6 @@ namespace Renderer
 		~Camera();
 
 		VkBuffer GetBuffer() const;
-		void UpdateOrbit(float deltaX, float deltaY, float deltaZ);
-
 		glm::mat4 GetViewmatrix();
 		glm::mat4 GetProjectionMatrix();
 
@@ -81,7 +79,6 @@ namespace Renderer
 		glm::vec4 m_position_W;
 		glm::vec4 m_lookTarget_W;
 
-		float r, theta, phi;
 
 		void UpdateProjectionMatrix();
 	};
