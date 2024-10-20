@@ -31,7 +31,7 @@ namespace Renderer
     {
         int sum = 0;
     
-        for (auto& modelGroup : scene->GetSceneModelGroups())
+        for (auto& modelGroup : scene->GetSceneModelGroupsRaw())
         {
             sum += modelGroup->GetModelSize();
         }
@@ -52,25 +52,72 @@ namespace Renderer
         CreateSurface();
         m_instance->PickPhysicalDevice({ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,VK_KHR_MAINTENANCE3_EXTENSION_NAME }, QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, m_surface);
 
-        m_device= m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit);
+        m_device = m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit);
         m_swapChain = m_device->CreateSwapChain(m_surface, 3 , m_window);
         m_skyboxTexture = std::make_unique<TextureCubeMap>();
         imageCount = m_swapChain->GetCount();
         //msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
-        m_Camera = std::make_shared<Camera>(m_device, m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
+        m_Camera = std::make_shared<Camera>(m_device.get(), m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
         m_Scene = new Scene(m_Camera);
+        m_time = Timestep::GetInstance();
 
     }
-    void VulkanBaseRenderer::Run(Timestep deltaTime) 
+    void VulkanBaseRenderer::Run() 
     {
-            UpdateCamera(deltaTime);
+            UpdateCamera();
             DrawFrame();
     }
 
 
     void VulkanBaseRenderer::OnEvent(Event& e)
     {
-        std::cout << "Base Render Inside: " << e.ToString() << std::endl;
+
+        if (e.GetEventType() == EventType::MouseButtonPressed)
+        {
+            std::cout << "Base Render Inside: " << e.ToString() << std::endl;
+        }
+
+        if (e.GetEventType() == EventType::MouseMoved)
+        {
+
+        }
+
+
+    }
+
+    void VulkanBaseRenderer::UpdateCamera()
+    {
+        if (Input::IsKeyPressed(APP_KEY_W))
+        {
+            m_Camera->UpdateTransform_Z(m_time->GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_S))
+        {
+            m_Camera->UpdateTransform_Z(-1 * m_time->GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_A))
+        {
+            m_Camera->UpdateTransform_X(-1 * m_time->GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_D))
+        {
+            m_Camera->UpdateTransform_X(m_time->GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_Q))
+        {
+            m_Camera->UpdateTransform_Y(m_time->GetSeconds());
+        }
+
+        if (Input::IsKeyPressed(APP_KEY_E))
+        {
+            m_Camera->UpdateTransform_Y(-1 * m_time->GetSeconds());
+        }
+
+        m_Camera->UpdateBufferMemory();
     }
 
     void VulkanBaseRenderer::LoadCubeMapTexture()
@@ -83,35 +130,7 @@ namespace Renderer
 
     void VulkanBaseRenderer::UpdateCamera(Timestep deltaTime)
     {
-        if (Input::IsKeyPressed(APP_KEY_W))
-        {
-            m_Camera->UpdateTransform_Z(deltaTime.GetSeconds());
-        }
 
-        if (Input::IsKeyPressed(APP_KEY_S))
-        {
-            m_Camera->UpdateTransform_Z(-1 * deltaTime.GetSeconds());
-        }
-
-        if (Input::IsKeyPressed(APP_KEY_A))
-        {
-            m_Camera->UpdateTransform_X(-1*deltaTime.GetSeconds());
-        }
-
-        if (Input::IsKeyPressed(APP_KEY_D))
-        {
-            m_Camera->UpdateTransform_X(deltaTime.GetSeconds());
-        }
-
-        if (Input::IsKeyPressed(APP_KEY_Q))
-        {
-            m_Camera->UpdateTransform_Y(deltaTime.GetSeconds());
-        }
-
-        if (Input::IsKeyPressed(APP_KEY_E))
-        {
-            m_Camera->UpdateTransform_Y(-1*deltaTime.GetSeconds());
-        }
 
         auto mousePosition = Input::GetMousePosition();
         if (Input::IsMouseButtonPressed(APP_MOUSE_BUTTON_LEFT))
@@ -127,10 +146,6 @@ namespace Renderer
             previousY = mousePosition.second;
         }
 
-        if (Input::MouseMoved())
-        {
-            
-        }
        // m_Camera->UpdateViewMatrix();
         m_Camera->UpdateBufferMemory();
     }
@@ -181,9 +196,11 @@ namespace Renderer
     void VulkanBaseRenderer::LoadModel(std::string model_path, std::string model_folder_path)
     {
         Loader loader(m_device, m_device->GetGraphicCommandPool());
-        ModelGroup* modelgroup=new ModelGroup();
-        loader.LoadModel(model_path, model_folder_path, modelgroup);
-        m_Scene->AddModelGroup(modelgroup);
+        std::unique_ptr<ModelGroup> modelgroup=std::make_unique<ModelGroup>();
+        loader.LoadModel(model_path, model_folder_path, modelgroup.get());
+        m_Scene->AddModelGroup(std::move(modelgroup));
+
+ 
     }
     void VulkanBaseRenderer::InitVulkan() {
 
@@ -583,13 +600,13 @@ namespace Renderer
         m_imageViews.resize(m_swapChain->GetCount());
 
         for (uint32_t i = 0; i < m_swapChain->GetCount(); i++) {
-            m_imageViews[i] = Tools::CreateImageView(m_device,m_swapChain->GetVkImage(i), m_swapChain->GetVkImageFormat(), VK_IMAGE_ASPECT_COLOR_BIT, 1);
+            m_imageViews[i] = Tools::CreateImageView(m_device.get(), m_swapChain->GetVkImage(i), m_swapChain->GetVkImageFormat(), VK_IMAGE_ASPECT_COLOR_BIT, 1);
         }
 
         //Depth
         VkFormat depthFormat = m_device->GetInstance()->GetSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-        Tools::CreateImage(m_device, m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
-        m_depthImageView = Tools::CreateImageView(m_device, m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+        Tools::CreateImage(m_device.get(), m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
+        m_depthImageView = Tools::CreateImageView(m_device.get(), m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
         m_framebuffers.resize(m_imageViews.size());
 
@@ -712,11 +729,11 @@ namespace Renderer
         std::vector<VkWriteDescriptorSet> descriptorWrites(shaderBindingNums *m_modelDescriptorSets.size());
         std::vector<VkDescriptorImageInfo> diffuse_imageInfo(m_modelDescriptorSets.size());
 
-        std::vector<std::shared_ptr<ModelGroup>> scene_ModelGroup = m_Scene->GetSceneModelGroups();
+      //  std::vector<ModelGroup*> scene_ModelGroup = m_Scene->GetSceneModelGroupsRaw();
         
-        for (size_t i = 0; i < scene_ModelGroup.size(); i++)
+        for (size_t i = 0; i < m_Scene->GetModelGroupSize(); i++)
         {
-           ModelGroup* t_modelGroup =scene_ModelGroup[i].get();
+           const ModelGroup* t_modelGroup = m_Scene->GetSceneModelGroup(i);
 
             for (size_t j = 0; j < t_modelGroup->GetModelSize(); j++)
             {
@@ -741,7 +758,7 @@ namespace Renderer
                     diffuse_imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                     diffuse_imageInfo[j].imageView = VK_NULL_HANDLE;
                     VkSampler sampler = {};
-                    Tools::CreateImageSampler(m_device, 1.0f, 0, sampler);
+                    Tools::CreateImageSampler(m_device.get(), 1.0f, 0, sampler);
                     diffuse_imageInfo[j].sampler = sampler;
                 }
                                                                
@@ -860,11 +877,9 @@ namespace Renderer
         scissor.extent = m_swapChain->GetVkExtent();;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        std::vector<std::shared_ptr<ModelGroup>> scene_ModelGroup = m_Scene->GetSceneModelGroups();
-
-        for (size_t i = 0; i < scene_ModelGroup.size(); i++)
+        for (size_t i = 0; i < m_Scene->GetModelGroupSize(); i++)
         {
-           ModelGroup* modelGroup = scene_ModelGroup[i].get();
+           const ModelGroup* modelGroup = m_Scene->GetSceneModelGroup(i);
 
             for (uint32_t j = 0; j <  modelGroup->GetModelSize(); j++)
             {

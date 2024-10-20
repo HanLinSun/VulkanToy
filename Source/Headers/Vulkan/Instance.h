@@ -5,7 +5,7 @@
 #include "QueueFlags.h"
 #include "Device.h"
 #include <GLFW/glfw3.h>
-
+#include <memory>
 extern const bool ENABLE_VALIDATION;
 
 class Device;
@@ -27,8 +27,9 @@ public:
 	VkFormat GetSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 
 	void PickPhysicalDevice(std::vector<const char*> deviceExtensions, QueueFlagBits requiredQueues, VkSurfaceKHR surface = VK_NULL_HANDLE);
-	Device* CreateDevice(QueueFlagBits requiredQueues);
-		~Instance();
+
+	std::shared_ptr<Device> CreateDevice(QueueFlagBits requiredQueues);
+	~Instance();
 
 private:
 	void InitDebugReport();

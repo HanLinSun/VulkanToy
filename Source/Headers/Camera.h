@@ -64,7 +64,7 @@ namespace Renderer
 		float m_nearClipPlane;
 		float m_farClipPlane;
 		float m_fov;
-		float m_movingSpeed=400.f;
+		float m_movingSpeed=300.f;
 
 		glm::mat4 m_projectionMatrix;
 		glm::mat4 m_viewMatrix;

@@ -5,7 +5,7 @@
 #include<glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 #include "Scene.h"
-
+#include <memory>
 
 
 namespace Renderer
@@ -25,16 +25,16 @@ namespace Renderer
 	{
 	public:
 		ObjFileLoader() = delete;
-		ObjFileLoader(Device* device);
+		ObjFileLoader(std::shared_ptr<Device> device);
 		virtual ~ObjFileLoader();
 
 		void loadFileData(std::string modelFilePath, std::string modelFolderPath) override;
 		std::vector<MeshData> GetMeshes();
 		std::vector<std::shared_ptr<Material>> GetMaterials();
-		Device* GetDevice();
+		std::shared_ptr<Device> GetDevice();
 
 	protected:
-		Device* m_device;
+		std::shared_ptr<Device> m_device;
 		std::vector<MeshData> m_meshes;
 		std::vector<std::shared_ptr<Material>> m_materials;
 	};

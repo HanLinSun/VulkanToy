@@ -18,7 +18,7 @@ class Texture
 {
 public:
 
-	Device* m_device;
+	std::shared_ptr<Device> m_device;
 	VkImage  m_image;
 	VkImageLayout m_imageLayout;
 	VkDeviceMemory m_imageDeviceMemory;
@@ -39,23 +39,23 @@ public:
 class Texture2D : public Texture
 {
 public:
-	int LoadFromFile(std::string filename,VkFormat format,Device* device,	VkImageUsageFlags  imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
+	int LoadFromFile(std::string filename,VkFormat format, std::shared_ptr<Device> device,	VkImageUsageFlags  imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,
 		VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,bool forceLinear = false);
 
-	void LoadFromBuffer(void* buffer,	VkDeviceSize bufferSize, VkFormat format, uint32_t texWidth,uint32_t texHeight, Device* device,	VkQueue copyQueue,
+	void LoadFromBuffer(void* buffer,	VkDeviceSize bufferSize, VkFormat format, uint32_t texWidth,uint32_t texHeight, std::shared_ptr<Device> device,	VkQueue copyQueue,
 		VkFilter filter = VK_FILTER_LINEAR,	VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT,VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 };
 
 class Texture2DArray : public Texture
 {
 public:
-	void LoadFromFile(std::string filename,VkFormat format,Device* device,	VkQueue copyQueue,	VkImageUsageFlags  imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	void LoadFromFile(std::string filename,VkFormat format, std::shared_ptr<Device> device,	VkQueue copyQueue,	VkImageUsageFlags  imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 };
 
 class TextureCubeMap : public Texture
 {
 public:
-	int LoadFromFiles(std::vector<std::string> filename,VkFormat format,Device* device,	VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	int LoadFromFiles(std::vector<std::string> filename,VkFormat format,std::shared_ptr<Device> device,	VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_SAMPLED_BIT, VkImageLayout imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 protected:
 	std::vector<stbi_uc*> m_facePixelData;
 };

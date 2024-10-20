@@ -61,14 +61,15 @@ namespace Renderer
 		ModelGroup();
 		~ModelGroup();
 
-		Model* GetModelAt(int idx);
+	    Model* GetModelAt(int idx) const;
 		void AddModel(Model* _model);
 		void AddModels(std::vector<Model*>& _models);
-		size_t GetModelSize();
+		size_t GetModelSize() const;
+		void ReleaseAssets(); 
 
 		std::vector<std::unique_ptr<Material>> GetMaterials();
-		Material* GetMaterial(int idx);
-		void AddMaterial(Material* mat);
+		Material* GetMaterial(int idx) const;
+		void AddMaterial(std::unique_ptr<Material> mat);
 
 	protected:
 		std::vector<std::unique_ptr<Model>> m_models;

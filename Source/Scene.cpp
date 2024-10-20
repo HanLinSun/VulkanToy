@@ -8,10 +8,19 @@ namespace Renderer
 {
 	Scene::Scene(){}
 	Scene::Scene(std::shared_ptr<Camera> cam):m_Camera(cam),m_CameraController(std::make_unique<CameraController>(cam)){}
-
-	const std::vector<std::shared_ptr<ModelGroup>> Scene::GetSceneModelGroups()
+	Scene::~Scene()
 	{
-		return m_modelGroups;
+		for (auto& modelgroup : m_modelGroups)
+		{
+			modelgroup->ReleaseAssets();
+			modelgroup.release();
+		}
+
+	}
+
+	const ModelGroup* Scene::GetSceneModelGroup(int idx)
+	{
+		return m_modelGroups[idx].get();
 	}
 
 	const std::vector<ModelGroup*> Scene::GetSceneModelGroupsRaw()
@@ -33,8 +42,8 @@ namespace Renderer
 		return m_modelGroups.size();
 	}
 
-	void Scene::AddModelGroup(ModelGroup* modelgroup)
+	void Scene::AddModelGroup(std::unique_ptr<ModelGroup> modelgroup)
 	{
-		m_modelGroups.push_back(std::unique_ptr<ModelGroup>(modelgroup));
+		m_modelGroups.push_back(std::move(modelgroup));
 	}
 }

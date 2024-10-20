@@ -323,7 +323,7 @@ void Instance::PickPhysicalDevice(std::vector<const char*> deviceExtensions, Que
 }
 
 
-Device* Instance::CreateDevice(QueueFlagBits requiredQueues)
+std::shared_ptr<Device> Instance::CreateDevice(QueueFlagBits requiredQueues)
 {
     std::set<int> uniqueQueueFamilies;
     bool queueSupport = true;
@@ -417,9 +417,11 @@ Device* Instance::CreateDevice(QueueFlagBits requiredQueues)
             vkGetDeviceQueue(vkDevice, m_queueFamilyIndices[i], 0, &queues[i]);
         }
     }
-    Device* device = new Device(this, vkDevice, queues);
-    Tools::CreateCommandPool(device, QueueFlags::Graphics, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, device->m_graphicsCommandPool);
-    Tools::CreateCommandPool(device, QueueFlags::Compute, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,device->m_computeCommandPool);
+
+    std::shared_ptr<Device> device = std::make_shared<Device>(this, vkDevice, queues);
+
+    Tools::CreateCommandPool(device.get(), QueueFlags::Graphics, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, device->m_graphicsCommandPool);
+    Tools::CreateCommandPool(device.get(), QueueFlags::Compute, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, device->m_computeCommandPool);
     return device;
 }
 

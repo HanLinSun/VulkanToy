@@ -1,15 +1,22 @@
 #pragma once
 
+#include <memory>
 namespace Renderer
 {
 	class Timestep
 	{
 	public:
-		Timestep(float time =0.0f):m_time(time){}
+		Timestep();
+		~Timestep();
 
-		float GetSeconds() const { return m_time; }
-		float GetMilliseconds() const { return m_time * 1000.f; }
+		float GetSeconds() const;
+		float GetMilliseconds() const;
+
+		void SetDeltaTime(float deltaTime);
+
+		static std::shared_ptr<Timestep> GetInstance();
+
 	private:
-		float m_time=0.0f;
+		float m_deltaTime=0.0f;
 	};
 }

@@ -21,7 +21,7 @@ void Texture::Destroy()
 	vkFreeMemory(m_device->GetVkDevice(), m_imageDeviceMemory, nullptr);
 }
 
-int Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* device, VkImageUsageFlags  imageUsageFlags,
+int Texture2D::LoadFromFile(std::string filename, VkFormat format, std::shared_ptr<Device> device, VkImageUsageFlags  imageUsageFlags,
 	VkImageLayout imageLayout , bool forceLinear)
 { 
         this->m_device = device;
@@ -49,7 +49,7 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devic
 
        VkBuffer stagingBuffer;
        VkDeviceMemory stagingBufferMemory;
-	   BufferUtils::CreateBuffer(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	   BufferUtils::CreateBuffer(m_device.get(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
        void* data;
        vkMapMemory(m_device->GetVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
@@ -58,14 +58,14 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devic
 
        stbi_image_free(this->m_pixels);
 
-       Tools::CreateImage(m_device, this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_image, this->m_imageDeviceMemory);
-       Tools::TransitionImageLayout(m_device, this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
-       Tools::CopyBufferToImage(m_device,stagingBuffer, this->m_image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+       Tools::CreateImage(m_device.get(), this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_image, this->m_imageDeviceMemory);
+       Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+       Tools::CopyBufferToImage(m_device.get(), stagingBuffer, this->m_image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 
        vkDestroyBuffer(m_device->GetVkDevice(), stagingBuffer, nullptr);
        vkFreeMemory(m_device->GetVkDevice(), stagingBufferMemory, nullptr);
 
-       Tools::GenerateMipmaps(m_device,this->m_image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
+       Tools::GenerateMipmaps(m_device.get(), this->m_image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
 
        // Create a default sampler
 
@@ -117,18 +117,18 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, Device* devic
 }
 
 
-void Texture2D::LoadFromBuffer(void* buffer, VkDeviceSize bufferSize, VkFormat format, uint32_t texWidth, uint32_t texHeight, Device* device, VkQueue copyQueue,
+void Texture2D::LoadFromBuffer(void* buffer, VkDeviceSize bufferSize, VkFormat format, uint32_t texWidth, uint32_t texHeight, std::shared_ptr<Device> device, VkQueue copyQueue,
 	VkFilter filter, VkImageUsageFlags imageUsageFlags, VkImageLayout imageLayout)
 {
 
 }
 
-void Texture2DArray::LoadFromFile(std::string filename, VkFormat format, Device* device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags, VkImageLayout imageLayout)
+void Texture2DArray::LoadFromFile(std::string filename, VkFormat format, std::shared_ptr<Device> device, VkQueue copyQueue, VkImageUsageFlags  imageUsageFlags, VkImageLayout imageLayout)
 {
 
 }
 
-int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat format, Device* device, VkImageUsageFlags imageUsageFlags, VkImageLayout imageLayout)
+int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat format, std::shared_ptr<Device> device, VkImageUsageFlags imageUsageFlags, VkImageLayout imageLayout)
 {
     this->m_device = device;
     int texWidth, texHeight;
@@ -162,17 +162,17 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    BufferUtils::CreateBuffer(device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    BufferUtils::CreateBuffer(m_device.get(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
     vkMapMemory(m_device->GetVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
     memcpy(data, cubemapData, static_cast<size_t>(imageSize));
     vkUnmapMemory(m_device->GetVkDevice(), stagingBufferMemory);
 
-    Tools::CreateCubeMapImage(m_device, this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_image, this->m_imageDeviceMemory);
+    Tools::CreateCubeMapImage(m_device.get(), this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_image, this->m_imageDeviceMemory);
    
 
-    VkCommandBuffer copyCmd = Tools::CreateCommandBuffer(m_device, VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_device->GetGraphicCommandPool(), true);
+    VkCommandBuffer copyCmd = Tools::CreateCommandBuffer(m_device.get(), VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_device->GetGraphicCommandPool(), true);
     std::vector<VkBufferImageCopy> bufferCopyRegions;
 
     size_t offset = 0;
@@ -202,7 +202,7 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
     //Once time loading have 6 textures, and only have 1 layer
     subresourceRange.layerCount = 6;
 
-    Tools::TransitionImageLayout(m_device, this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+    Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
 
     vkCmdCopyBufferToImage(
         copyCmd,
@@ -214,8 +214,8 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
     );
 
     this->m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    Tools::TransitionImageLayout(m_device, this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,this->m_imageLayout , mipLevels);
-    Tools::EndCommandBuffer(m_device, copyCmd, m_device->GetGraphicCommandPool(), QueueFlags::Graphics);
+    Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, this->m_imageLayout, mipLevels);
+    Tools::EndCommandBuffer(m_device.get(), copyCmd, m_device->GetGraphicCommandPool(), QueueFlags::Graphics);
 
     VkSamplerCreateInfo samplerInfo = VulkanInitializer::samplerCreateInfo();
     samplerInfo.magFilter = VK_FILTER_LINEAR;

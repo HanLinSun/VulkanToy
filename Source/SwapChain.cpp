@@ -137,6 +137,7 @@ void SwapChain::Create()
     // Reference to old swap chain in case current one becomes invalid
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
+    //m_vkSwapChain = {};
     // Create swap chain
     if (vkCreateSwapchainKHR(m_device->GetVkDevice(), &createInfo, nullptr, &m_vkSwapChain) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create swap chain");

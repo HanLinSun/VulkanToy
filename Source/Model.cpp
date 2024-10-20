@@ -10,7 +10,7 @@ namespace Renderer
 		m_models.push_back(std::unique_ptr<Model>(_model));
 	}
 
-	Model* ModelGroup::GetModelAt(int idx)
+    Model* ModelGroup::GetModelAt(int idx) const
 	{
 		return m_models[idx].get();
 	}
@@ -23,9 +23,22 @@ namespace Renderer
 		}
 	}
 
-	size_t ModelGroup::GetModelSize()
+	size_t ModelGroup::GetModelSize() const
 	{
 		return m_models.size();
+	}
+
+	void ModelGroup::ReleaseAssets()
+	{
+		for (auto& model : m_models)
+		{
+			model.release();
+		}
+
+		for (auto& material : m_materials)
+		{
+			material.release();
+		}
 	}
 
 	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,std::shared_ptr<Material> mat)
@@ -96,13 +109,13 @@ namespace Renderer
 		m_material = std::make_unique<Material>(std::move(mat));
 	}
 
-	Material* ModelGroup::GetMaterial(int idx)
+	Material* ModelGroup::GetMaterial(int idx) const
 	{
 		return m_materials[idx].get();
 	}
-	void ModelGroup::AddMaterial(Material* mat)
+	void ModelGroup::AddMaterial(std::unique_ptr<Material> mat)
 	{
-
+		m_materials.push_back(std::move(mat));
 	}
 
  }

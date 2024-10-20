@@ -10,6 +10,8 @@ class SwapChain;
 class Instance;
 class Device
 {
+
+	using Queues = std::array<VkQueue, sizeof(QueueFlags)>;
 	friend class Instance;
 public:
 	SwapChain* CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers, GLFWwindow* window);
@@ -23,14 +25,13 @@ public:
 	VkCommandPool m_graphicsCommandPool;
 	VkCommandPool m_computeCommandPool;
 
+	Device(Instance* instance, VkDevice vkDevice, Queues queues);
+
 private:
-	using Queues = std::array<VkQueue, sizeof(QueueFlags)>;
 
 	Device() = delete;
-	Device(Instance* instance, VkDevice vkDevice ,Queues queues);
 
 	Instance* m_instance;
 	VkDevice m_vkDevice;
-
 	Queues m_queues;
 };

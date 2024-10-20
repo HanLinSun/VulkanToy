@@ -21,7 +21,7 @@ namespace Renderer
 	FileLoader::FileLoader() {}
 	void FileLoader::loadFileData(std::string path, std::string modelFolderPath) {}
 
-	ObjFileLoader::ObjFileLoader(Device* device):m_device(device) {}
+	ObjFileLoader::ObjFileLoader(std::shared_ptr<Device> device):m_device(device) {}
 
 	ObjFileLoader:: ~ObjFileLoader()
 	{
@@ -41,7 +41,7 @@ namespace Renderer
 		return m_materials;
 	}
 
-	Device* ObjFileLoader::GetDevice()
+    std::shared_ptr<Device> ObjFileLoader::GetDevice()
 	{
 		return m_device;
 	}
@@ -73,7 +73,7 @@ namespace Renderer
 		//Read material
 		for (auto& material : materials)
 		{
-			Material* load_mat = new Material();
+			std::shared_ptr<Material> load_mat = std::make_shared<Material>();
 			load_mat->SetAmbientColor(glm::vec4(material.ambient[0], material.ambient[1], material.ambient[2], 1));
 			load_mat->SetDiffuseColor(glm::vec4(material.diffuse[0], material.diffuse[1], material.diffuse[2], 1));
 			load_mat->SetEmissiveColor(glm::vec4(material.emission[0], material.emission[1], material.emission[2], 1));
@@ -132,7 +132,7 @@ namespace Renderer
 					load_mat->SetTexture(reflection_texture, TextureType::Reflection);
 				}
 			}
-			m_materials.push_back(std::shared_ptr<Material>(load_mat));
+			m_materials.push_back(load_mat);
 		}
 
 		glm::vec3 temp_position;

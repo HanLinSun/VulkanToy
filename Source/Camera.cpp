@@ -59,17 +59,18 @@ namespace Renderer
 	void Camera::UpdateViewMatrix(Handedness hand)
 	{
 		//glm::mat4 rotationMatrix;
-		//rotationMatrix[0] = glm::vec4(m_rightVector.x, m_upVector.x, m_forwardVector.x, 0);
-		//rotationMatrix[1] = glm::vec4(m_rightVector.y, m_upVector.y, m_forwardVector.y, 0);
-		//rotationMatrix[2] = glm::vec4(m_rightVector.z, m_upVector.z, m_forwardVector.z, 0);
+		//rotationMatrix[0] = glm::vec4(m_rightVector_W.x, m_upVector_W.x, m_forwardVector_W.x, 0);
+		//rotationMatrix[1] = glm::vec4(m_rightVector_W.y, m_upVector_W.y, m_forwardVector_W.y, 0);
+		//rotationMatrix[2] = glm::vec4(m_rightVector_W.z, m_upVector_W.z, m_forwardVector_W.z, 0);
 		//rotationMatrix[3] = glm::vec4(0, 0, 0, 1);
 
 		//glm::mat4 translateMatrix;
 		//translateMatrix[0] = glm::vec4(1, 0, 0, 0);
 		//translateMatrix[1] = glm::vec4(0, 1, 0, 0);
 		//translateMatrix[2] = glm::vec4(0, 0, 1, 0);
-		//translateMatrix[3] = glm::vec4(-m_position.x, -m_position.y, -m_position.z, 1);
+		//translateMatrix[3] = glm::vec4(-m_position_W.x, -m_position_W.y, -m_position_W.z, 1);
 
+		//m_viewMatrix = rotationMatrix * translateMatrix;
 		m_viewMatrix[0] =glm::vec4(m_rightVector_W.x, m_upVector_W.x, m_forwardVector_W.x, 0);
 		m_viewMatrix[1] = glm::vec4(m_rightVector_W.y, m_upVector_W.y, m_forwardVector_W.y, 0);
 		m_viewMatrix[2] = glm::vec4(m_rightVector_W.z, m_upVector_W.z, m_forwardVector_W.z, 0);

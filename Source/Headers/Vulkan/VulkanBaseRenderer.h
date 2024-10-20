@@ -5,11 +5,13 @@
 #include <imgui.h>
 #include <Window.h>
 #include "Instance.h"
-#include "Device.h"
-#include "QueueFlags.h"
-#include "Input.h"
-#include "Timestep.h"
-#include "ThreadPool.hpp"
+#include <Vulkan/Device.h>
+#include <Vulkan/QueueFlags.h>
+#include <Input.h>
+#include <Timestep.h>
+#include <ThreadPool.hpp>
+
+
 
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
@@ -95,7 +97,7 @@ namespace Renderer
 	{
 	public:
 		VulkanBaseRenderer(Window* targetWindow);
-		void Run(Timestep deltaTime);
+		void Run();
 		void Destroy();
 		void Cleanup();
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
@@ -106,7 +108,7 @@ namespace Renderer
 		void InitVulkan();
 	private:
 
-		Device* m_device;
+		std::shared_ptr<Device> m_device;
 		Instance* m_instance;
 		GLFWwindow* m_window;
 		SwapChain* m_swapChain;
@@ -167,13 +169,13 @@ namespace Renderer
 		uint32_t currentFrame = 0;
 		Scene* m_Scene;
 
+		std::shared_ptr<CameraController> m_CameraController;
 		std::shared_ptr<Camera> m_Camera;
 		std::unique_ptr<TextureCubeMap> m_skyboxTexture;
-
 		std::vector<ThreadData> m_threadDatas;
 
 		ThreadPool threadPool;
-
+		std::shared_ptr<Timestep> m_time;
 
 		bool show_demo_window = true;
 		QueueFamilyIndices queueFamilyIndices;
@@ -224,6 +226,8 @@ namespace Renderer
 		bool HasStencilComponent(VkFormat format);
 
 		void CreateDescriptorPool();
+
+		void UpdateCamera();
 
 		void RecreateFrameResources();
 

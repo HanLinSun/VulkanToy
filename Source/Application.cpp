@@ -24,7 +24,7 @@ namespace Renderer
 	{
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FUNCTION(Application::OnWindowClosed));
-	//	LOG_CORE_INFO("{0}",e.ToString());
+
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{
 			(*--it)->OnEvent(e);
@@ -60,7 +60,7 @@ namespace Renderer
 
 	void Application::Run()
 	{
-		WindowResizeEvent e(1280, 720);
+		WindowResizeEvent e(1600, 720);
 		if (e.InInCategory(EventCategoryApplication))
 		{
 			LOG_CORE_TRACE(e.ToString());
@@ -73,20 +73,25 @@ namespace Renderer
 
 		m_baseRenderer->InitVulkan();
 		m_baseRenderer->InitGUILayerAttribute();
+		std::shared_ptr<Timestep> timestep = Timestep::GetInstance();
 
+		
 		while (m_Running)
 		{
 			float time = (float)glfwGetTime(); //Maybe in the future it will become platform based
-			Timestep timestep = time - m_LastFrameTime;
+			float deltaTime = time - m_LastFrameTime;
 			m_LastFrameTime = time;
+
+			timestep->SetDeltaTime(deltaTime);
 
 			m_Window->OnUpdate();
 			for (Layer* layer : m_LayerStack)
 			{
 				layer->OnUpdate();
 			}
-			m_baseRenderer->Run(timestep);
+			m_baseRenderer->Run();
 		}
+		//Detecting Memory leak
 		m_baseRenderer->Destroy();
 	}
 

@@ -8,11 +8,11 @@ namespace Renderer
 	{
 	public:
 		Loader()=delete;
-		Loader(Device* device, VkCommandPool commandPool);
+		Loader(std::shared_ptr<Device> device, VkCommandPool commandPool);
 		~Loader();
 		void LoadModel(std::string path, std::string folder_path, ModelGroup* modelgroup);
 	protected:
-		Device* m_device;
+		std::shared_ptr<Device> m_device;
 		VkCommandPool m_commandPool;
 	};
 
