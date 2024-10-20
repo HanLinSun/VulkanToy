@@ -58,7 +58,7 @@ namespace Renderer
         imageCount = m_swapChain->GetCount();
         //msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
         m_Camera = std::make_shared<Camera>(m_device.get(), m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
-        m_Scene = new Scene(m_Camera);
+        m_Scene =std::make_unique<Scene>(m_Camera);
         m_time = Timestep::GetInstance();
 
     }
@@ -79,10 +79,8 @@ namespace Renderer
 
         if (e.GetEventType() == EventType::MouseMoved)
         {
-
+            std::cout << "Base Render Inside: " << e.ToString() << std::endl;
         }
-
-
     }
 
     void VulkanBaseRenderer::UpdateCamera()
@@ -199,8 +197,6 @@ namespace Renderer
         std::unique_ptr<ModelGroup> modelgroup=std::make_unique<ModelGroup>();
         loader.LoadModel(model_path, model_folder_path, modelgroup.get());
         m_Scene->AddModelGroup(std::move(modelgroup));
-
- 
     }
     void VulkanBaseRenderer::InitVulkan() {
 
@@ -651,7 +647,7 @@ namespace Renderer
     //Diffuse
     void VulkanBaseRenderer::CreateDescriptorPool() {
 
-        int modelNum = GetSceneModelTotalSize(m_Scene);
+        int modelNum = GetSceneModelTotalSize(m_Scene.get());
 
         std::vector<VkDescriptorPoolSize> poolSizes=  {
             //Camera
@@ -710,7 +706,7 @@ namespace Renderer
     void VulkanBaseRenderer::CreateModelDescriptorSets(int shaderBindingNums) 
     {
         //Need to use Model group here
-        int sceneModelTotalSize = GetSceneModelTotalSize(m_Scene);
+        int sceneModelTotalSize = GetSceneModelTotalSize(m_Scene.get());
 
         m_modelDescriptorSets.resize(sceneModelTotalSize);
 

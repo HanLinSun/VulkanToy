@@ -167,11 +167,12 @@ namespace Renderer
 		std::vector<VkFence> m_inFlightFences;
 
 		uint32_t currentFrame = 0;
-		Scene* m_Scene;
 
+		std::unique_ptr<Scene> m_Scene;
 		std::shared_ptr<CameraController> m_CameraController;
 		std::shared_ptr<Camera> m_Camera;
 		std::unique_ptr<TextureCubeMap> m_skyboxTexture;
+
 		std::vector<ThreadData> m_threadDatas;
 
 		ThreadPool threadPool;

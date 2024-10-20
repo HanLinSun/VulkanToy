@@ -15,7 +15,6 @@ namespace Renderer
 			modelgroup->ReleaseAssets();
 			modelgroup.release();
 		}
-
 	}
 
 	const ModelGroup* Scene::GetSceneModelGroup(int idx)
