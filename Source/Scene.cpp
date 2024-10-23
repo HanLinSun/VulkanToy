@@ -8,18 +8,23 @@ namespace Renderer
 {
 	Scene::Scene(){}
 	Scene::Scene(std::shared_ptr<Camera> cam):m_Camera(cam),m_CameraController(std::make_unique<CameraController>(cam)){}
+
 	Scene::~Scene()
 	{
-		for (auto& modelgroup : m_modelGroups)
-		{
-			modelgroup->ReleaseAssets();
-			modelgroup.release();
-		}
+		std::cout << "Scene deconstructor called" << std::endl;
 	}
 
 	const ModelGroup* Scene::GetSceneModelGroup(int idx)
 	{
 		return m_modelGroups[idx].get();
+	}
+
+	void Scene::DestroyVKResources()
+	{
+		for (auto& modelgroup : m_modelGroups)
+		{
+			modelgroup->DestroyVKResources();
+		}
 	}
 
 	const std::vector<ModelGroup*> Scene::GetSceneModelGroupsRaw()

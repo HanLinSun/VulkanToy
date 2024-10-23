@@ -33,7 +33,7 @@ public:
 
 	std::string fileName;
 	void UpdateDescriptor();
-	void Destroy();
+	void DestroyVKResources();
 };
 
 class Texture2D : public Texture

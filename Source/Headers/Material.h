@@ -92,19 +92,19 @@ struct MaterialProperties
 
 enum TextureType
 {
-    Ambient,
-    Emissive,
-    Diffuse,
-    Specular,
-    SpecularPower,
-    Normal,
-    Bump,
-    Opacity,
-    NumTypes,
-    Albedo,
-    Roughness,
-    Metallic,
-    Reflection,
+    Ambient = 0,
+    Emissive=1,
+    Diffuse=2,
+    Specular=3,
+    SpecularPower=4,
+    Normal=5,
+    Bump=6,
+    Opacity=7,
+    NumTypes=8,
+    Albedo=9,
+    Roughness=10,
+    Metallic=11,
+    Reflection=12,
 };
 
 using TextureMap = std::map<TextureType, std::shared_ptr<Texture>>;
@@ -115,9 +115,7 @@ public:
 	Material(const MaterialProperties& materialProperties = MaterialProperties());
 	Material(const Material& copy);
     Material(const Material* copy);
-
-
-	~Material() = default;
+	~Material(){ std::cout << "Material deconstructor called" << std::endl; }
 
     const glm::vec4 GetAmbientColor() const;
     void SetAmbientColor(const glm::vec4& ambient);
@@ -161,6 +159,8 @@ public:
     const MaterialProperties& GetMaterialProperties() const;
     void SetMaterialProperties(const MaterialProperties& materialProperties);
 
+    void DestroyResources();
+
     std::shared_ptr<Texture> GetTexture(TextureType type) const;
 
     std::string m_name;
@@ -170,7 +170,6 @@ private:
 	std::unique_ptr<MaterialProperties, void (*)(MaterialProperties*)> m_MaterialProperties;
     TextureMap m_textures;
 
-  
 	//void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
 
 };

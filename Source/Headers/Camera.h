@@ -49,6 +49,7 @@ namespace Renderer
 		void UpdateViewMatrixFromLookAt(Handedness hand);
 		void UpdateBufferMemory();
 
+		void DestroyVKResources();
 
 		inline glm::vec3 Get3DVectorComponent(const glm::vec4 vec);
 		inline glm::vec4 Set3DVectorComponent(const glm::vec3 vec);

@@ -22,6 +22,7 @@ namespace Renderer
 
 		~Model();
 
+		void DestroyVKResources();
 
 		const std::vector<Vertex>& GetVertices() const;
 
@@ -59,21 +60,23 @@ namespace Renderer
 	{
 	public:
 		ModelGroup();
-		~ModelGroup();
+		~ModelGroup() { std::cout << "ModelGroup deconstructor called" << std::endl; };
 
 	    Model* GetModelAt(int idx) const;
 		void AddModel(Model* _model);
 		void AddModels(std::vector<Model*>& _models);
 		size_t GetModelSize() const;
-		void ReleaseAssets(); 
+		void DestroyVKResources();
 
-		std::vector<std::unique_ptr<Material>> GetMaterials();
 		Material* GetMaterial(int idx) const;
-		void AddMaterial(std::unique_ptr<Material> mat);
+		size_t GetMaterialSize() const;
+
+		void AddMaterial(std::shared_ptr<Material> mat);
+		void AddMaterial(Material* mat);
 
 	protected:
 		std::vector<std::unique_ptr<Model>> m_models;
-		std::vector<std::unique_ptr<Material>> m_materials;
+		std::vector<std::shared_ptr<Material>> m_materials;
 	};
 
 }

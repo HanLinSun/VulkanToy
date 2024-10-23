@@ -21,14 +21,12 @@ namespace Renderer
 
 		const std::shared_ptr<Camera> GetCamera();
 		void SetSceneCamera(std::shared_ptr<Camera> Camera);
-
+		void DestroyVKResources();
 		size_t GetModelGroupSize();
 		const ModelGroup* GetSceneModelGroup(int idx);
 		
 	private:
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
-		std::vector<Material*> m_material;
-
 		std::unique_ptr<CameraController> m_CameraController;
 		std::shared_ptr<Camera> m_Camera;
 		std::unique_ptr<TextureCubeMap> m_skyboxTexture;

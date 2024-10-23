@@ -109,7 +109,7 @@ namespace Renderer
 	private:
 
 		std::shared_ptr<Device> m_device;
-		Instance* m_instance;
+		std::unique_ptr<Instance> m_instance;
 		GLFWwindow* m_window;
 		SwapChain* m_swapChain;
 
@@ -144,11 +144,6 @@ namespace Renderer
 		VkImageView m_depthImageView;
 
 		uint32_t mipLevels;
-
-		std::vector<VkBuffer> uniformBuffers;
-		std::vector<VkDeviceMemory> uniformBuffersMemory;
-		std::vector<void*> uniformBuffersMapped;
-
 
 		VkDescriptorPool m_descriptorPool;
 		VkDescriptorSet m_cameraDescriptorSet;

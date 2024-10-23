@@ -27,7 +27,7 @@ namespace Tools
 	VkBool32 FormatHasStencil(VkFormat format);
 
 	VkCommandBuffer CreateCommandBuffer(Device* device, VkCommandBufferLevel level, VkCommandPool pool, bool begin);
-	void CreateCommandPool(Device* device, QueueFlags flag, VkCommandPoolCreateFlags createFlags, VkCommandPool& cmdPool);
+	void CreateCommandPool(Device* device, QueueFlags flag, VkCommandPoolCreateFlags createFlags, VkCommandPool* cmdPool);
 	void CopyBufferToImage(Device* device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	void GenerateMipmaps(Device* device, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 	void TransitionImageLayout(Device* device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);

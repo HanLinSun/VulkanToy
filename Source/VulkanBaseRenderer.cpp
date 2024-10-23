@@ -48,7 +48,7 @@ namespace Renderer
         ScreenHeight = windowptr->GetHeight();
 
         const char* applicationName = "Vulkan Renderer";
-        m_instance = new Instance(applicationName);
+        m_instance = std::make_unique<Instance>(applicationName);
         CreateSurface();
         m_instance->PickPhysicalDevice({ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,VK_KHR_MAINTENANCE3_EXTENSION_NAME }, QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, m_surface);
 
@@ -204,7 +204,7 @@ namespace Renderer
 
         //By default we use this
         LoadModel(MODEL_PATH,MODEL_FILE_PATH);
-
+        
         CreateRenderPass();
         CreateCameraDescriptorSetLayout();
         CreateModelDescriptorSetLayout();
@@ -263,14 +263,22 @@ namespace Renderer
         vkDestroyCommandPool(m_device->GetVkDevice(), m_commandPool, nullptr);
         m_ImGuiLayer->Destroy();
 
-        vkDestroyDevice(m_device->GetVkDevice(), nullptr);
+        //Must destroy and release all vkbuffer before destroy VkDevice
+        {
+            m_Scene->DestroyVKResources();
+            m_Scene->GetCamera()->DestroyVKResources();
+        }
+
+        m_device->DestroyVKResources();
+        //vkDestroyDevice(m_device->GetVkDevice(), nullptr);
 
         if (enableValidationLayers) {
             DestroyDebugUtilsMessengerEXT(m_instance->GetVkInstance(), m_debugMessenger, nullptr);
         }
 
         vkDestroySurfaceKHR(m_instance->GetVkInstance(), m_surface, nullptr);
-        vkDestroyInstance(m_instance->GetVkInstance(), nullptr);
+
+        m_instance->DestroyVKResources();
 
         glfwDestroyWindow(m_window);
 
@@ -820,7 +828,19 @@ namespace Renderer
         m_commandBuffers.resize(m_swapChain->GetCount());
         VkCommandBufferAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.commandPool = m_commandPool;
+
+        if (m_device->GetGraphicCommandPool() == VK_NULL_HANDLE)
+        {
+            std::cout << "Bug! m_device->GetGraphicCommandPool() is VK_NULL_HANDLE" << std::endl;
+        }
+        //NULL_HANDLE check is not hit
+
+        //  This is not correct, but why?
+       // allocInfo.commandPool = m_device->GetGraphicCommandPool();
+
+        // This works well, I have create a new commandpool for it, but why?
+       // allocInfo.commandPool = m_commandPool;
+
         allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
 

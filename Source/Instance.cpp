@@ -387,10 +387,8 @@ std::shared_ptr<Device> Instance::CreateDevice(QueueFlagBits requiredQueues)
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pNext = &deviceFeatures2;
-
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
     createInfo.pEnabledFeatures =nullptr;
 
     // Enable device-specific extensions and validation layers
@@ -420,12 +418,13 @@ std::shared_ptr<Device> Instance::CreateDevice(QueueFlagBits requiredQueues)
 
     std::shared_ptr<Device> device = std::make_shared<Device>(this, vkDevice, queues);
 
-    Tools::CreateCommandPool(device.get(), QueueFlags::Graphics, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, device->m_graphicsCommandPool);
-    Tools::CreateCommandPool(device.get(), QueueFlags::Compute, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, device->m_computeCommandPool);
+    Tools::CreateCommandPool(device.get(), QueueFlags::Graphics, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, &(device->m_graphicsCommandPool));
+    Tools::CreateCommandPool(device.get(), QueueFlags::Compute, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, &(device->m_computeCommandPool));
     return device;
 }
 
-Instance::~Instance() {
+void Instance::DestroyVKResources()
+{
     if (ENABLE_VALIDATION) {
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_instance, "vkDestroyDebugUtilsMessengerEXT");
         if (func != nullptr) {
@@ -434,3 +433,4 @@ Instance::~Instance() {
     }
     vkDestroyInstance(m_instance, nullptr);
 }
+

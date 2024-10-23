@@ -10,7 +10,7 @@ void Texture::UpdateDescriptor()
 	descriptor.imageLayout = m_imageLayout;
 }
 
-void Texture::Destroy()
+void Texture::DestroyVKResources()
 {
 	vkDestroyImageView(m_device->GetVkDevice(),m_imageView, nullptr);
 	vkDestroyImage(m_device->GetVkDevice(), m_image, nullptr);

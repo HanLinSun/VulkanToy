@@ -3,7 +3,6 @@
 namespace Renderer
 {
 	ModelGroup::ModelGroup() {};
-	ModelGroup::~ModelGroup() {};
 
 	void ModelGroup::AddModel(Model* _model)
 	{
@@ -28,18 +27,21 @@ namespace Renderer
 		return m_models.size();
 	}
 
-	void ModelGroup::ReleaseAssets()
+	void ModelGroup::DestroyVKResources()
 	{
-		for (auto& model : m_models)
+		for (int i = 0; i < this->GetModelSize(); i++)
 		{
-			model.release();
+			auto model = this->GetModelAt(i);
+			model->DestroyVKResources();
 		}
 
-		for (auto& material : m_materials)
+		for (int i = 0; i < this->GetMaterialSize(); i++)
 		{
-			material.release();
+			auto material = this->GetMaterial(i);
+			material->DestroyResources();
 		}
 	}
+
 
 	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,std::shared_ptr<Material> mat)
 		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(mat)
@@ -59,7 +61,7 @@ namespace Renderer
 		BufferUtils::CreateBufferFromData(device, commandPool, &m_modelBufferObject, sizeof(ModelBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, m_modelUniformBuffer, m_modelUniformBufferMemory);
 	}
 
-	Model::~Model()
+	void Model::DestroyVKResources()
 	{
 		if (m_indices.size() > 0) {
 			vkDestroyBuffer(m_device->GetVkDevice(), m_indexBuffer, nullptr);
@@ -73,6 +75,11 @@ namespace Renderer
 
 		vkDestroyBuffer(m_device->GetVkDevice(), m_modelUniformBuffer, nullptr);
 		vkFreeMemory(m_device->GetVkDevice(), m_modelUniformBufferMemory, nullptr);
+	}
+
+	Model::~Model()
+	{
+		
 	}
 
 	const std::vector<Vertex>& Model::GetVertices() const {
@@ -109,13 +116,25 @@ namespace Renderer
 		m_material = std::make_unique<Material>(std::move(mat));
 	}
 
+	size_t ModelGroup::GetMaterialSize() const
+	{
+		return m_materials.size();
+	}
+
 	Material* ModelGroup::GetMaterial(int idx) const
 	{
 		return m_materials[idx].get();
 	}
-	void ModelGroup::AddMaterial(std::unique_ptr<Material> mat)
+	void ModelGroup::AddMaterial(std::shared_ptr<Material> mat)
 	{
-		m_materials.push_back(std::move(mat));
+		m_materials.push_back(mat);
 	}
+
+	void ModelGroup::AddMaterial(Material* mat)
+	{
+		m_materials.push_back(std::shared_ptr<Material>(mat));
+	}
+
+
 
  }

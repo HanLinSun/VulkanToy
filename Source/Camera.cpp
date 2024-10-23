@@ -166,10 +166,17 @@ namespace Renderer
 		m_rightVector_W = _rotationMatrix * m_rightVector_W;
 	}
 
-	Camera::~Camera() {
+
+	void Camera::DestroyVKResources()
+	{
 		vkUnmapMemory(m_device->GetVkDevice(), m_bufferMemory);
 		vkDestroyBuffer(m_device->GetVkDevice(), m_buffer, nullptr);
 		vkFreeMemory(m_device->GetVkDevice(), m_bufferMemory, nullptr);
+	}
+
+	Camera::~Camera() 
+	{
+	
 	}
 
 	

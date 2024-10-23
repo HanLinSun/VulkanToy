@@ -18,7 +18,10 @@ namespace Renderer
 		m_baseRenderer = std::unique_ptr<VulkanBaseRenderer>(new VulkanBaseRenderer(m_Window.get()));
 	 }
 
-	Application::~Application(){}
+	Application::~Application()
+	{
+		std::cout << "Application deconstructor called" << std::endl;
+	}
 
 	void Application::OnEvent(Event& e)
 	{

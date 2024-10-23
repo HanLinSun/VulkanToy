@@ -31,9 +31,11 @@ SwapChain* Device::CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers
 	return new SwapChain(this, surface, numBuffers, window);
 }
 
-Device::~Device() {
+void Device::DestroyVKResources()
+{
 	vkDestroyCommandPool(m_vkDevice, m_graphicsCommandPool, nullptr);
 	vkDestroyCommandPool(m_vkDevice, m_computeCommandPool, nullptr);
 	vkDestroyDevice(m_vkDevice, nullptr);
-
 }
+
+Device::~Device() {}

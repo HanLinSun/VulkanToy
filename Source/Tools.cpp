@@ -162,15 +162,15 @@ VkCommandBuffer Tools::CreateCommandBuffer(Device* device, VkCommandBufferLevel 
 	return commandBuffer;
 }
 
-void Tools::CreateCommandPool(Device* device, QueueFlags flag, VkCommandPoolCreateFlags createFlags, VkCommandPool& cmdPool)
+void Tools::CreateCommandPool(Device* device, QueueFlags flag, VkCommandPoolCreateFlags createFlags, VkCommandPool* cmdPool)
 {
 	VkCommandPoolCreateInfo cmdPoolInfo = {};
 	cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	cmdPoolInfo.queueFamilyIndex = device->GetInstance()->GetQueueFamilyIndices()[flag];
 	cmdPoolInfo.flags = createFlags;
 
-	if (vkCreateCommandPool(device->GetVkDevice(), &cmdPoolInfo, nullptr, &cmdPool) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create graphics command pool!");
+	if (vkCreateCommandPool(device->GetVkDevice(), &cmdPoolInfo, nullptr, cmdPool) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create command pool!");
 	}
 }
 

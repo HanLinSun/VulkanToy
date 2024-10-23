@@ -26,6 +26,7 @@ public:
 	VkCommandPool m_computeCommandPool;
 
 	Device(Instance* instance, VkDevice vkDevice, Queues queues);
+	void DestroyVKResources();
 
 private:
 

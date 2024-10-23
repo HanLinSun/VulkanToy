@@ -26,6 +26,17 @@ const glm::vec4 Material::GetAmbientColor() const
 	return m_MaterialProperties->Ambient;
 }
 
+void Material::DestroyResources()
+{
+    for(auto& mapElement : m_textures)
+    {
+        if (mapElement.second != nullptr)
+        {
+            mapElement.second->DestroyVKResources();
+        }
+    }
+}
+
 void Material::SetAmbientColor(const glm::vec4& ambient)
 {
 	m_MaterialProperties->Ambient = ambient;

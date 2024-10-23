@@ -27,9 +27,10 @@ public:
 	VkFormat GetSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) const;
 
 	void PickPhysicalDevice(std::vector<const char*> deviceExtensions, QueueFlagBits requiredQueues, VkSurfaceKHR surface = VK_NULL_HANDLE);
+	void DestroyVKResources();
 
 	std::shared_ptr<Device> CreateDevice(QueueFlagBits requiredQueues);
-	~Instance();
+	~Instance()=default;
 
 private:
 	void InitDebugReport();
