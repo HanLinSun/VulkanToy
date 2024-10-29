@@ -154,7 +154,6 @@
     <None Include="Shaders\vertShader.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Buffer.h" />
     <ClInclude Include="include\backends\imgui_impl_glfw.h" />
     <ClInclude Include="include\backends\imgui_impl_vulkan.h" />
     <ClInclude Include="include\imconfig.h" />
@@ -189,6 +188,7 @@
     <ClInclude Include="Source\Headers\ThreadPool.hpp" />
     <ClInclude Include="Source\Headers\Timestep.h" />
     <ClInclude Include="Source\Headers\Tools.h" />
+    <ClInclude Include="Source\Headers\Vulkan\Buffer.h" />
     <ClInclude Include="Source\Headers\Vulkan\FrameBuffer.h" />
     <ClInclude Include="Source\Headers\Vulkan\Initializer.hpp" />
     <ClInclude Include="Source\Headers\Vulkan\Instance.h" />
@@ -213,6 +213,7 @@
     <ClCompile Include="include\ImGUI\imgui_tables.cpp" />
     <ClCompile Include="include\ImGUI\imgui_widgets.cpp" />
     <ClCompile Include="Source\Application.cpp" />
+    <ClCompile Include="Source\Buffer.cpp" />
     <ClCompile Include="Source\BufferUtils.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\CameraController.cpp" />

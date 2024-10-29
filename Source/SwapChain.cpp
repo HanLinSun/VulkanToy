@@ -240,9 +240,13 @@ bool SwapChain::Present() {
 
     return true;
 }
-
-SwapChain::~SwapChain() {
+void SwapChain::DestroyVKResources()
+{
     vkDestroySemaphore(m_device->GetVkDevice(), m_imageAvailableSemaphore, nullptr);
     vkDestroySemaphore(m_device->GetVkDevice(), m_renderFinishedSemaphore, nullptr);
     Destroy();
+}
+
+SwapChain::~SwapChain() {
+
 }

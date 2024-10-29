@@ -1,6 +1,7 @@
 #include "Headers/Vulkan/BufferUtils.h"
 #include "Headers/Vulkan/Instance.h"
 #include "Headers/Vulkan/Initializer.hpp"
+#include <Tools.h>
 
 void BufferUtils::CreateBuffer(Device* device, VkDeviceSize size, VkBufferUsageFlags usage, 
 	VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
@@ -9,9 +10,8 @@ void BufferUtils::CreateBuffer(Device* device, VkDeviceSize size, VkBufferUsageF
     VkBufferCreateInfo bufferInfo = VulkanInitializer::bufferCreateInfo(usage, size);
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateBuffer(device->GetVkDevice(), &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create buffer");
-	}
+    check_vk_result(vkCreateBuffer(device->GetVkDevice(), &bufferInfo, nullptr, &buffer));
+	
     // Query buffer's memory requirements
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(device->GetVkDevice(), buffer, &memRequirements);
@@ -22,12 +22,62 @@ void BufferUtils::CreateBuffer(Device* device, VkDeviceSize size, VkBufferUsageF
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = device->GetInstance()->GetMemoryTypeIndex(memRequirements.memoryTypeBits, properties);
 
-    if (vkAllocateMemory(device->GetVkDevice(), &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to allocate buffer");
-    }
+    VkMemoryAllocateFlagsInfoKHR allocFlagsInfo{};
 
+    if (usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
+        allocFlagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO_KHR;
+        allocFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
+        allocInfo.pNext = &allocFlagsInfo;
+    }
+    check_vk_result(vkAllocateMemory(device->GetVkDevice(), &allocInfo, nullptr, &bufferMemory));
     // Associate allocated memory with vertex buffer
     vkBindBufferMemory(device->GetVkDevice(), buffer, bufferMemory, 0);
+}
+
+VkResult BufferUtils::CreateBuffer(Device* device, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags properties, Buffer* buffer, VkDeviceSize size, void* data)
+{
+    buffer->device = device;
+
+    VkBufferCreateInfo bufferCreateInfo = VulkanInitializer::bufferCreateInfo(usageFlags, size);
+    check_vk_result(vkCreateBuffer(device->GetVkDevice(), &bufferCreateInfo, nullptr, &buffer->buffer));
+
+    // Create the memory backing up the buffer handle
+    VkMemoryRequirements memReqs;
+    VkMemoryAllocateInfo memAlloc = VulkanInitializer::memoryAllocateInfo();
+    vkGetBufferMemoryRequirements(device->GetVkDevice(), buffer->buffer, &memReqs);
+    memAlloc.allocationSize = memReqs.size;
+    // Find a memory type index that fits the properties of the buffer
+    memAlloc.memoryTypeIndex = device->GetInstance()->GetMemoryTypeIndex(memReqs.memoryTypeBits, properties);
+    // If the buffer has VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT set we also need to enable the appropriate flag during allocation
+    VkMemoryAllocateFlagsInfoKHR allocFlagsInfo{};
+    if (usageFlags & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
+        allocFlagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO_KHR;
+        allocFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
+        memAlloc.pNext = &allocFlagsInfo;
+    }
+    check_vk_result(vkAllocateMemory(device->GetVkDevice(), &memAlloc, nullptr, &buffer->memory));
+
+    buffer->alignment = memReqs.alignment;
+    buffer->size = size;
+    buffer->usageFlags = usageFlags;
+    buffer->memoryPropertyFlags = properties;
+
+    // If a pointer to the buffer data has been passed, map the buffer and copy over the data
+    if (data != nullptr)
+    {
+        check_vk_result(buffer->Map());
+        memcpy(buffer->mapped, data, size);
+        if ((properties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
+            buffer->Flush();
+
+        buffer->Unmap();
+    }
+
+    // Initialize a default descriptor that covers the whole buffer size
+    buffer->SetupDescriptor();
+
+    // Attach the memory to the buffer object
+    return buffer->Bind();
 }
 
 void BufferUtils::CopyBuffer(Device* device, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {

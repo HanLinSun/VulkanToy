@@ -5,7 +5,6 @@ namespace Renderer
 	Loader::Loader(std::shared_ptr<Device> device, VkCommandPool commandPool):m_device(device),m_commandPool(commandPool){}
 	Loader::~Loader() 
 	{
-		vkDestroyCommandPool(m_device->GetVkDevice(),m_commandPool,nullptr);
 	}
 	void Loader::LoadModel(std::string path, std::string model_folder_path, ModelGroup* modelGroup)
 	{

@@ -17,6 +17,7 @@ public:
     VkImage GetVkImage(uint32_t index) const;
     std::vector<VkImage> GetVkImages() const;
 
+    void DestroyVKResources();
     VkSemaphore GetImageAvailableVkSemaphore() const;
     VkSemaphore GetRenderFinishedVkSemaphore() const;
 

@@ -82,14 +82,6 @@ struct ThreadData
 	//std::vector<ObjectData> objectData;
 };
 
-static void check_vk_result(VkResult err)
-{
-	if (err == 0)
-		return;
-	fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
-	if (err < 0)
-		abort();
-}
 
 namespace Renderer
 {
@@ -125,7 +117,6 @@ namespace Renderer
 		std::vector<VkFramebuffer> m_framebuffers;
 
 		VkRenderPass m_renderPass;
-		VkRenderPass m_imGuiRenderPass;
 
 		VkDescriptorSetLayout m_cameraDescriptorSetLayout;
 		VkDescriptorSetLayout m_modelDescriptorSetLayout;
@@ -137,7 +128,10 @@ namespace Renderer
 		//RayTrace compute pipeline
 		VkPipeline m_computePipeline;
 
-		VkCommandPool m_commandPool;
+		//This new image will have to store the desired number of samples per pixel
+		VkImage m_colorImage;
+		VkDeviceMemory m_colorImageMemory;
+		VkImageView m_colorImageView;
 
 		VkImage m_depthImage;
 		VkDeviceMemory m_depthImageMemory;
@@ -199,11 +193,13 @@ namespace Renderer
 
 		void RecreateSwapChain();
 
+		VkSampleCountFlagBits GetMaxUsableSampleCount(VkPhysicalDevice device);
+
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
 		void SetupDebugMessenger();
 
-		void CreateSurface();
+		void CreateSurface(); 
 
 		void CreateRenderPass();
 		//GUI Pass
@@ -254,8 +250,6 @@ namespace Renderer
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 
 		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
-
-		bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
 
 		std::vector<const char*> GetRequiredExtensions();
 

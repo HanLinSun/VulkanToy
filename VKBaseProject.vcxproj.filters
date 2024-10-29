@@ -173,6 +173,9 @@
     <ClCompile Include="Source\Timestep.cpp">
       <Filter>Source\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Buffer.cpp">
+      <Filter>Source\Vulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Headers\RendererInclude.h">
@@ -313,14 +316,14 @@
     <ClInclude Include="Source\Headers\Cube.h">
       <Filter>Header\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Buffer.h">
-      <Filter>Header\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Headers\ThreadPool.hpp">
       <Filter>Header\Utils</Filter>
     </ClInclude>
     <ClInclude Include="Source\Headers\CameraController.h">
       <Filter>Header\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\Vulkan\Buffer.h">
+      <Filter>Header\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

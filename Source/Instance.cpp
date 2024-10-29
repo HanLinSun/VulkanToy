@@ -420,6 +420,8 @@ std::shared_ptr<Device> Instance::CreateDevice(QueueFlagBits requiredQueues)
 
     Tools::CreateCommandPool(device.get(), QueueFlags::Graphics, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, &(device->m_graphicsCommandPool));
     Tools::CreateCommandPool(device.get(), QueueFlags::Compute, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, &(device->m_computeCommandPool));
+    std::cout << "Dbg check m_graphicsCommandPool:" << device->m_graphicsCommandPool << std::endl;
+
     return device;
 }
 

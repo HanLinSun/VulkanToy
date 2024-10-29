@@ -1,4 +1,5 @@
 #include "Tools.h"
+#include <iostream>
 
 void Tools::SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
 	VkImageSubresourceRange subresourceRange,
@@ -172,6 +173,8 @@ void Tools::CreateCommandPool(Device* device, QueueFlags flag, VkCommandPoolCrea
 	if (vkCreateCommandPool(device->GetVkDevice(), &cmdPoolInfo, nullptr, cmdPool) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create command pool!");
 	}
+
+	std::cout<<"Dbg commandpool check: "<<*cmdPool<<std::endl;
 }
 
 void Tools::EndCommandBuffer(Device* device, VkCommandBuffer commandBuffer,VkCommandPool pool, QueueFlags flag)
@@ -458,11 +461,11 @@ void Tools::CreateImage(Device* device, uint32_t width, uint32_t height, uint32_
 	VkMemoryAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = device->GetInstance()->GetMemoryTypeIndex(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	allocInfo.memoryTypeIndex = device->GetInstance()->GetMemoryTypeIndex(memRequirements.memoryTypeBits, properties);
 	if (vkAllocateMemory(device->GetVkDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate image memory!");
 	}
-	vkBindImageMemory(device->GetVkDevice(), image, imageMemory, 0);
+	check_vk_result(vkBindImageMemory(device->GetVkDevice(), image, imageMemory, 0));
 }
 
 void Tools::CreateCubeMapImage(Device* device, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)

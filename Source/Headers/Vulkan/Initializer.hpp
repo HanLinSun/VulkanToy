@@ -183,6 +183,13 @@ namespace VulkanInitializer
 		return bufCreateInfo;
 	}
 
+	inline VkMemoryAllocateInfo memoryAllocateInfo()
+	{
+		VkMemoryAllocateInfo memAllocInfo{};
+		memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		return memAllocInfo;
+	}
+
 	inline VkImageCreateInfo imageCreateInfo()
 	{
 		VkImageCreateInfo imageCreateInfo{};
@@ -204,4 +211,5 @@ namespace VulkanInitializer
 		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		return imageViewCreateInfo;
 	}
+
 }
