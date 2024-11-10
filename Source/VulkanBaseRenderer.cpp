@@ -172,31 +172,7 @@ namespace Renderer
         VkExtent2D swapChainExtent = m_swapChain->GetVkExtent();
         VkFormat format = m_swapChain->GetVkImageFormat();
 
-        m_ImGuiLayer->InitImGUIAttribute(m_device, swapChainExtent, format, m_imageViews, m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height);
-        m_ImGuiLayer->CreateImGuiDescriptorPool();
-        m_ImGuiLayer->CreateImGuiRenderPass(m_swapChain->GetVkImageFormat());
-        Tools::CreateCommandPool(m_device.get(), QueueFlags::Graphics, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, &(m_ImGuiLayer->m_commandPool));
-        m_ImGuiLayer->CreateImGuiCommandBuffers();
-        m_ImGuiLayer->CreateImGuiFramebuffer(m_imageViews);
-
-
-        ImGui_ImplGlfw_InitForVulkan(m_window, true);
-        ImGui_ImplVulkan_InitInfo init_info = {};
-        init_info.Instance = m_instance->GetVkInstance();
-        init_info.PhysicalDevice = m_instance->GetPhysicalDevice();
-        init_info.Device = m_device->GetVkDevice();
-        init_info.QueueFamily = m_device->GetInstance()->GetQueueFamilyIndices()[QueueFlags::Graphics];
-        init_info.Queue = m_device->GetQueue(QueueFlags::Graphics);
-        init_info.PipelineCache = VK_NULL_HANDLE;
-        init_info.DescriptorPool = m_ImGuiLayer->GetDescriptorPool();
-        init_info.RenderPass = m_ImGuiLayer->m_imGuiRenderPass;
-        init_info.Subpass = 0;
-        init_info.MinImageCount =imageCount;
-        init_info.ImageCount =imageCount;
-        init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-        init_info.Allocator = nullptr;
-        init_info.CheckVkResultFn = check_vk_result;
-        ImGui_ImplVulkan_Init(&init_info);
+        m_ImGuiLayer->InitImGUIAttribute(m_device.get(), swapChainExtent, m_renderPass,m_presentQueue,"./Shaders/",msaaSamples);
     }
 
 
@@ -309,9 +285,9 @@ namespace Renderer
 
         CreateFrameResources();
      
-        m_ImGuiLayer->CreateImGuiRenderPass(m_swapChain->GetVkImageFormat());
-        m_ImGuiLayer->CreateImGuiFramebuffer(m_imageViews);
-        m_ImGuiLayer->CreateImGuiCommandBuffers();
+        //m_ImGuiLayer->CreateImGuiRenderPass(m_swapChain->GetVkImageFormat());
+        //m_ImGuiLayer->CreateImGuiFramebuffer(m_imageViews);
+        //m_ImGuiLayer->CreateImGuiCommandBuffers();
     }
 
     void VulkanBaseRenderer::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
@@ -611,7 +587,6 @@ namespace Renderer
         vkDestroyShaderModule(m_device->GetVkDevice(), vertShaderModule, nullptr);
     }
 
-
     void VulkanBaseRenderer::CreateSkyboxCubeMap(std::string cubeMap_texturePath)
     {
 
@@ -885,6 +860,9 @@ namespace Renderer
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
 
+        m_ImGuiLayer->NewFrame();
+        m_ImGuiLayer->UpdateBuffers();
+
         // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_cameraDescriptorSet, 0, nullptr);
 
@@ -927,6 +905,9 @@ namespace Renderer
                 vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
             }
         }
+
+        m_ImGuiLayer->DrawFrame(commandBuffer);
+
         vkCmdEndRenderPass(commandBuffer);
 
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -976,15 +957,13 @@ namespace Renderer
         vkResetCommandBuffer(m_commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
         RecordCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
 
-        m_ImGuiLayer->DrawUI(currentFrame, imageIndex);
-
         //m_Camera->UpdateBufferMemory();
 
         //After record new command buffer need to submit them
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        std::array<VkCommandBuffer, 2> submitCommandBuffers = { m_commandBuffers[currentFrame] , m_ImGuiLayer->m_imGuiCommandBuffers[currentFrame] };
+        std::array<VkCommandBuffer, 1> submitCommandBuffers = { m_commandBuffers[currentFrame]};
        // std::array<VkCommandBuffer, 1> submitCommandBuffers = { m_commandBuffers[currentFrame]};
         VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[currentFrame] };
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };

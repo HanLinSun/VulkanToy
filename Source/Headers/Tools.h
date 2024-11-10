@@ -29,9 +29,13 @@ namespace Tools
 	void CreateCommandPool(Device* device, QueueFlags flag, VkCommandPoolCreateFlags createFlags, VkCommandPool* cmdPool);
 	void CopyBufferToImage(Device* device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	void GenerateMipmaps(Device* device, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-	void TransitionImageLayout(Device* device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
+	void TransitionImageLayout(Device* device, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask);
 	VkSampleCountFlagBits GetMaxUsableSampleCount(VkPhysicalDevice physicalDevice);
 	void EndCommandBuffer(Device* device, VkCommandBuffer commandBuffer, VkCommandPool pool, QueueFlags flag);
+
+	VkShaderModule CreateShaderModule(Device* device, const char* fileName);
+	VkPipelineShaderStageCreateInfo LoadShader(Device* device, std::string fileName, VkShaderStageFlagBits stage, VkShaderModule& shaderModule);
+
 
 	void SetImageLayout(
 		VkCommandBuffer cmdbuffer,

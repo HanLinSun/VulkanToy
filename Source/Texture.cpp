@@ -59,7 +59,7 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, std::shared_p
        stbi_image_free(this->m_pixels);
 
        Tools::CreateImage(m_device.get(), this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_image, this->m_imageDeviceMemory);
-       Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+       Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels,VK_PIPELINE_STAGE_HOST_BIT,VK_PIPELINE_STAGE_TRANSFER_BIT);
        Tools::CopyBufferToImage(m_device.get(), stagingBuffer, this->m_image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 
        vkDestroyBuffer(m_device->GetVkDevice(), stagingBuffer, nullptr);
@@ -202,7 +202,7 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
     //Once time loading have 6 textures, and only have 1 layer
     subresourceRange.layerCount = 6;
 
-    Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+    Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, VK_PIPELINE_STAGE_HOST_BIT,VK_PIPELINE_STAGE_TRANSFER_BIT );
 
     vkCmdCopyBufferToImage(
         copyCmd,
@@ -214,10 +214,10 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
     );
 
     this->m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, this->m_imageLayout, mipLevels);
+    Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, this->m_imageLayout, mipLevels,VK_PIPELINE_STAGE_TRANSFER_BIT,VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
     Tools::EndCommandBuffer(m_device.get(), copyCmd, m_device->GetGraphicCommandPool(), QueueFlags::Graphics);
 
-    VkSamplerCreateInfo samplerInfo = VulkanInitializer::samplerCreateInfo();
+    VkSamplerCreateInfo samplerInfo = VulkanInitializer::SamplerCreateInfo();
     samplerInfo.magFilter = VK_FILTER_LINEAR;
     samplerInfo.minFilter = VK_FILTER_LINEAR;
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
@@ -235,7 +235,7 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
         throw std::runtime_error("failed to create texture sampler!");
     }
 
-    VkImageViewCreateInfo view = VulkanInitializer::imageViewCreateInfo();
+    VkImageViewCreateInfo view = VulkanInitializer::ImageViewCreateInfo();
     view.viewType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
     view.format = format;
     view.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };

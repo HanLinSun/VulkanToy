@@ -1,5 +1,7 @@
 #include "Tools.h"
 #include <iostream>
+#include <fstream>
+#include <assert.h>
 
 void Tools::SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
 	VkImageSubresourceRange subresourceRange,
@@ -301,7 +303,7 @@ void Tools::GenerateMipmaps(Device* device, VkImage image, VkFormat imageFormat,
 	   Tools::EndCommandBuffer(device, commandBuffer, device->GetGraphicCommandPool(), QueueFlags::Graphics);
    }
 
-void Tools::TransitionImageLayout(Device* device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
+void Tools::TransitionImageLayout(Device* device, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels, VkPipelineStageFlags srcStageMask,VkPipelineStageFlags dstStageMask) {
 	VkCommandBuffer commandBuffer = Tools::CreateCommandBuffer(device, VK_COMMAND_BUFFER_LEVEL_PRIMARY, device->GetGraphicCommandPool(), true);
 
 	VkImageMemoryBarrier barrier{};
@@ -316,9 +318,6 @@ void Tools::TransitionImageLayout(Device* device, VkImage image, VkFormat format
 	barrier.subresourceRange.levelCount = mipLevels;
 	barrier.subresourceRange.baseArrayLayer = 0;
 	barrier.subresourceRange.layerCount = 1;
-
-	VkPipelineStageFlags sourceStage =65536U;
-	VkPipelineStageFlags destinationStage =65536U;
 
 	switch (oldLayout)
 	{
@@ -354,7 +353,7 @@ void Tools::TransitionImageLayout(Device* device, VkImage image, VkFormat format
 			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 			break;
 		default:
-			// Other source layouts aren't handled (yet)
+			// Other source layouts aren't handled 
 			break;
 	}
 
@@ -391,27 +390,10 @@ void Tools::TransitionImageLayout(Device* device, VkImage image, VkFormat format
 		// Other source layouts aren't handled (yet)
 		break;
 	}
-	//if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-	//	barrier.srcAccessMask = 0;
-	//	barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-	//	sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-	//	destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-	//}
-	//else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-	//	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	//	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-	//	sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-	//	destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	//}
-	//else {
-	//	throw std::invalid_argument("unsupported layout transition!");
-	//}
 
 	vkCmdPipelineBarrier(
 		commandBuffer,
-		sourceStage, destinationStage,
+		srcStageMask, dstStageMask,
 		0,
 		0, nullptr,
 		0, nullptr,
@@ -550,4 +532,45 @@ VkSampler Tools::CreateImageSampler(Device* device, float maxAnisotropy,float ma
 	if (vkCreateSampler(device->GetVkDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create texture sampler!");
 	}
+}
+
+VkShaderModule Tools::CreateShaderModule(Device* device,const char *fileName)
+{
+	std::ifstream is(fileName, std::ios::binary | std::ios::in | std::ios::ate);
+	if (is.is_open())
+	{
+		size_t size = is.tellg();
+		is.seekg(0, std::ios::beg);
+		char* shaderCode = new char[size];
+		is.read(shaderCode, size);
+		is.close();
+		assert(size > 0);
+
+		VkShaderModule shaderModule;
+		VkShaderModuleCreateInfo moduleCreateInfo{};
+		moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		moduleCreateInfo.codeSize = size;
+		moduleCreateInfo.pCode = (uint32_t*)shaderCode;
+
+		check_vk_result(vkCreateShaderModule(device->GetVkDevice(), &moduleCreateInfo, NULL, &shaderModule));
+		delete[] shaderCode;
+		return shaderModule;
+	}
+	else
+	{
+		std::cerr << "Error: Could not open shader file \"" << fileName << "\"" << "\n";
+		return VK_NULL_HANDLE;
+	}
+}
+
+VkPipelineShaderStageCreateInfo Tools::LoadShader(Device* device, std::string fileName, VkShaderStageFlagBits stage,VkShaderModule& shaderModule)
+{
+	VkPipelineShaderStageCreateInfo shaderStage = {};
+	shaderStage.stage = stage;
+	shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shaderModule = CreateShaderModule(device, fileName.c_str());
+	shaderStage.module = shaderModule;
+	shaderStage.pName = "main";
+	assert(shaderStage.module != VK_NULL_HANDLE);
+	return shaderStage;
 }

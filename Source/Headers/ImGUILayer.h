@@ -6,6 +6,7 @@
 #include <Vulkan/Buffer.h>
 #include <Vulkan/Device.h>
 #include <Tools.h>
+#include <imgui.h>
 
 namespace Renderer
 {
@@ -15,30 +16,32 @@ namespace Renderer
 		ImGuiLayer();
 		~ImGuiLayer()=default;
 
-		void OnUpdate() override;
 		void OnDetach() override;
-		void OnAttach() override;
 		void OnEvent(Event& event);
-
-		void DrawUI(uint32_t currentFrame, uint32_t imageIndex);
 
 		void SetStyle(uint32_t index);
 		//Vulkan needs them
-		void CreateImGuiDescriptorPool();
-		void CreateImGuiRenderPass(VkFormat swapChainImageFormat);
-		void CreateImGuiCommandBuffers();
-		void CreateImGuiFramebuffer(std::vector<VkImageView>& swapChainImageViews);
-		void InitImGUIAttribute(Device* device, VkExtent2D& swapChainExtent, VkFormat& swapChainImageFormat, std::vector<VkImageView>& swapChainImageViews, uint32_t width, uint32_t height);
+		void CreateImGuiDescriptorPool(uint32_t maxSets);
+		void InitImGUIAttribute(Device* device, VkExtent2D& in_swapChainExtent, VkRenderPass renderPass, VkQueue copyQueue, const std::string& shadersPath, VkSampleCountFlagBits msaaSample);
 
-		VkDescriptorPool GetDescriptorPool() const;
-		VkCommandPool GetCommandPool() const;
+		void NewFrame();
 
-		void InitVulkanResources();
+		void InitVulkanResources(VkRenderPass renderPass, VkQueue copyQueue, const std::string& shadersPath, VkSampleCountFlagBits msaaSample);
+		void UpdateBuffers();
+
+		void UpdateImGUIEvent();
+		void DrawFrame(VkCommandBuffer commandBuffer);
 
 		void Destroy();
 		void Begin();
 		void End();
 		void BlockEvents(bool block) { m_blockEvents = block; }
+
+		// UI params are set via push constants
+		struct PushConstBlock {
+			glm::vec2 scale;
+			glm::vec2 translate;
+		} pushConstBlock;
 
 
 		std::vector<VkCommandBuffer> m_imGuiCommandBuffers;
@@ -70,6 +73,9 @@ namespace Renderer
 		VkPipeline m_pipeline;
 
 		VkDescriptorPool m_descriptorPool;
+
+		VkShaderModule m_vertexShaderModule;
+		VkShaderModule m_fragmentShaderModule;
 
 		ImGuiIO* io = nullptr;
 		ImDrawData* m_drawData = nullptr;

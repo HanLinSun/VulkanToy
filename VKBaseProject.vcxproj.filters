@@ -75,6 +75,12 @@
     <None Include="Shaders\ComputeShader.comp">
       <Filter>Source\Shader</Filter>
     </None>
+    <None Include="Shaders\ui.frag.spv">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\ui.vert.spv">
+      <Filter>Source\Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\VulkanBaseRenderer.cpp">

@@ -7,7 +7,7 @@ void BufferUtils::CreateBuffer(Device* device, VkDeviceSize size, VkBufferUsageF
 	VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
 	//Create Buffer
-    VkBufferCreateInfo bufferInfo = VulkanInitializer::bufferCreateInfo(usage, size);
+    VkBufferCreateInfo bufferInfo = VulkanInitializer::BufferCreateInfo(usage, size);
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
     check_vk_result(vkCreateBuffer(device->GetVkDevice(), &bufferInfo, nullptr, &buffer));
@@ -38,12 +38,12 @@ VkResult BufferUtils::CreateBuffer(Device* device, VkBufferUsageFlags usageFlags
 {
     buffer->device = device;
 
-    VkBufferCreateInfo bufferCreateInfo = VulkanInitializer::bufferCreateInfo(usageFlags, size);
+    VkBufferCreateInfo bufferCreateInfo = VulkanInitializer::BufferCreateInfo(usageFlags, size);
     check_vk_result(vkCreateBuffer(device->GetVkDevice(), &bufferCreateInfo, nullptr, &buffer->buffer));
 
     // Create the memory backing up the buffer handle
     VkMemoryRequirements memReqs;
-    VkMemoryAllocateInfo memAlloc = VulkanInitializer::memoryAllocateInfo();
+    VkMemoryAllocateInfo memAlloc = VulkanInitializer::MemoryAllocateInfo();
     vkGetBufferMemoryRequirements(device->GetVkDevice(), buffer->buffer, &memReqs);
     memAlloc.allocationSize = memReqs.size;
     // Find a memory type index that fits the properties of the buffer
