@@ -346,6 +346,13 @@ namespace VulkanInitializer
 		return imageViewCreateInfo;
 	}
 
+	inline VkSubmitInfo SubmitInfo()
+	{
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		return submitInfo;
+	}
+
 	inline VkViewport Viewport(
 		float width,
 		float height,
@@ -358,6 +365,13 @@ namespace VulkanInitializer
 		viewport.minDepth = minDepth;
 		viewport.maxDepth = maxDepth;
 		return viewport;
+	}
+
+	inline VkSemaphoreCreateInfo SemaphoreCreateInfo()
+	{
+		VkSemaphoreCreateInfo semaphoreCreateInfo{};
+		semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		return semaphoreCreateInfo;
 	}
 
 }

@@ -10,8 +10,9 @@
 #include <Input.h>
 #include <Timestep.h>
 #include <ThreadPool.hpp>
-
-
+#include <Event/KeyEvent.h>
+#include <Event/MouseEvent.h>
+#include <Vulkan/Initializer.hpp>
 
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
@@ -98,6 +99,7 @@ namespace Renderer
 		void SetLayerStack(LayerStack* layer);
 		void InitGUILayerAttribute();
 		void InitVulkan();
+
 	private:
 
 		std::shared_ptr<Device> m_device;
@@ -108,7 +110,7 @@ namespace Renderer
 		VkDebugUtilsMessengerEXT m_debugMessenger;
 		VkSurfaceKHR m_surface;
 		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
-		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+		VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		VkQueue m_presentQueue;
 		//VkSwapchainKHR m_swapChain;
@@ -120,7 +122,6 @@ namespace Renderer
 
 		VkDescriptorSetLayout m_cameraDescriptorSetLayout;
 		VkDescriptorSetLayout m_modelDescriptorSetLayout;
-
 
 		VkPipelineLayout m_graphicPipelineLayout;
 
@@ -138,6 +139,7 @@ namespace Renderer
 		VkImageView m_depthImageView;
 
 		uint32_t mipLevels;
+		VkSubmitInfo m_submitInfo;
 
 		VkDescriptorPool m_descriptorPool;
 		VkDescriptorSet m_cameraDescriptorSet;
@@ -149,12 +151,18 @@ namespace Renderer
 		std::vector<VkDescriptorSet> m_imGuiDescriptorSet;
 
 		std::vector<VkCommandBuffer> m_commandBuffers;
-		std::vector<VkCommandBuffer> m_imGuiCommandBuffers;
 
-		std::vector<VkSemaphore> m_imageAvailableSemaphores;
-		std::vector<VkSemaphore> m_renderFinishedSemaphores;
-		std::vector<VkFence> m_inFlightFences;
 
+		struct
+		{
+			VkSemaphore presentComplete;
+
+			VkSemaphore renderComplete;
+		}m_Semaphores;
+
+		std::vector<VkFence> m_waitFences;
+
+		// Active frame buffer index
 		uint32_t currentFrame = 0;
 
 		std::unique_ptr<Scene> m_Scene;
@@ -193,9 +201,15 @@ namespace Renderer
 
 		void RecreateSwapChain();
 
+		void CreateSubmitInfo();
+
+		VkResult AcquireNextImage(VkSemaphore presentCompleteSemaphore,uint32_t *imagerIndex);
+
 		VkSampleCountFlagBits GetMaxUsableSampleCount(VkPhysicalDevice device);
 
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
+		void CreateSynchronizationPrimitives();
 
 		void SetupDebugMessenger();
 
@@ -206,6 +220,8 @@ namespace Renderer
 		void CreateCameraDescriptorSetLayout();
 
 		void CreateModelDescriptorSetLayout();
+
+		void UpdateIOInput();
 
 		void CreateGraphicsPipeline();
 

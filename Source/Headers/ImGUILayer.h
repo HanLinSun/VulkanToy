@@ -27,7 +27,7 @@ namespace Renderer
 		void NewFrame();
 
 		void InitVulkanResources(VkRenderPass renderPass, VkQueue copyQueue, const std::string& shadersPath, VkSampleCountFlagBits msaaSample);
-		void UpdateBuffers();
+		bool Update();
 
 		void UpdateImGUIEvent();
 		void DrawFrame(VkCommandBuffer commandBuffer);
@@ -43,6 +43,7 @@ namespace Renderer
 			glm::vec2 translate;
 		} pushConstBlock;
 
+		bool m_updated{ false };
 
 		std::vector<VkCommandBuffer> m_imGuiCommandBuffers;
 		std::vector<VkFramebuffer> m_imGuiFrameBuffers;
@@ -58,6 +59,7 @@ namespace Renderer
 		VkSampler m_sampler;
 		Buffer m_vertexBuffer;
 		Buffer m_indexBuffer;
+
 		int32_t m_vertexCount = 0;
 		int32_t m_indexCount = 0;
 

@@ -20,7 +20,7 @@ public:
     void DestroyVKResources();
     VkSemaphore GetImageAvailableVkSemaphore() const;
     VkSemaphore GetRenderFinishedVkSemaphore() const;
-
+    VkResult QueuePresent(VkQueue queue, uint32_t imageIndex, VkSemaphore waitSemaphore);
     void Recreate();
     bool Acquire();
     bool Present();

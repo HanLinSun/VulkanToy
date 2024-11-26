@@ -56,7 +56,7 @@ namespace Renderer
         m_swapChain = m_device->CreateSwapChain(m_surface, 3 , m_window);
         m_skyboxTexture = std::make_unique<TextureCubeMap>();
         imageCount = m_swapChain->GetCount();
-        msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
+        m_msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
         m_Camera = std::make_shared<Camera>(m_device.get(), m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
         m_Scene =std::make_unique<Scene>(m_Camera);
         m_time = Timestep::GetInstance();
@@ -65,6 +65,7 @@ namespace Renderer
     void VulkanBaseRenderer::Run() 
     {
             UpdateCamera();
+            UpdateIOInput();
             DrawFrame();
     }
 
@@ -74,12 +75,12 @@ namespace Renderer
 
         if (e.GetEventType() == EventType::MouseButtonPressed)
         {
-           // std::cout << "Base Render Inside: " << e.ToString() << std::endl;
+
         }
 
         if (e.GetEventType() == EventType::MouseMoved)
         {
-            //std::cout << "Base Render Inside: " << e.ToString() << std::endl;
+
         }
     }
 
@@ -116,6 +117,29 @@ namespace Renderer
         }
 
         m_Camera->UpdateBufferMemory();
+    }
+
+    void VulkanBaseRenderer::UpdateIOInput()
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        io.DeltaTime = Timestep::GetInstance()->GetSeconds();
+        io.MouseDown[0] = false;
+        io.MouseDown[1] = false;
+        io.MouseDown[2] = false;
+        io.MousePos = ImVec2(Input::GetMouseX(), Input::GetMouseY());
+
+        if (Input::IsMouseButtonPressed(0))
+        {
+            io.MouseDown[0] = true;
+        }
+        if (Input::IsMouseButtonPressed(1))
+        {
+            io.MouseDown[1] = true;
+        }
+        if (Input::IsMouseButtonPressed(2))
+        {
+            io.MouseDown[2] = true;
+        }
     }
 
     void VulkanBaseRenderer::LoadCubeMapTexture()
@@ -172,7 +196,7 @@ namespace Renderer
         VkExtent2D swapChainExtent = m_swapChain->GetVkExtent();
         VkFormat format = m_swapChain->GetVkImageFormat();
 
-        m_ImGuiLayer->InitImGUIAttribute(m_device.get(), swapChainExtent, m_renderPass,m_presentQueue,"./Shaders/",msaaSamples);
+        m_ImGuiLayer->InitImGUIAttribute(m_device.get(), swapChainExtent, m_renderPass,m_presentQueue,"./Shaders/",m_msaaSamples);
     }
 
 
@@ -203,11 +227,13 @@ namespace Renderer
 
         CreateDescriptorPool();
         CreateCameraDescriptorSets();
-
+        CreateSubmitInfo();
         //Shader binding num is 2 by now and in future may need refractor
         CreateModelDescriptorSets(2);
+
         CreateCommandBuffers();
         CreateSyncObjects();
+ 
     }
 
     void VulkanBaseRenderer::Destroy()
@@ -245,10 +271,12 @@ namespace Renderer
         vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_modelDescriptorSetLayout, nullptr);
         vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_cameraDescriptorSetLayout, nullptr);
 
+        vkDestroySemaphore(m_device->GetVkDevice(), m_Semaphores.presentComplete, nullptr);
+        vkDestroySemaphore(m_device->GetVkDevice(), m_Semaphores.renderComplete, nullptr);
+
         for (size_t i = 0; i < m_swapChain->GetCount(); i++) {
-            vkDestroySemaphore(m_device->GetVkDevice(), m_renderFinishedSemaphores[i], nullptr);
-            vkDestroySemaphore(m_device->GetVkDevice(), m_imageAvailableSemaphores[i], nullptr);
-            vkDestroyFence(m_device->GetVkDevice(), m_inFlightFences[i], nullptr);
+
+            vkDestroyFence(m_device->GetVkDevice(), m_waitFences[i], nullptr);
         }
 
         m_ImGuiLayer->Destroy();
@@ -275,8 +303,6 @@ namespace Renderer
             glfwGetFramebufferSize(m_window, &width, &height);
             glfwWaitEvents();
         }
-        ImGui_ImplVulkan_SetMinImageCount(imageCount);
-
         vkDeviceWaitIdle(m_device->GetVkDevice());
 
         DestroyFrameResources();
@@ -285,9 +311,6 @@ namespace Renderer
 
         CreateFrameResources();
      
-        //m_ImGuiLayer->CreateImGuiRenderPass(m_swapChain->GetVkImageFormat());
-        //m_ImGuiLayer->CreateImGuiFramebuffer(m_imageViews);
-        //m_ImGuiLayer->CreateImGuiCommandBuffers();
     }
 
     void VulkanBaseRenderer::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
@@ -316,7 +339,7 @@ namespace Renderer
     void VulkanBaseRenderer::CreateRenderPass() {
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format = m_swapChain->GetVkImageFormat();
-        colorAttachment.samples = msaaSamples;
+        colorAttachment.samples = m_msaaSamples;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -327,7 +350,7 @@ namespace Renderer
         VkFormat depthFormat = m_device->GetInstance()->GetSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format = depthFormat;
-        depthAttachment.samples = msaaSamples;
+        depthAttachment.samples = m_msaaSamples;
         depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -556,7 +579,7 @@ namespace Renderer
         VkPipelineMultisampleStateCreateInfo multisampleInfo = {};
         multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampleInfo.sampleShadingEnable = VK_TRUE; // Set to VK_TRUE if using sample shading
-        multisampleInfo.rasterizationSamples = msaaSamples; // Change to desired sample count
+        multisampleInfo.rasterizationSamples = m_msaaSamples; // Change to desired sample count
         //multisampleInfo.minSampleShading = .2f; // Adjust if sample shading is enabled
         //multisampleInfo.pSampleMask = nullptr; // Set if using a sample mask
         //multisampleInfo.alphaToCoverageEnable = VK_FALSE; // Enable if needed
@@ -601,12 +624,12 @@ namespace Renderer
 
         //Depth
         VkFormat depthFormat = m_device->GetInstance()->GetSupportedFormat({ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-        Tools::CreateImage(m_device.get(), m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
+        Tools::CreateImage(m_device.get(), m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height, 1, m_msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
         m_depthImageView = Tools::CreateImageView(m_device.get(), m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
         
         //MSAA Sample Color 
         VkFormat colorFormat = m_swapChain->GetVkImageFormat();
-        Tools::CreateImage(m_device.get(), m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_colorImage, m_colorImageMemory);
+        Tools::CreateImage(m_device.get(), m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height, 1, m_msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_colorImage, m_colorImageMemory);
         m_colorImageView = Tools::CreateImageView(m_device.get(), m_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 
@@ -644,8 +667,6 @@ namespace Renderer
             throw std::runtime_error("failed to create graphics command pool!");
         }
 
-        std::cout << "Dbg check m_commandpool:" << *commandPool << std::endl;
-        //Compute command pool
     }
 
     bool VulkanBaseRenderer::HasStencilComponent(VkFormat format) {
@@ -843,10 +864,6 @@ namespace Renderer
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-            throw std::runtime_error("failed to begin recording command buffer!");
-        }
-
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_renderPass;
@@ -861,8 +878,10 @@ namespace Renderer
         renderPassInfo.pClearValues = clearValues.data();
 
         m_ImGuiLayer->NewFrame();
-        m_ImGuiLayer->UpdateBuffers();
 
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+            throw std::runtime_error("failed to begin recording command buffer!");
+        }
         // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_cameraDescriptorSet, 0, nullptr);
 
@@ -887,6 +906,7 @@ namespace Renderer
         scissor.extent = m_swapChain->GetVkExtent();;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+        //Drawing Model here -- enclose required(WIP)
         for (size_t i = 0; i < m_Scene->GetModelGroupSize(); i++)
         {
            const ModelGroup* modelGroup = m_Scene->GetSceneModelGroup(i);
@@ -906,19 +926,19 @@ namespace Renderer
             }
         }
 
+
+        //Draw ImGUI here
         m_ImGuiLayer->DrawFrame(commandBuffer);
 
         vkCmdEndRenderPass(commandBuffer);
-
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             throw std::runtime_error("failed to record command buffer!");
         }
     }
 
     void VulkanBaseRenderer::CreateSyncObjects() {
-        m_imageAvailableSemaphores.resize(m_swapChain->GetCount());
-        m_renderFinishedSemaphores.resize(m_swapChain->GetCount());
-        m_inFlightFences.resize(m_swapChain->GetCount());
+
+        m_waitFences.resize(m_swapChain->GetCount());
 
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -928,21 +948,48 @@ namespace Renderer
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         for (size_t i = 0; i < m_swapChain->GetCount(); i++) {
-            if (vkCreateSemaphore(m_device->GetVkDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
-                vkCreateSemaphore(m_device->GetVkDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
-                vkCreateFence(m_device->GetVkDevice(), &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create synchronization objects for a frame!");
+            if (vkCreateFence(m_device->GetVkDevice(), &fenceInfo, nullptr, &m_waitFences[i]) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create fence for a frame!");
             }
         }
     }
+    VkResult VulkanBaseRenderer::AcquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t* imageIndex)
+    {
+       return  vkAcquireNextImageKHR(m_device->GetVkDevice(), m_swapChain->GetVkSwapChain(), UINT64_MAX, presentCompleteSemaphore, VK_NULL_HANDLE, imageIndex);
+    }
+
+
+    void VulkanBaseRenderer::CreateSubmitInfo()
+    {
+        VkSemaphoreCreateInfo semaphoreCreateInfo = VulkanInitializer::SemaphoreCreateInfo();
+        // Create a semaphore used to synchronize image presentation
+        // Ensures that the image is displayed before we start submitting new commands to the queue
+        check_vk_result(vkCreateSemaphore(m_device->GetVkDevice(), &semaphoreCreateInfo, nullptr, &m_Semaphores.presentComplete));
+        // Create a semaphore used to synchronize command submission
+        // Ensures that the image is not presented until all commands have been submitted and executed
+        check_vk_result(vkCreateSemaphore(m_device->GetVkDevice(), &semaphoreCreateInfo, nullptr, &m_Semaphores.renderComplete));
+
+        // Set up submit info structure
+        // Semaphores will stay the same during application lifetime
+
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+        m_submitInfo = VulkanInitializer::SubmitInfo();
+        m_submitInfo.pWaitDstStageMask = waitStages;
+        m_submitInfo.waitSemaphoreCount = 1;
+        m_submitInfo.pWaitSemaphores = &m_Semaphores.presentComplete;
+        m_submitInfo.signalSemaphoreCount = 1;
+        m_submitInfo.pSignalSemaphores = &m_Semaphores.renderComplete;
+    }
 
     void VulkanBaseRenderer::DrawFrame() {
-        vkWaitForFences(m_device->GetVkDevice(), 1, &m_inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+        vkWaitForFences(m_device->GetVkDevice(), 1, &m_waitFences[currentFrame], VK_TRUE, UINT64_MAX);
         lastTimeStamp = std::chrono::high_resolution_clock::now();
         tPrevEnd = lastTimeStamp;
 
         uint32_t imageIndex;
-        VkResult result = vkAcquireNextImageKHR(m_device->GetVkDevice(), m_swapChain->GetVkSwapChain(), UINT64_MAX, m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+        VkResult result = AcquireNextImage(m_Semaphores.presentComplete, &imageIndex);
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR) {
             RecreateSwapChain();
@@ -952,50 +999,25 @@ namespace Renderer
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
-        vkResetFences(m_device->GetVkDevice(), 1, &m_inFlightFences[currentFrame]);
+
+        vkResetFences(m_device->GetVkDevice(), 1, &m_waitFences[currentFrame]);
 
         vkResetCommandBuffer(m_commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
+
         RecordCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
 
-        //m_Camera->UpdateBufferMemory();
 
-        //After record new command buffer need to submit them
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        m_submitInfo.commandBufferCount = 1;
+        m_submitInfo.pCommandBuffers = &m_commandBuffers[currentFrame];
 
-        std::array<VkCommandBuffer, 1> submitCommandBuffers = { m_commandBuffers[currentFrame]};
-       // std::array<VkCommandBuffer, 1> submitCommandBuffers = { m_commandBuffers[currentFrame]};
-        VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[currentFrame] };
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = waitSemaphores;
-        submitInfo.pWaitDstStageMask = waitStages;
 
-        submitInfo.commandBufferCount = static_cast<uint32_t>(submitCommandBuffers.size());
-        submitInfo.pCommandBuffers = submitCommandBuffers.data();
-
-        VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[currentFrame] };
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
-
-        if (vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &submitInfo, m_inFlightFences[currentFrame]) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &m_submitInfo, m_waitFences[currentFrame]) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
+        
+        result = m_swapChain->QueuePresent(m_device->GetQueue(QueueFlags::Present),imageIndex, m_Semaphores.renderComplete);
 
-        VkPresentInfoKHR presentInfo{};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-        presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = signalSemaphores;
-
-        VkSwapchainKHR swapChains[] = { m_swapChain->GetVkSwapChain()};
-        presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = swapChains;
-
-        presentInfo.pImageIndices = &imageIndex;
-
-        result = vkQueuePresentKHR(m_device->GetQueue(QueueFlags::Present), &presentInfo);
-
+    
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
             framebufferResized = false;
             RecreateSwapChain();
@@ -1003,7 +1025,10 @@ namespace Renderer
         else if (result != VK_SUCCESS) {
             throw std::runtime_error("failed to present swap chain image!");
         }
-        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+        check_vk_result(vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Present)));
+
+        currentFrame = (currentFrame + 1) % (m_swapChain->GetCount());
     }
 
     void VulkanBaseRenderer::RecreateFrameResources() {

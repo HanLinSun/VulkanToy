@@ -179,10 +179,15 @@ namespace Renderer
         //ImGui::TextUnformatted("Debug Window");
 
         //ImGui::End();
+        
         // Debug window
         ImGui::ShowDemoWindow();
         // Render to generate draw buffers
         ImGui::Render();
+        if (Update() || m_updated)
+        {
+            m_updated = false;
+        }
     }
 
     void ImGuiLayer::OnEvent(Event& e)
@@ -239,24 +244,28 @@ namespace Renderer
         }
     }
 
-    void ImGuiLayer::UpdateBuffers()
+    bool ImGuiLayer::Update()
     {
         ImDrawData* imDrawData = ImGui::GetDrawData();
         //Note: Alignment is done inside buffer creation
         VkDeviceSize vertexBufferSize = imDrawData->TotalVtxCount * sizeof(ImDrawVert);
         VkDeviceSize indexBufferSize = imDrawData->TotalIdxCount * sizeof(ImDrawIdx);
 
+        bool updateCmdBuffers = false;
+
         if ((vertexBufferSize == 0) || (indexBufferSize == 0)) {
-            return;
+            return false;
         }
 
         // Vertex buffer
-        if ((m_vertexBuffer.buffer == VK_NULL_HANDLE) || (m_vertexCount != imDrawData->TotalVtxCount)) {
-            m_vertexBuffer.Unmap();
+        if ((m_vertexBuffer.buffer == VK_NULL_HANDLE) || (m_vertexCount != imDrawData->TotalVtxCount)) 
+        {
+            m_vertexBuffer.Unmap(); 
             m_vertexBuffer.Destroy();
             check_vk_result(BufferUtils::CreateBuffer(m_device, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_vertexBuffer, vertexBufferSize));
             m_vertexCount = imDrawData->TotalVtxCount;
             m_vertexBuffer.Map();
+            updateCmdBuffers = true;
         }
 
         // Index buffer
@@ -266,6 +275,7 @@ namespace Renderer
             check_vk_result(BufferUtils::CreateBuffer(m_device,VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_indexBuffer, indexBufferSize));
             m_indexCount = imDrawData->TotalIdxCount;
             m_indexBuffer.Map();
+            updateCmdBuffers = true;
         }
 
         // Upload data
@@ -284,6 +294,7 @@ namespace Renderer
         m_vertexBuffer.Flush();
         m_indexBuffer.Flush();
 
+        return updateCmdBuffers;
     }
 
     void ImGuiLayer::CreateImGuiDescriptorPool(uint32_t maxSets)

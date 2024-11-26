@@ -185,6 +185,28 @@ VkSemaphore SwapChain::GetImageAvailableVkSemaphore() const {
 
 }
 
+VkResult SwapChain::QueuePresent(VkQueue queue, uint32_t imageIndex, VkSemaphore waitSemaphore)
+{
+    VkSwapchainKHR swapChains[] = { GetVkSwapChain() };
+
+    VkPresentInfoKHR presentInfo = {};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.pNext = NULL;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapChains;
+    presentInfo.pImageIndices = &imageIndex;
+    // Check if a wait semaphore has been specified to wait for before presenting the image
+    if (waitSemaphore != VK_NULL_HANDLE)
+    {
+        presentInfo.pWaitSemaphores = &waitSemaphore;
+        presentInfo.waitSemaphoreCount = 1;
+    }
+    return vkQueuePresentKHR(queue, &presentInfo);
+}
+
+
+
+
 VkSemaphore SwapChain::GetRenderFinishedVkSemaphore() const {
     return m_renderFinishedSemaphore;
 }
