@@ -1,6 +1,7 @@
 #pragma once
 #include <RendererInclude.h>
 #include "SceneStructs.h"
+#include "CameraController.h"
 #include <Vulkan/Device.h>
 #include <Vulkan/BufferUtils.h>
 
@@ -13,6 +14,24 @@ namespace Renderer
 		alignas(16) glm::mat4 modelMatrix;
 	};
 
+	struct InputStatus
+	{
+		glm::vec2 lastMousePos;
+		glm::vec2 mouseDelta;
+		bool isLeftMouseButtonDown;
+		bool isRightMouseButtonDown;
+		bool shouldRotate;
+
+		bool shouldMove;
+		bool moveForward;
+		bool moveBackward;
+		bool moveLeft;
+		bool moveRight;
+		bool moveUp;
+		bool moveDown;
+	};
+
+
 	// Perform a linear interpolation
 	inline double Lerp(float x0, float x1, float a)
 	{
@@ -20,7 +39,6 @@ namespace Renderer
 	}
 
 	//Perform a sphere interpolation
-
 	enum class Handedness
 	{
 		RightHanded,
@@ -29,6 +47,7 @@ namespace Renderer
 
 	class Camera
 	{
+		friend CameraController;
 	public:
 		Camera(Device* device, float aspectRatio);
 		~Camera();
@@ -37,10 +56,6 @@ namespace Renderer
 		glm::mat4 GetViewmatrix();
 		glm::mat4 GetProjectionMatrix();
 
-		void UpdateTransform_X(float deltaX);
-		void UpdateTransform_Y(float deltaY);
-		void UpdateTransform_Z(float deltaZ);
-		
 		void RotateAroundUpAxis(float degree);
 		void RotateAroundRightAxis(float degree);
 		void RotateAroundForwardAxis(float degree);
@@ -50,9 +65,14 @@ namespace Renderer
 		void UpdateBufferMemory();
 
 		void DestroyVKResources();
+		void Update();
 
 		inline glm::vec3 Get3DVectorComponent(const glm::vec4 vec);
 		inline glm::vec4 Set3DVectorComponent(const glm::vec3 vec);
+
+		void HandleMouseInputEvent();
+		void HandleKeyboardInputEvent();
+		InputStatus m_cameraInputStatus;
 
 	private:
 		Device* m_device;
@@ -67,6 +87,10 @@ namespace Renderer
 		float m_fov;
 		float m_movingSpeed=300.f;
 
+		bool m_dirty;
+
+		
+
 		glm::mat4 m_projectionMatrix;
 		glm::mat4 m_viewMatrix;
 
@@ -75,7 +99,8 @@ namespace Renderer
 		glm::vec4 m_forwardVector_W;
 		glm::vec4 m_rightVector_W;
 
-		glm::vec3 m_rotation;
+		float yaw=0.f;
+		float pitch=0.f;
 
 		glm::vec4 m_position_W;
 		glm::vec4 m_lookTarget_W;

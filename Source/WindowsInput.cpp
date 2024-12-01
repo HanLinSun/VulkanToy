@@ -19,6 +19,14 @@ namespace Renderer
 		return state == GLFW_PRESS;
 	}
 
+
+	bool WindowInput::IsMouseButtonUpImpl(int button)
+	{
+		auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+		auto state = glfwGetMouseButton(window, button);
+		return state == GLFW_RELEASE;
+	}
+
 	std::pair<float, float> WindowInput::GetMousePositionImpl()
 	{
 		auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());

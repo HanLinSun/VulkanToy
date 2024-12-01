@@ -191,8 +191,6 @@ namespace Renderer
 
 		bool framebufferResized = false;
 
-		void UpdateCamera(Timestep deltaTime);
-
 		void LoadModel(std::string model_path, std::string model_texture_path);
 
 		void CompileShader(std::string vertexShader, std::string fragmentShader);
@@ -234,8 +232,6 @@ namespace Renderer
 		bool HasStencilComponent(VkFormat format);
 
 		void CreateDescriptorPool();
-
-		void UpdateCamera();
 
 		void RecreateFrameResources();
 

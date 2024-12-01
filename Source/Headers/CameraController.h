@@ -18,8 +18,6 @@ namespace Renderer
 	public:
 		CameraController(std::shared_ptr<Camera> m_cam);
 
-		void SetMovementSpeed(float movementSpeed);
-		float GetMovementSpeed();
 		void GetUpDirection();
 
 		void OnKeyboardEvent();
@@ -30,7 +28,6 @@ namespace Renderer
 		float m_moveSpeed;
 		bool m_mouseMoved;
 
-		float r, theta, phi;
 		glm::vec2 m_mouseDelta;
 	};
 }

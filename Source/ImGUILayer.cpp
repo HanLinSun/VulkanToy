@@ -176,12 +176,14 @@ namespace Renderer
         ImGui::NewFrame();
         ImGui::SetWindowPos(ImVec2(20.f , 20.f ), ImGuiCond_FirstUseEver);
         ImGui::SetWindowSize(ImVec2(300.f , 300.f), ImGuiCond_Always);
-        //ImGui::TextUnformatted("Debug Window");
 
-        //ImGui::End();
+        ImGui::Begin("Debug Window");
+        ImGui::TextUnformatted("Debug Window");
+
+        ImGui::End();
         
         // Debug window
-        ImGui::ShowDemoWindow();
+      //  ImGui::ShowDemoWindow();
         // Render to generate draw buffers
         ImGui::Render();
         if (Update() || m_updated)

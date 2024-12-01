@@ -64,7 +64,7 @@ namespace Renderer
     }
     void VulkanBaseRenderer::Run() 
     {
-            UpdateCamera();
+            m_Camera->Update();
             UpdateIOInput();
             DrawFrame();
     }
@@ -73,50 +73,7 @@ namespace Renderer
     void VulkanBaseRenderer::OnEvent(Event& e)
     {
 
-        if (e.GetEventType() == EventType::MouseButtonPressed)
-        {
 
-        }
-
-        if (e.GetEventType() == EventType::MouseMoved)
-        {
-
-        }
-    }
-
-    void VulkanBaseRenderer::UpdateCamera()
-    {
-        if (Input::IsKeyPressed(APP_KEY_W))
-        {
-            m_Camera->UpdateTransform_Z(m_time->GetSeconds());
-        }
-
-        if (Input::IsKeyPressed(APP_KEY_S))
-        {
-            m_Camera->UpdateTransform_Z(-1 * m_time->GetSeconds());
-        }
-
-        if (Input::IsKeyPressed(APP_KEY_A))
-        {
-            m_Camera->UpdateTransform_X(-1 * m_time->GetSeconds());
-        }
-
-        if (Input::IsKeyPressed(APP_KEY_D))
-        {
-            m_Camera->UpdateTransform_X(m_time->GetSeconds());
-        }
-
-        if (Input::IsKeyPressed(APP_KEY_Q))
-        {
-            m_Camera->UpdateTransform_Y(m_time->GetSeconds());
-        }
-
-        if (Input::IsKeyPressed(APP_KEY_E))
-        {
-            m_Camera->UpdateTransform_Y(-1 * m_time->GetSeconds());
-        }
-
-        m_Camera->UpdateBufferMemory();
     }
 
     void VulkanBaseRenderer::UpdateIOInput()
@@ -150,25 +107,6 @@ namespace Renderer
         }
     }
 
-    void VulkanBaseRenderer::UpdateCamera(Timestep deltaTime)
-    {
-        auto mousePosition = Input::GetMousePosition();
-        if (Input::IsMouseButtonPressed(APP_MOUSE_BUTTON_LEFT))
-        {
-            double sensitivity = 0.2f;
-            float deltaX = static_cast<float>(previousX - mousePosition.first)*sensitivity;
-            float deltaY = static_cast<float>(previousY - mousePosition.second)*sensitivity;
-           
-            m_Camera->RotateAroundUpAxis(deltaX*deltaTime.GetSeconds());
-            m_Camera->RotateAroundRightAxis(deltaY * deltaTime.GetSeconds());
-
-            previousX = mousePosition.first;
-            previousY = mousePosition.second;
-        }
-
-       // m_Camera->UpdateViewMatrix();
-        m_Camera->UpdateBufferMemory();
-    }
 
 
     VkSampleCountFlagBits VulkanBaseRenderer::GetMaxUsableSampleCount(VkPhysicalDevice physicalDevice)
