@@ -12,22 +12,43 @@ namespace Renderer
 		//SixDof,
 	};
 
+	class Camera;
+	struct InputStatus
+	{
+		glm::vec2 lastMousePos;
+		glm::vec2 mouseDelta;
+		bool isLeftMouseButtonDown;
+		bool isRightMouseButtonDown;
+		bool shouldRotate;
+
+		bool shouldMove;
+		bool moveForward;
+		bool moveBackward;
+		bool moveLeft;
+		bool moveRight;
+		bool moveUp;
+		bool moveDown;
+	};
+
 	class CameraController
 	{
 		//By default ONLY implement FPS Camera controller
 	public:
 		CameraController(std::shared_ptr<Camera> m_cam);
-
-		void GetUpDirection();
+		~CameraController() = default;
+		glm::vec4 GetUpVector();
 
 		void OnKeyboardEvent();
 		void OnMouseEvent();
+		void Update();
 
+		InputStatus m_CameraInputStatus;
 	protected:
 		std::shared_ptr<Camera> m_Camera;
+
+
 		float m_moveSpeed;
 		bool m_mouseMoved;
-
-		glm::vec2 m_mouseDelta;
+		bool m_dirty;
 	};
 }

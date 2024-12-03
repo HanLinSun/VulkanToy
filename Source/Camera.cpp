@@ -15,7 +15,7 @@ namespace Renderer
 		
 		m_lookTarget_W = glm::vec4(100.f, 30.0f, 0.0f, 1.0f);
 
-		m_forwardVector_W = glm::normalize(m_lookTarget_W - m_position_W);
+		m_forwardVector_W = glm::normalize(m_lookTarget_W -m_position_W);
 
 		//m_forwardVector_W = glm::vec4(0.0f, 0.0f, -1.0f,0.0f);
 
@@ -48,14 +48,7 @@ namespace Renderer
 		return m_buffer;
 	}
 
-	inline glm::vec3 Camera::Get3DVectorComponent(const glm::vec4 vec)
-	{
-		return glm::vec3(vec.x, vec.y, vec.z);
-	}
-	inline glm::vec4 Camera::Set3DVectorComponent(const glm::vec3 vec)
-	{
-		return glm::vec4(vec.x, vec.y, vec.z, 1);
-	}
+
 
 	glm::mat4 Camera::GetProjectionMatrix()
 	{
@@ -69,109 +62,36 @@ namespace Renderer
 
 	void Camera::UpdateViewMatrix(Handedness hand)
 	{
-		//m_forwardVector_W = (hand == Handedness::RightHanded) ? glm::normalize(m_position_W - m_lookTarget_W) : glm::normalize(m_lookTarget_W - m_position_W);
-		//m_viewMatrix = rotationMatrix * translateMatrix;
+		m_forwardVector_W = (hand == Handedness::RightHanded) ? glm::normalize(m_position_W - m_lookTarget_W) : glm::normalize(m_lookTarget_W - m_position_W);
+	
 		m_viewMatrix[0] =glm::vec4(m_rightVector_W.x, m_upVector_W.x, m_forwardVector_W.x, 0);
 		m_viewMatrix[1] = glm::vec4(m_rightVector_W.y, m_upVector_W.y, m_forwardVector_W.y, 0);
 		m_viewMatrix[2] = glm::vec4(m_rightVector_W.z, m_upVector_W.z, m_forwardVector_W.z, 0);
 		m_viewMatrix[3] = glm::vec4(-glm::dot(m_rightVector_W,m_position_W), -glm::dot(m_upVector_W, m_position_W), -glm::dot(m_forwardVector_W, m_position_W),1);
-		//m_viewMatrix = glm::lookAt(Get3DVectorComponent(m_position_W), Get3DVectorComponent(m_lookTarget_W), Get3DVectorComponent(m_upVector_W));
+
+		m_viewMatrix = glm::lookAt(Get3DVectorComponent(m_position_W), Get3DVectorComponent(m_lookTarget_W), Get3DVectorComponent(m_upVector_W));
 
 	}
 
-	void Camera::UpdateViewMatrixFromLookAt(Handedness hand)
+	void Camera::UpdateViewMatrixFromLookAt(Handedness hand,glm::vec3 upVec)
 	{
-		m_forwardVector_W = (hand == Handedness::RightHanded) ? glm::normalize(m_lookTarget_W-m_position_W) : glm::normalize(m_position_W - m_lookTarget_W);
 
-		glm::vec3 rightVec = Get3DVectorComponent(m_rightVector_W);
-		glm::vec3 upVec = Get3DVectorComponent(m_upVector_W);
 		glm::vec3 forwardVec = Get3DVectorComponent(m_forwardVector_W);
 
-		rightVec = glm::normalize(glm::cross(upVec, forwardVec));
-		upVec = glm::normalize(glm::cross(forwardVec, rightVec));
+		glm::vec3 rightVec = glm::normalize(glm::cross(forwardVec,upVec));
+
+		glm::vec3 upVec_1 = glm::normalize(glm::cross(rightVec,forwardVec));
 
 		//vector<T, 3> r(normalize(cross(up, f)));
 		//vector<T, 3> u(cross(f, r));
-		m_rightVector_W = Set3DVectorComponent(rightVec);
-		m_upVector_W = Set3DVectorComponent(upVec);
-		m_forwardVector_W = Set3DVectorComponent(forwardVec);
+		glm::vec3 position = Get3DVectorComponent(m_position_W);
 
-		m_viewMatrix[0] = glm::vec4(m_rightVector_W.x, m_upVector_W.x, m_forwardVector_W.x, 0);
-		m_viewMatrix[1] = glm::vec4(m_rightVector_W.y, m_upVector_W.y, m_forwardVector_W.y, 0);
-		m_viewMatrix[2] = glm::vec4(m_rightVector_W.z, m_upVector_W.z, m_forwardVector_W.z, 0);
-		m_viewMatrix[3] = glm::vec4(-glm::dot(m_rightVector_W, m_position_W), -glm::dot(m_upVector_W, m_position_W), -glm::dot(m_forwardVector_W, m_position_W), 1);
+		m_viewMatrix[0] = glm::vec4(rightVec.x, upVec_1.x, forwardVec.x, 0);
+		m_viewMatrix[1] = glm::vec4(rightVec.y, upVec_1.y, forwardVec.y, 0);
+		m_viewMatrix[2] = glm::vec4(rightVec.z, upVec_1.z, forwardVec.z, 0);
+		m_viewMatrix[3] = glm::vec4(-glm::dot(rightVec, position), -glm::dot(upVec_1, position), -glm::dot(forwardVec, position), 1);
 	}
 
-	void Camera::Update()
-	{
-		HandleMouseInputEvent();
-    	HandleKeyboardInputEvent();
-
-		if (m_cameraInputStatus.shouldRotate)
-		{
-			glm::vec3 viewDir = glm::normalize(Get3DVectorComponent(m_lookTarget_W - m_position_W));
-			if (m_cameraInputStatus.isLeftMouseButtonDown)
-			{
-				glm::vec3 sideVector = glm::cross(viewDir, Get3DVectorComponent(m_upVector_W));
-
-				float sensitivity =0.5f;
-				glm::vec2 mouseRotation = m_cameraInputStatus.isLeftMouseButtonDown ? m_cameraInputStatus.mouseDelta * sensitivity* Timestep::GetInstance()->GetSeconds() : glm::vec2(0.f);
-				glm::vec2 rotation = mouseRotation;
-
-				float x_angle = glm::clamp(rotation.x, rotationXLimit.x, rotationXLimit.y);
-				float y_angle = glm::clamp(rotation.y, rotationYLimit.x, rotationYLimit.y);
-
-				// Rotate around x-axis
-				glm::quat qy = glm::angleAxis(y_angle, sideVector);
-				glm::mat4 rotY = glm::mat4_cast(qy);
-				m_forwardVector_W = rotY * m_forwardVector_W;
-				m_upVector_W = rotY * m_upVector_W;
-
-
-				// Rotate around y-axis
-				glm::quat qx = glm::angleAxis(x_angle, Get3DVectorComponent(m_upVector_W));
-				glm::mat4 rotX = glm::mat4_cast(qx);
-				m_forwardVector_W = rotX * m_forwardVector_W;
-
-				glm::vec3 right = glm::cross(Get3DVectorComponent(m_forwardVector_W), Get3DVectorComponent(m_upVector_W));
-				m_rightVector_W = Set3DVectorComponent(right);
-
-				m_lookTarget_W = m_position_W + m_forwardVector_W;
-
-				m_dirty = true;
-				m_cameraInputStatus.shouldRotate = false;
-			}
-		}
-
-		//Update Translation
-		if (m_cameraInputStatus.shouldMove)
-		{
-			glm::vec3 moveDir(0);
-			moveDir.z += m_cameraInputStatus.moveForward ? 1 : 0;
-			moveDir.z += m_cameraInputStatus.moveBackward ? -1 : 0;
-			moveDir.x += m_cameraInputStatus.moveLeft ? -1 : 0;
-			moveDir.x += m_cameraInputStatus.moveRight ? 1 : 0;
-			moveDir.y += m_cameraInputStatus.moveUp ? 1 : 0;
-			moveDir.y += m_cameraInputStatus.moveDown ? -1 : 0;
-
-			m_position_W += m_movingSpeed * Timestep::GetInstance()->GetSeconds()* moveDir.x * m_rightVector_W;
-			m_position_W += m_movingSpeed * Timestep::GetInstance()->GetSeconds() * moveDir.y * m_upVector_W;
-			m_position_W += m_movingSpeed * Timestep::GetInstance()->GetSeconds() * moveDir.z * m_forwardVector_W;
-
-			
-			m_lookTarget_W = m_position_W + m_forwardVector_W;
-			m_dirty = true;
-		}
-		
-
-		if (m_dirty)
-		{
-			UpdateViewMatrix(Handedness::RightHanded);
-			UpdateBufferMemory();
-			m_dirty = false;
-		}
-
-	}
 
 	void Camera::UpdateBufferMemory()
 	{
@@ -196,111 +116,6 @@ namespace Renderer
 		_projectionMatrix[3] = glm::vec4(0, 0, q, 0);
 
 		m_projectionMatrix = _projectionMatrix;
-	}
-
-	void Camera::HandleMouseInputEvent()
-	{
-		if (Input::IsMouseButtonPressed(0) || Input::IsMouseButtonPressed(1))
-		{
-			if (Input::IsMouseButtonPressed(0))
-			{
-				auto pos = Input::GetMousePosition();
-				if (!m_cameraInputStatus.isLeftMouseButtonDown)
-				{
-					m_cameraInputStatus.lastMousePos = glm::vec2(pos.first, pos.second);
-					m_cameraInputStatus.isLeftMouseButtonDown = true;
-				}
-
-			}
-			
-			if (Input::IsMouseButtonPressed(1))
-			{
-				auto pos = Input::GetMousePosition();
-				if (!m_cameraInputStatus.isRightMouseButtonDown)
-				{
-					m_cameraInputStatus.lastMousePos = glm::vec2(pos.first, pos.second);
-					m_cameraInputStatus.isRightMouseButtonDown = true;
-				}
-			}
-		}
-
-		if (Input::IsMouseButtonUp(0) || Input::IsMouseButtonUp(1))
-		{
-			if (Input::IsMouseButtonUp(0))
-			{
-				if (m_cameraInputStatus.isLeftMouseButtonDown)
-				{
-					m_cameraInputStatus.isLeftMouseButtonDown = false;
-					m_cameraInputStatus.shouldRotate = false;
-				}
-			}
-
-			if (Input::IsMouseButtonUp(1))
-			{
-				if(m_cameraInputStatus.isRightMouseButtonDown)
-				m_cameraInputStatus.isRightMouseButtonDown = false;
-				//m_cameraInputStatus.shouldRotate = false;
-			}
-		}
-
-		if (Input::MouseMoved())
-		{
-			if (m_cameraInputStatus.isLeftMouseButtonDown || m_cameraInputStatus.isRightMouseButtonDown)
-			{
-				glm::vec2 currentPos = glm::vec2(Input::GetMouseX(), Input::GetMouseY());
-				m_cameraInputStatus.mouseDelta = currentPos - m_cameraInputStatus.lastMousePos;
-				m_cameraInputStatus.lastMousePos = currentPos;
-				m_cameraInputStatus.shouldRotate = true;
-			}
-			else m_cameraInputStatus.shouldRotate = false;
-		}
-	}
-
-	void Camera::HandleKeyboardInputEvent()
-	{
-		m_cameraInputStatus.shouldMove = false;
-		m_cameraInputStatus.moveBackward = false;
-		m_cameraInputStatus.moveForward = false;
-		m_cameraInputStatus.moveLeft = false;
-		m_cameraInputStatus.moveRight = false;
-		m_cameraInputStatus.moveUp = false;
-		m_cameraInputStatus.moveDown = false;
-
-		if (Input::IsKeyPressed(APP_KEY_W))
-		{
-			m_cameraInputStatus.shouldMove = true;
-			m_cameraInputStatus.moveForward = true;
-		}
-
-		if (Input::IsKeyPressed(APP_KEY_S))
-		{
-			m_cameraInputStatus.shouldMove = true;
-			m_cameraInputStatus.moveBackward = true;
-		}
-
-		if (Input::IsKeyPressed(APP_KEY_A))
-		{
-			m_cameraInputStatus.shouldMove = true;
-			m_cameraInputStatus.moveLeft = true;
-		}
-
-		if (Input::IsKeyPressed(APP_KEY_D))
-		{
-			m_cameraInputStatus.shouldMove = true;
-			m_cameraInputStatus.moveRight = true;
-		}
-
-		if (Input::IsKeyPressed(APP_KEY_Q))
-		{
-			m_cameraInputStatus.shouldMove = true;
-			m_cameraInputStatus.moveUp = true;
-		}
-
-		if (Input::IsKeyPressed(APP_KEY_E))
-		{
-			m_cameraInputStatus.shouldMove = true;
-			m_cameraInputStatus.moveDown = true;
-		}
 	}
 
 	void Camera::RotateAroundForwardAxis(float degree)
@@ -338,6 +153,49 @@ namespace Renderer
 	Camera::~Camera() 
 	{
 	
+	}
+
+	void Camera::SetUpVector(glm::vec4 upVec)
+	{
+		m_upVector_W = upVec;
+	}
+	void Camera::SetLookTarget(glm::vec4 lookTarget)
+	{
+		m_lookTarget_W = lookTarget;
+	}
+	void Camera::SetRightVector(glm::vec4 rightVec)
+	{
+		m_rightVector_W = rightVec;
+	}
+	void Camera::SetForwardVector(glm::vec4 forward)
+	{
+		m_forwardVector_W = forward;
+	}
+	void Camera::SetPosition(glm::vec4 position)
+	{
+		m_position_W = position;
+	}
+
+	glm::vec4 Camera::GetUpVector() const
+	{
+		return m_upVector_W;
+	}
+	glm::vec4 Camera::GetLookTarget() const
+	{
+		return m_lookTarget_W;
+	}
+
+	glm::vec4 Camera::GetRightVector() const
+	{
+		return m_rightVector_W;
+	}
+	glm::vec4 Camera::GetForwardVector() const
+	{
+		return m_forwardVector_W;
+	}
+	glm::vec4 Camera::GetPosition() const
+	{
+		return m_position_W;
 	}
 
 	

@@ -27,7 +27,7 @@ namespace Renderer
 		
 	private:
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
-		std::unique_ptr<CameraController> m_CameraController;
+	
 		std::shared_ptr<Camera> m_Camera;
 		std::unique_ptr<TextureCubeMap> m_skyboxTexture;
 

@@ -58,13 +58,16 @@ namespace Renderer
         imageCount = m_swapChain->GetCount();
         m_msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
         m_Camera = std::make_shared<Camera>(m_device.get(), m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
+
+        m_CameraController = std::make_shared<CameraController>(m_Camera);
         m_Scene =std::make_unique<Scene>(m_Camera);
         m_time = Timestep::GetInstance();
 
     }
     void VulkanBaseRenderer::Run() 
     {
-            m_Camera->Update();
+            //m_Camera->Update();
+            m_CameraController->Update();
             UpdateIOInput();
             DrawFrame();
     }

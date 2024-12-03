@@ -7,7 +7,7 @@
 namespace Renderer
 {
 	Scene::Scene(){}
-	Scene::Scene(std::shared_ptr<Camera> cam):m_Camera(cam),m_CameraController(std::make_unique<CameraController>(cam)){}
+	Scene::Scene(std::shared_ptr<Camera> cam):m_Camera(cam){}
 
 	Scene::~Scene()
 	{

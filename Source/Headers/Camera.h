@@ -14,23 +14,21 @@ namespace Renderer
 		alignas(16) glm::mat4 modelMatrix;
 	};
 
-	struct InputStatus
+
+
+	inline glm::vec3 Get3DVectorComponent(const glm::vec4 vec)
 	{
-		glm::vec2 lastMousePos;
-		glm::vec2 mouseDelta;
-		bool isLeftMouseButtonDown;
-		bool isRightMouseButtonDown;
-		bool shouldRotate;
+		return glm::vec3(vec.x, vec.y, vec.z);
+	}
+	inline glm::vec4 Set3DVectorComponent(const glm::vec3 vec)
+	{
+		return glm::vec4(vec.x, vec.y, vec.z, 0);
+	}
 
-		bool shouldMove;
-		bool moveForward;
-		bool moveBackward;
-		bool moveLeft;
-		bool moveRight;
-		bool moveUp;
-		bool moveDown;
-	};
-
+	inline glm::vec4 Set3DPointComponent(const glm::vec3 vec)
+	{
+		return glm::vec4(vec.x, vec.y, vec.z, 1);
+	}
 
 	// Perform a linear interpolation
 	inline double Lerp(float x0, float x1, float a)
@@ -47,7 +45,6 @@ namespace Renderer
 
 	class Camera
 	{
-		friend CameraController;
 	public:
 		Camera(Device* device, float aspectRatio);
 		~Camera();
@@ -61,18 +58,22 @@ namespace Renderer
 		void RotateAroundForwardAxis(float degree);
 		
 		void UpdateViewMatrix(Handedness hand);
-		void UpdateViewMatrixFromLookAt(Handedness hand);
+		void UpdateViewMatrixFromLookAt(Handedness hand, glm::vec3 upVec);
 		void UpdateBufferMemory();
 
 		void DestroyVKResources();
-		void Update();
 
-		inline glm::vec3 Get3DVectorComponent(const glm::vec4 vec);
-		inline glm::vec4 Set3DVectorComponent(const glm::vec3 vec);
+		void SetUpVector(glm::vec4 upVec);
+		void SetLookTarget(glm::vec4 lookTarget);
+		void SetRightVector(glm::vec4 rightVec);
+		void SetForwardVector(glm::vec4 forward);
+		void SetPosition(glm::vec4 position);
 
-		void HandleMouseInputEvent();
-		void HandleKeyboardInputEvent();
-		InputStatus m_cameraInputStatus;
+		glm::vec4 GetUpVector() const;
+		glm::vec4 GetLookTarget() const;
+		glm::vec4 GetRightVector() const;
+		glm::vec4 GetForwardVector() const;
+		glm::vec4 GetPosition() const;
 
 	private:
 		Device* m_device;
