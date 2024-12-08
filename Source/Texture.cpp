@@ -14,7 +14,7 @@ void Texture::DestroyVKResources()
 {
 	vkDestroyImageView(m_device->GetVkDevice(),m_imageView, nullptr);
 	vkDestroyImage(m_device->GetVkDevice(), m_image, nullptr);
-	if (m_sampler)
+	if (m_sampler!=nullptr)
 	{
 		vkDestroySampler(m_device->GetVkDevice(), m_sampler, nullptr);
 	}

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <assert.h>
+#include <vulkan/Initializer.hpp>
 
 void Tools::SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
 	VkImageSubresourceRange subresourceRange,
@@ -190,6 +191,7 @@ void Tools::EndCommandBuffer(Device* device, VkCommandBuffer commandBuffer,VkCom
 
 	vkQueueSubmit(device->GetQueue(flag), 1, &submitInfo, VK_NULL_HANDLE);
 	vkQueueWaitIdle(device->GetQueue(flag));
+	// Wait for the fence to signal that command buffer has finished executing
 
 	vkFreeCommandBuffers(device->GetVkDevice(), pool, 1, &commandBuffer);
 }

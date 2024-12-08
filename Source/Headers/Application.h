@@ -6,7 +6,7 @@
 #include "Window.h"
 #include "Layer.h"
 #include <LayerStack.h>
-#include <Vulkan/VulkanBaseRenderer.h>
+#include <Vulkan/Engine.h>
 #include <Input.h>
 //Libs used for detecting memory leaks
 
@@ -35,7 +35,7 @@ namespace Renderer
 	private:
 		float m_LastFrameTime = 0.0f;
 		std::unique_ptr<Window> m_Window;
-		std::unique_ptr<VulkanBaseRenderer> m_baseRenderer;
+		std::unique_ptr<Engine> m_baseRenderer;
 
 		bool m_Running = true;
 		LayerStack m_LayerStack;

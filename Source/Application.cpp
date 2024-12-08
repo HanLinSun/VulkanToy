@@ -15,7 +15,7 @@ namespace Renderer
 		s_instance = this;
 		m_Window = std::unique_ptr<Window>(Window::Create());
 		m_Window->SetEventCallback(BIND_EVENT_FUNCTION(Application::OnEvent));
-		m_baseRenderer = std::unique_ptr<VulkanBaseRenderer>(new VulkanBaseRenderer(m_Window.get()));
+		m_baseRenderer = std::unique_ptr<Engine>(new Engine(m_Window.get()));
 	 }
 
 	Application::~Application()

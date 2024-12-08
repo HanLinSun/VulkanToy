@@ -72,7 +72,6 @@ namespace Renderer
 					m_CameraInputStatus.lastMousePos = glm::vec2(pos.first, pos.second);
 					m_CameraInputStatus.isLeftMouseButtonDown = true;
 				}
-
 			}
 
 			if (Input::IsMouseButtonPressed(1))

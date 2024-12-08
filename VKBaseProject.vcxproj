@@ -149,8 +149,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat" />
-    <None Include="Shaders\ComputeShader.comp" />
+    <None Include="Shaders\definitions.glsl" />
     <None Include="Shaders\fragShader.glsl" />
+    <None Include="Shaders\random.glsl" />
+    <None Include="Shaders\rayTrace.comp" />
+    <None Include="Shaders\showTexture.frag.glsl" />
+    <None Include="Shaders\showTexture.vert.glsl" />
     <None Include="Shaders\ui.frag.spv" />
     <None Include="Shaders\ui.vert.spv" />
     <None Include="Shaders\vertShader.glsl" />
@@ -198,7 +202,7 @@
     <ClInclude Include="Source\Headers\Vulkan\RenderPass.h" />
     <ClInclude Include="Source\Headers\Vulkan\ShaderModule.h" />
     <ClInclude Include="Source\Headers\Vulkan\Texture.h" />
-    <ClInclude Include="Source\Headers\Vulkan\VulkanBaseRenderer.h" />
+    <ClInclude Include="Source\Headers\Vulkan\Engine.h" />
     <ClInclude Include="Source\Headers\Vulkan\BufferUtils.h" />
     <ClInclude Include="Source\Headers\Vulkan\Device.h" />
     <ClInclude Include="Source\Headers\Vulkan\SwapChain.h" />
@@ -237,7 +241,7 @@
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\Timestep.cpp" />
     <ClCompile Include="Source\Tools.cpp" />
-    <ClCompile Include="Source\VulkanBaseRenderer.cpp" />
+    <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\WindowsInput.cpp" />
     <ClCompile Include="Source\WindowsPlatform.cpp" />
   </ItemGroup>

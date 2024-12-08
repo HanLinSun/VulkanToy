@@ -10,10 +10,10 @@ namespace Renderer
 
 	Camera::Camera(Device* device, float aspectRatio) :m_device(device)
 	{
-		m_position_W = glm::vec4(0.0f, 30.0f, 0.0f,1.0f);
+		m_position_W = glm::vec4(0.0f, 0.0f, 0.0f,1.0f);
 		m_upVector_W = glm::vec4(0.0f, 1.0f, 0.0f,0.0f);
 		
-		m_lookTarget_W = glm::vec4(100.f, 30.0f, 0.0f, 1.0f);
+		m_lookTarget_W = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
 
 		m_forwardVector_W = glm::normalize(m_lookTarget_W -m_position_W);
 
@@ -27,7 +27,7 @@ namespace Renderer
 		m_farClipPlane = 5500.0f;
 		m_fov = 60.0f;
 
-		UpdateViewMatrix(Handedness::RightHanded);
+		UpdateViewMatrixFromLookAt(Handedness::RightHanded, Get3DVectorComponent(m_upVector_W));
 		UpdateProjectionMatrix();
 
 		m_cameraBufferObject.viewMatrix = m_viewMatrix;
@@ -69,7 +69,7 @@ namespace Renderer
 		m_viewMatrix[2] = glm::vec4(m_rightVector_W.z, m_upVector_W.z, m_forwardVector_W.z, 0);
 		m_viewMatrix[3] = glm::vec4(-glm::dot(m_rightVector_W,m_position_W), -glm::dot(m_upVector_W, m_position_W), -glm::dot(m_forwardVector_W, m_position_W),1);
 
-		m_viewMatrix = glm::lookAt(Get3DVectorComponent(m_position_W), Get3DVectorComponent(m_lookTarget_W), Get3DVectorComponent(m_upVector_W));
+		//m_viewMatrix = glm::lookAt(Get3DVectorComponent(m_position_W), Get3DVectorComponent(m_lookTarget_W), Get3DVectorComponent(m_upVector_W));
 
 	}
 
@@ -118,31 +118,6 @@ namespace Renderer
 		m_projectionMatrix = _projectionMatrix;
 	}
 
-	void Camera::RotateAroundForwardAxis(float degree)
-	{
-		glm::vec3 axis = glm::vec3(m_forwardVector_W.x, m_forwardVector_W.y, m_forwardVector_W.z);
-		glm::mat4 _rotationMatrix = glm::rotate(degree, axis);
-		m_upVector_W = _rotationMatrix * m_upVector_W;
-		m_rightVector_W = _rotationMatrix * m_rightVector_W;
-	}
-
-	void Camera::RotateAroundRightAxis(float degree)
-	{
-		glm::vec3 axis = glm::vec3(m_rightVector_W.x, m_rightVector_W.y, m_rightVector_W.z);
-		glm::mat4 _rotationMatrix = glm::rotate(degree, axis);
-		m_forwardVector_W = _rotationMatrix * m_forwardVector_W;
-		m_upVector_W = _rotationMatrix * m_upVector_W;
-	}
-
-	void Camera::RotateAroundUpAxis(float degree)
-	{
-		glm::vec3 axis = glm::vec3(m_upVector_W.x, m_upVector_W.y, m_upVector_W.z);
-		glm::mat4 _rotationMatrix = glm::rotate(degree, axis);
-		m_forwardVector_W = _rotationMatrix * m_forwardVector_W;
-		m_rightVector_W = _rotationMatrix * m_rightVector_W;
-	}
-
-
 	void Camera::DestroyVKResources()
 	{
 		vkUnmapMemory(m_device->GetVkDevice(), m_bufferMemory);
@@ -150,10 +125,7 @@ namespace Renderer
 		vkFreeMemory(m_device->GetVkDevice(), m_bufferMemory, nullptr);
 	}
 
-	Camera::~Camera() 
-	{
-	
-	}
+	Camera::~Camera() {}
 
 	void Camera::SetUpVector(glm::vec4 upVec)
 	{

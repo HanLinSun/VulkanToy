@@ -18,6 +18,26 @@ namespace VulkanInitializer
 		return rect2D;
 	}
 
+	inline VkCommandBufferAllocateInfo CommandBufferAllocateInfo(
+		VkCommandPool commandPool,
+		VkCommandBufferLevel level,
+		uint32_t bufferCount)
+	{
+		VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
+		commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		commandBufferAllocateInfo.commandPool = commandPool;
+		commandBufferAllocateInfo.level = level;
+		commandBufferAllocateInfo.commandBufferCount = bufferCount;
+		return commandBufferAllocateInfo;
+	}
+
+	inline VkCommandBufferBeginInfo CommandBufferBeginInfo()
+	{
+		VkCommandBufferBeginInfo cmdBufferBeginInfo{};
+		cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		return cmdBufferBeginInfo;
+	}
+
 	inline VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo(
 		uint32_t poolSizeCount,
 		VkDescriptorPoolSize* pPoolSizes,
@@ -30,6 +50,15 @@ namespace VulkanInitializer
 		descriptorPoolInfo.maxSets = maxSets;
 		return descriptorPoolInfo;
 	}
+
+	inline VkFenceCreateInfo FenceCreateInfo(VkFenceCreateFlags flags = 0)
+	{
+		VkFenceCreateInfo fenceCreateInfo{};
+		fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceCreateInfo.flags = flags;
+		return fenceCreateInfo;
+	}
+
 
 	inline VkDescriptorPoolSize DescriptorPoolSize(
 		VkDescriptorType type,
@@ -372,6 +401,15 @@ namespace VulkanInitializer
 		VkSemaphoreCreateInfo semaphoreCreateInfo{};
 		semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		return semaphoreCreateInfo;
+	}
+
+	inline VkComputePipelineCreateInfo ComputePipelineCreateInfo(VkPipelineLayout layout, VkPipelineCreateFlags flags =0)
+	{
+		VkComputePipelineCreateInfo computePipelineCreateInfo{};
+		computePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+		computePipelineCreateInfo.layout = layout;
+		computePipelineCreateInfo.flags = flags;
+		return computePipelineCreateInfo;
 	}
 
 }

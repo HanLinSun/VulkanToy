@@ -53,10 +53,6 @@ namespace Renderer
 		glm::mat4 GetViewmatrix();
 		glm::mat4 GetProjectionMatrix();
 
-		void RotateAroundUpAxis(float degree);
-		void RotateAroundRightAxis(float degree);
-		void RotateAroundForwardAxis(float degree);
-		
 		void UpdateViewMatrix(Handedness hand);
 		void UpdateViewMatrixFromLookAt(Handedness hand, glm::vec3 upVec);
 		void UpdateBufferMemory();
@@ -90,18 +86,13 @@ namespace Renderer
 
 		bool m_dirty;
 
-		
-
 		glm::mat4 m_projectionMatrix;
 		glm::mat4 m_viewMatrix;
 
-		//This is all based on World Space
+		//This is all based on World Space(used for 6Dof)
 		glm::vec4 m_upVector_W;
 		glm::vec4 m_forwardVector_W;
 		glm::vec4 m_rightVector_W;
-
-		float yaw=0.f;
-		float pitch=0.f;
 
 		glm::vec4 m_position_W;
 		glm::vec4 m_lookTarget_W;

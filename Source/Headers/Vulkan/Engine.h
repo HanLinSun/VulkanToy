@@ -19,7 +19,6 @@ const uint32_t HEIGHT = 720;
 
 const std::string MODEL_PATH = "./Models/Sponza/sponza.obj";
 const std::string MODEL_FILE_PATH = "./Models/Sponza/";
-
 const std::string SKYBOX_CUBEMAP_PATH = "./Textures/Skybox/";
 
 const std::vector<std::string> cubeMapPaths
@@ -83,13 +82,40 @@ struct ThreadData
 	//std::vector<ObjectData> objectData;
 };
 
+// Resources for the compute part of the example
+struct ComputeResource {
+	// Object properties for planes and spheres are passed via a shade storage buffer
+	// There is no vertex data, the compute shader calculates the primitives on the fly
+	Buffer objectStorageBuffer;
+	Buffer uniformBuffer;										// Uniform buffer object containing scene parameters
+	//VkQueue queue{ VK_NULL_HANDLE };								// Separate queue for compute commands (queue family may differ from the one used for graphics)
+	VkCommandPool commandPool{ VK_NULL_HANDLE };					// Use a separate command pool (queue family may differ from the one used for graphics)
+	VkCommandBuffer commandBuffer{ VK_NULL_HANDLE };				// Command buffer storing the dispatch commands and barriers
+	VkFence fence{ VK_NULL_HANDLE };								// Synchronization fence to avoid rewriting compute CB if still in use
+	VkDescriptorSetLayout descriptorSetLayout{ VK_NULL_HANDLE };	// Compute shader binding layout
+	VkDescriptorSet descriptorSet{ VK_NULL_HANDLE };				// Compute shader bindings
+	VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };				// Layout of the compute pipeline
+	VkPipeline pipeline{ VK_NULL_HANDLE };							// Compute raytracing pipeline
+	struct UniformDataCompute {										   // Compute shader uniform block object
+		glm::vec3 lightPos;
+		float aspectRatio{ 1.0f };
+		glm::vec4 fogColor = glm::vec4(0.0f);
+		struct {
+			glm::vec3 pos = glm::vec3(0.0f, 0.0f, 4.0f);
+			glm::vec3 lookat = glm::vec3(0.0f, 0.5f, 0.0f);
+			float fov = 10.0f;
+		} camera;
+		glm::mat4 _pad;
+	} uniformData;
+};
+
 
 namespace Renderer
 {
-	class VulkanBaseRenderer
+	class Engine
 	{
 	public:
-		VulkanBaseRenderer(Window* targetWindow);
+		Engine(Window* targetWindow);
 		void Run();
 		void Destroy();
 		void Cleanup();
@@ -100,6 +126,8 @@ namespace Renderer
 		void InitGUILayerAttribute();
 		void InitVulkan();
 
+
+		std::vector<VkSampler> temp_samplers;
 	private:
 
 		std::shared_ptr<Device> m_device;
@@ -109,10 +137,10 @@ namespace Renderer
 
 		VkDebugUtilsMessengerEXT m_debugMessenger;
 		VkSurfaceKHR m_surface;
-		VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 		VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		VkQueue m_presentQueue;
+				
 		//VkSwapchainKHR m_swapChain;
 
 		std::vector<VkImageView> m_imageViews;
@@ -126,8 +154,7 @@ namespace Renderer
 		VkPipelineLayout m_graphicPipelineLayout;
 
 		VkPipeline m_graphicsPipeline;
-		//RayTrace compute pipeline
-		VkPipeline m_computePipeline;
+		VkPipelineCache m_pipelineCache{ VK_NULL_HANDLE };
 
 		//This new image will have to store the desired number of samples per pixel
 		VkImage m_colorImage;
@@ -152,13 +179,15 @@ namespace Renderer
 
 		std::vector<VkCommandBuffer> m_commandBuffers;
 
-
 		struct
 		{
 			VkSemaphore presentComplete;
-
 			VkSemaphore renderComplete;
 		}m_Semaphores;
+
+
+		ComputeResource m_rayTraceResources;
+		Texture m_storageImage;
 
 		std::vector<VkFence> m_waitFences;
 
@@ -186,6 +215,8 @@ namespace Renderer
 		int ScreenWidth;
 		int ScreenHeight;
 
+		bool m_runRaytracePipeline;
+
 		//update time
 		std::chrono::time_point<std::chrono::high_resolution_clock> lastTimeStamp, tPrevEnd;
 
@@ -209,6 +240,8 @@ namespace Renderer
 
 		void CreateSynchronizationPrimitives();
 
+		void CreatePipelineCache();
+
 		void SetupDebugMessenger();
 
 		void CreateSurface(); 
@@ -223,11 +256,9 @@ namespace Renderer
 
 		void CreateGraphicsPipeline();
 
-		void CreateComputePipeline();
-
 		void CreateFrameResources();
 
-		void CreateCommandPool(VkCommandPool* commandPool);
+		void CreateGraphicsCommandPool(VkCommandPool* commandPool);
 
 		bool HasStencilComponent(VkFormat format);
 
@@ -251,7 +282,15 @@ namespace Renderer
 
 		void CreateSkyboxCubeMap(std::string cubeMap_texturePath);
 
+		//Raytrace Compute Pipeline
+		void CreateRayTracePipeline();
+		void CreateRayTraceCommandPool(VkCommandPool* commandPool);
+		void CreateRayTraceDescriptorSet();
+		void CreateRayTraceStorageImage();
+		//
 		void DrawFrame();
+
+		void RecordComputeCommandBuffer();
 
 		void LoadCubeMapTexture(std::vector<std::string>& texturePath );
 

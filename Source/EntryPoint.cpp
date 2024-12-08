@@ -1,4 +1,3 @@
-#include "Headers/Vulkan/VulkanBaseRenderer.h"
 #include "Headers/RenderApplication.h"
 #include <Log.h>
 
