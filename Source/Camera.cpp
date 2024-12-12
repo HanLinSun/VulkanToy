@@ -48,14 +48,12 @@ namespace Renderer
 		return m_buffer;
 	}
 
-
-
-	glm::mat4 Camera::GetProjectionMatrix()
+	glm::mat4 Camera::GetProjectionMatrix() const
 	{
 		return m_projectionMatrix;
 	}
 
-	glm::mat4 Camera::GetViewmatrix()
+	glm::mat4 Camera::GetViewmatrix() const
 	{
 		return m_viewMatrix;
 	}
@@ -68,8 +66,6 @@ namespace Renderer
 		m_viewMatrix[1] = glm::vec4(m_rightVector_W.y, m_upVector_W.y, m_forwardVector_W.y, 0);
 		m_viewMatrix[2] = glm::vec4(m_rightVector_W.z, m_upVector_W.z, m_forwardVector_W.z, 0);
 		m_viewMatrix[3] = glm::vec4(-glm::dot(m_rightVector_W,m_position_W), -glm::dot(m_upVector_W, m_position_W), -glm::dot(m_forwardVector_W, m_position_W),1);
-
-		//m_viewMatrix = glm::lookAt(Get3DVectorComponent(m_position_W), Get3DVectorComponent(m_lookTarget_W), Get3DVectorComponent(m_upVector_W));
 
 	}
 
@@ -168,6 +164,16 @@ namespace Renderer
 	glm::vec4 Camera::GetPosition() const
 	{
 		return m_position_W;
+	}
+
+	float Camera::GetAspectRatio() const
+	{
+		return m_aspectRatio;
+	}
+
+	float Camera::GetFOV() const
+	{
+		return m_fov;
 	}
 
 	

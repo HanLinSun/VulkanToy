@@ -4,6 +4,7 @@
 #include <cstring>
 VkResult Buffer::Map(VkDeviceSize size, VkDeviceSize offset)
 {
+	//used for writing data to GPU memory, mapped is a pointer to GPU memory address
 	return vkMapMemory(device->GetVkDevice(), memory, offset, size, 0, &mapped);
 }
 
@@ -11,6 +12,10 @@ void Buffer::Unmap()
 {
 	if (mapped)
 	{
+		//Unmaps a previously mapped GPU memory region, making it inaccessible to the CPU.
+		//You must call VkUnmapMemory to release the mapping when you are done accessing the memory.
+		//The memory is no longer accessible to the CPU after it is unmapped.
+
 		vkUnmapMemory(device->GetVkDevice(), memory);
 		mapped = nullptr;
 	}

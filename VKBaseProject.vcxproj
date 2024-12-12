@@ -236,6 +236,8 @@
     <ClCompile Include="Source\Materials.cpp" />
     <ClCompile Include="Source\Model.cpp" />
     <ClCompile Include="Source\ModelFileLoader.cpp" />
+    <ClCompile Include="Source\RenderModule\RayTraceModule.cpp" />
+    <ClCompile Include="Source\Render\RayTraceModule.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\SwapChain.cpp" />
     <ClCompile Include="Source\Texture.cpp" />

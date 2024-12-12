@@ -68,8 +68,7 @@ namespace Renderer
 		auto& attrib = reader.GetAttrib();
 		auto& shapes = reader.GetShapes();
 		auto& materials = reader.GetMaterials();
-
-	
+			
 		//Read material
 		for (auto& material : materials)
 		{
@@ -79,10 +78,8 @@ namespace Renderer
 			load_mat->SetEmissiveColor(glm::vec4(material.emission[0], material.emission[1], material.emission[2], 1));
 			load_mat->SetSpecularColor(glm::vec4(material.specular[0], material.specular[1], material.specular[2], 1));
 			load_mat->SetIndexOfRefraction((float)material.ior);
-
 			load_mat->SetRoughness(material.roughness);
 			load_mat->SetMetallic(material.metallic);
-
 			load_mat->SetClearCoatRoughness(material.clearcoat_roughness);
 			load_mat->SetClearCoatThickness(material.clearcoat_thickness);
 			
@@ -183,7 +180,6 @@ namespace Renderer
 					}
 
 					Vertex vert = { temp_position,temp_normal,temp_color,temp_uv };
-
 					_triangle.verts.push_back(vert);
 
 					if (uniqueVertices.count(vert) == 0) {

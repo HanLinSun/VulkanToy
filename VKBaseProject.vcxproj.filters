@@ -61,6 +61,12 @@
     <Filter Include="Header\Scene">
       <UniqueIdentifier>{796aac14-8112-48c5-bdff-3c88c598ab56}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header\Render">
+      <UniqueIdentifier>{a0872045-c182-4f66-b32d-91f0cee37aca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render">
+      <UniqueIdentifier>{dd458f3a-224f-43a5-aa67-9a0fe39da5f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat">
@@ -193,6 +199,9 @@
     </ClCompile>
     <ClCompile Include="Source\Buffer.cpp">
       <Filter>Source\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\RenderModule\RayTraceModule.cpp">
+      <Filter>Source\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -342,6 +351,9 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\Vulkan\Buffer.h">
       <Filter>Header\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\RenderModule\RayTraceModule.h">
+      <Filter>Header\Render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

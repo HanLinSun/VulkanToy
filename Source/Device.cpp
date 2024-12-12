@@ -26,9 +26,9 @@ VkCommandPool Device::GetGraphicCommandPool()
 	return m_graphicsCommandPool;
 }
 
-SwapChain* Device::CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers, GLFWwindow* window)
+std::shared_ptr<SwapChain> Device::CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers, GLFWwindow* window)
 {
-	return new SwapChain(this, surface, numBuffers, window);
+	return std::make_shared<SwapChain>(shared_from_this(), surface, numBuffers, window);
 }
 
 void Device::DestroyVKResources()

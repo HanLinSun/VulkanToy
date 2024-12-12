@@ -14,16 +14,15 @@ namespace Renderer
 		glm::vec3 color;
 		glm::vec2 texCoord;
 
-		static VkVertexInputBindingDescription getBindingDescription() {
+		static VkVertexInputBindingDescription GetBindingDescription() {
 			VkVertexInputBindingDescription bindingDescription{};
 			bindingDescription.binding = 0;
 			bindingDescription.stride = sizeof(Vertex);
 			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
 			return bindingDescription;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions() {
+		static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions() {
 			std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
 
 			attributeDescriptions[0].binding = 0;

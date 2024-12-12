@@ -29,12 +29,10 @@ namespace Renderer
 				std::vector<std::shared_ptr<Material>> mats = objFileloader->GetMaterials();
 				for (auto& mesh : objFileloader->GetMeshes())
 				{
-					Model* model=new Model(m_device.get(), m_commandPool, mesh.m_vertices, mesh.m_indices, mats[mesh.m_materialID]);
+					Model* model=new Model(m_device.get(), m_commandPool, mesh.m_vertices, mesh.m_indices, mats[mesh.m_materialID],mesh.m_triangles);
 					modelGroup->AddModel(model);
 				}
 
-				//I guess here I met the pronlem that material was deleted twice so I got heap not valid 
-				
 				for (auto& ptr : mats)
 				{
 					modelGroup->AddMaterial(ptr);

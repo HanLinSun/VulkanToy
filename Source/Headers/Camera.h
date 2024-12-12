@@ -50,8 +50,11 @@ namespace Renderer
 		~Camera();
 
 		VkBuffer GetBuffer() const;
-		glm::mat4 GetViewmatrix();
-		glm::mat4 GetProjectionMatrix();
+		glm::mat4 GetViewmatrix() const;
+		glm::mat4 GetProjectionMatrix() const;
+		float GetAspectRatio() const;
+		float GetFOV() const;
+
 
 		void UpdateViewMatrix(Handedness hand);
 		void UpdateViewMatrixFromLookAt(Handedness hand, glm::vec3 upVec);

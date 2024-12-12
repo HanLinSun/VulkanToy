@@ -14,8 +14,6 @@ static void check_vk_result(VkResult err)
 
 namespace Tools
 {
-
-
 	VkBool32 GetSupportedDepthFormat(VkPhysicalDevice physicalDevice, VkFormat* depthFormat);
 	// Same as getSupportedDepthFormat but will only select formats that also have stencil
 	VkBool32 GetSupportedDepthStencilFormat(VkPhysicalDevice physicalDevice, VkFormat* depthStencilFormat);
@@ -34,6 +32,9 @@ namespace Tools
 	void EndCommandBuffer(Device* device, VkCommandBuffer commandBuffer, VkCommandPool pool, QueueFlags flag);
 
 	VkShaderModule CreateShaderModule(Device* device, const char* fileName);
+	VkShaderModule CreateShaderModule(Device* device, const std::vector<char>& code);
+
+
 	VkPipelineShaderStageCreateInfo LoadShader(Device* device, std::string fileName, VkShaderStageFlagBits stage, VkShaderModule& shaderModule);
 
 
@@ -70,4 +71,8 @@ namespace Tools
 	void CreateCubeMapImage(Device* device, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 	VkSampler CreateImageSampler(Device* device, float maxAnisotropy, float maxlod, VkSampler& sampler);
 	VkImageView CreateImageView(Device* device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+
+
+
+	std::vector<char> ReadFile(const std::string& filename);
 }

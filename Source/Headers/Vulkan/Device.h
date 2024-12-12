@@ -5,16 +5,17 @@
 #include "QueueFlags.h"
 #include "SwapChain.h"
 #include <glfw/glfw3.h>
+#include <memory>
 
 class SwapChain;
 class Instance;
-class Device
+class Device: public std::enable_shared_from_this<Device>
 {
 
 	using Queues = std::array<VkQueue, sizeof(QueueFlags)>;
 	friend class Instance;
 public:
-	SwapChain* CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers, GLFWwindow* window);
+	std::shared_ptr<SwapChain> CreateSwapChain(VkSurfaceKHR surface, unsigned int numBuffers, GLFWwindow* window);
 	Instance* GetInstance();
 	VkDevice GetVkDevice();
 	VkQueue GetQueue(QueueFlags flag);

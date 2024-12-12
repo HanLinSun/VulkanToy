@@ -8,6 +8,7 @@ double previousX = 0.0;
 double previousY = 0.0;
 
 
+
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
@@ -54,9 +55,12 @@ namespace Renderer
 
         m_device = m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit);
         m_swapChain = m_device->CreateSwapChain(m_surface, 3 , m_window);
+
         m_skyboxTexture = std::make_unique<TextureCubeMap>();
         imageCount = m_swapChain->GetCount();
         m_msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
+
+        m_RayTraceModule = std::make_unique<RayTraceModule>(m_device);
 
         m_Camera = std::make_shared<Camera>(m_device.get(), m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
         m_CameraController = std::make_shared<CameraController>(m_Camera);
@@ -70,13 +74,6 @@ namespace Renderer
             m_CameraController->Update();
             UpdateIOInput();
             DrawFrame();
-    }
-
-
-    void Engine::OnEvent(Event& e)
-    {
-
-
     }
 
     void Engine::UpdateIOInput()
@@ -109,8 +106,6 @@ namespace Renderer
             std::cout << "Loading Skybox texture failed" << std::endl;
         }
     }
-
-
 
     VkSampleCountFlagBits Engine::GetMaxUsableSampleCount(VkPhysicalDevice physicalDevice)
     {
@@ -151,8 +146,10 @@ namespace Renderer
         Loader loader(m_device, m_device->GetGraphicCommandPool());
         std::unique_ptr<ModelGroup> modelgroup=std::make_unique<ModelGroup>();
         loader.LoadModel(model_path, model_folder_path, modelgroup.get());
+
         m_Scene->AddModelGroup(std::move(modelgroup));
     }
+
     void Engine::InitVulkan() {
 
         SetupDebugMessenger();
@@ -161,20 +158,37 @@ namespace Renderer
         LoadModel(MODEL_PATH,MODEL_FILE_PATH);
         
         CreateRenderPass();
-        CreateCameraDescriptorSetLayout();
-        CreateModelDescriptorSetLayout();
+
         CreatePipelineCache();
+        CreateDescriptorPool();
+
+        if (!m_runRaytracePipeline)
+        {
+            //Graphic Render Pipeline
+            CreateCameraDescriptorSets();
+            CreateCameraDescriptorSetLayout();
+            CreateModelDescriptorSetLayout();
+        }
+        else
+        {
+            //This function creates graphics part of descriptor layout and descriptor sets
+            CreateRayTraceGraphicDescriptorResources();
+            m_RayTraceModule->CreateRayTraceStorageImage(m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height);
+            m_RayTraceModule->CreateDescriptorPool(m_descriptorPool);
+            m_RayTraceModule->CreateRayTracePipeline();
+        }
+
         CreateGraphicsPipeline();
         CreateFrameResources();
 
-        CreateDescriptorPool();
-        CreateCameraDescriptorSets();
+
         CreateSubmitInfo();
         //Shader binding num is 2 by now and in future may need refractor
         CreateModelDescriptorSets(2);
 
         CreateCommandBuffers();
         CreateSyncObjects();
+        
  
     }
 
@@ -249,6 +263,8 @@ namespace Renderer
         }
 
         m_instance->DestroyVKResources();
+
+        //delete[] m_swapChain;
         glfwDestroyWindow(m_window);
         glfwTerminate();
     }
@@ -438,11 +454,23 @@ namespace Renderer
     }
 
     void Engine::CreateGraphicsPipeline() {
-        auto vertShaderCode = readFile("./Shaders/VertexShader.spv");
-        auto fragShaderCode = readFile("./Shaders/FragmentShader.spv");
+        
+        std::vector<char> vertShaderCode;
+        std::vector<char> fragShaderCode;
 
-        VkShaderModule vertShaderModule = CreateShaderModule(vertShaderCode);
-        VkShaderModule fragShaderModule = CreateShaderModule(fragShaderCode);
+        if (m_runRaytracePipeline)
+        {
+            vertShaderCode = Tools::ReadFile("./Shaders/showTexture.vert.spv");
+            fragShaderCode = Tools::ReadFile("./Shaders/showTexture.frag.spv");
+        }
+        else
+        {
+            vertShaderCode = Tools::ReadFile("./Shaders/VertexShader.spv");
+            fragShaderCode = Tools::ReadFile("./Shaders/FragmentShader.spv");
+        }
+
+        VkShaderModule vertShaderModule = Tools::CreateShaderModule(m_device.get(),vertShaderCode);
+        VkShaderModule fragShaderModule = Tools::CreateShaderModule(m_device.get(),fragShaderCode);
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -461,8 +489,8 @@ namespace Renderer
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        auto bindingDescription = Vertex::getBindingDescription();
-        auto attributeDescriptions = Vertex::getAttributeDescriptions();
+        auto bindingDescription = Vertex::GetBindingDescription();
+        auto attributeDescriptions = Vertex::GetAttributeDescriptions();
 
         vertexInputInfo.vertexBindingDescriptionCount = 1;
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -565,6 +593,7 @@ namespace Renderer
         vkDestroyShaderModule(m_device->GetVkDevice(), fragShaderModule, nullptr);
         vkDestroyShaderModule(m_device->GetVkDevice(), vertShaderModule, nullptr);
     }
+
     void Engine::CreatePipelineCache()
     {
         VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
@@ -618,6 +647,7 @@ namespace Renderer
             }
         }
     }
+
     void Engine::CreateGraphicsCommandPool(VkCommandPool* commandPool) {
  
         VkCommandPoolCreateInfo poolInfo{};
@@ -639,7 +669,6 @@ namespace Renderer
     void Engine::CreateDescriptorPool() {
 
         int modelNum = GetSceneModelTotalSize(m_Scene.get());
-
         std::vector<VkDescriptorPoolSize> poolSizes=  {
             //Camera
             { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ,1},
@@ -651,7 +680,7 @@ namespace Renderer
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
         poolInfo.pPoolSizes = poolSizes.data();
-        //// Max. number of descriptor sets that can be allocated from this pool (one per object)
+        // Max. number of descriptor sets that can be allocated from this pool (one per object)
         poolInfo.maxSets =1 + static_cast<uint32_t>(modelNum);
 
         if (vkCreateDescriptorPool(m_device->GetVkDevice(), &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS) {
@@ -730,7 +759,6 @@ namespace Renderer
                 Material* mat = t_modelGroup->GetModelAt(j)->GetMaterial();
                 Texture* ambientTexture = mat->GetTexture(TextureType::Ambient).get();
 
-
                 if (ambientTexture != nullptr) {
                     diffuse_imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                     diffuse_imageInfo[j].imageView = ambientTexture->m_imageView;
@@ -765,6 +793,27 @@ namespace Renderer
             }
         }
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+    }
+
+    //This function creates graphics part of descriptor layout and descriptor sets
+    void Engine::CreateRayTraceGraphicDescriptorResources()
+    {
+        
+        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = {
+             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
+        };
+
+        VkDescriptorSetLayoutCreateInfo descriptorLayout = VulkanInitializer::DescriptorSetLayoutCreateInfo(setLayoutBindings);
+        check_vk_result(vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &descriptorLayout, nullptr, &m_rayTraceGraphicsDescriptorLayout));
+
+        VkDescriptorSetAllocateInfo allocInfo = VulkanInitializer::DescriptorSetAllocateInfo(m_descriptorPool, &m_rayTraceGraphicsDescriptorLayout, 1);
+        check_vk_result(vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, &m_rayTraceGraphicsDescriptorSet));
+
+        std::vector<VkWriteDescriptorSet> writeDescriptorSets = {
+             VulkanInitializer::WriteDescriptorSet(m_rayTraceGraphicsDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, &m_RayTraceModule->GetStorageImage().descriptor)
+        };
+        vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
+
     }
 
     void Engine::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
@@ -820,7 +869,8 @@ namespace Renderer
         }
     }
 
-    void Engine::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+    void Engine::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+    {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -886,7 +936,6 @@ namespace Renderer
             }
         }
 
-
         //Draw ImGUI here
         m_ImGuiLayer->DrawFrame(commandBuffer);
 
@@ -894,6 +943,76 @@ namespace Renderer
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             throw std::runtime_error("failed to record command buffer!");
         }
+    }
+
+    void Engine::RecordRayTraceGraphicCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
+    {
+        VkCommandBufferBeginInfo beginInfo = VulkanInitializer::CommandBufferBeginInfo();
+
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = m_renderPass;
+        renderPassInfo.framebuffer = m_framebuffers[imageIndex];
+        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.extent = m_swapChain->GetVkExtent();
+
+        std::array<VkClearValue, 2> clearValues{};
+        clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+        clearValues[1].depthStencil = { 1.0f, 0 };
+        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+        renderPassInfo.pClearValues = clearValues.data();
+
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+            throw std::runtime_error("failed to begin recording command buffer!");
+        }
+
+        // Image memory barrier to make sure that compute shader writes are finished before sampling from the texture
+        VkImageMemoryBarrier imageMemoryBarrier = {};
+        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+        imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+        imageMemoryBarrier.image = m_RayTraceModule->GetStorageImage().m_image;
+        imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+        // Acquire barrier for graphics queue
+        imageMemoryBarrier.srcAccessMask = 0;
+        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        imageMemoryBarrier.srcQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Compute);
+        imageMemoryBarrier.dstQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Graphics);
+            vkCmdPipelineBarrier(
+                commandBuffer,
+                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                0,
+                0, nullptr,
+                0, nullptr,
+                1, &imageMemoryBarrier);
+
+
+        // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_cameraDescriptorSet, 0, nullptr);
+
+        vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float)m_swapChain->GetVkExtent().width;
+        viewport.height = (float)m_swapChain->GetVkExtent().height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+        // When enable the VK_DYNAMIC_STATE_SCISSOR in your pipeline, 
+        // Vulkan API expects you to explicitly set the scissor region using vkCmdSetScissor() before issuing any draw commands that rely on it.
+
+        VkRect2D scissor{};
+        scissor.offset = { 0, 0 };
+        scissor.extent = m_swapChain->GetVkExtent();;
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
     }
 
     void Engine::CreateSyncObjects() {
@@ -998,20 +1117,6 @@ namespace Renderer
        // RecordCommandBuffers();
     }
 
-    VkShaderModule Engine::CreateShaderModule(const std::vector<char>& code) {
-        VkShaderModuleCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = code.size();
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
-
-        VkShaderModule shaderModule;
-        if (vkCreateShaderModule(m_device->GetVkDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create shader module!");
-        }
-
-        return shaderModule;
-    }
-
     VkPresentModeKHR Engine::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
         for (const auto& availablePresentMode : availablePresentModes) {
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -1079,215 +1184,9 @@ namespace Renderer
         return true;
     }
 
-    std::vector<char> Engine::readFile(const std::string& filename) {
-        std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-        if (!file.is_open()) {
-            throw std::runtime_error("failed to open file!");
-        }
-
-        size_t fileSize = (size_t)file.tellg();
-        std::vector<char> buffer(fileSize);
-
-        file.seekg(0);
-        file.read(buffer.data(), fileSize);
-
-        file.close();
-
-        return buffer;
-    }
-
     void Engine::SetLayerStack(LayerStack* in_layerStack) 
     {
         m_layerStack = in_layerStack;
-    }
-
-    //Compute RayTrace Pipeline Functions
-    void Engine::CreateRayTracePipeline()
-    {
-        CreateRayTraceDescriptorSet();
-        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = VulkanInitializer::PipelineLayoutCreateInfo(&m_rayTraceResources.descriptorSetLayout, 1);
-        check_vk_result(vkCreatePipelineLayout(m_device->GetVkDevice(), &pipelineLayoutCreateInfo, nullptr, &m_rayTraceResources.pipelineLayout));
-
-        VkComputePipelineCreateInfo computePipelineCreateInfo = VulkanInitializer::ComputePipelineCreateInfo(m_rayTraceResources.pipelineLayout, 0);
-        auto compShaderCode = readFile("./Shaders/rayTrace.spv");
-
-        VkShaderModule computeShaderModule = CreateShaderModule(compShaderCode);
-
-        VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
-        computeShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        computeShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-        computeShaderStageInfo.module = computeShaderModule;
-        computeShaderStageInfo.pName = "main";
-
-        computePipelineCreateInfo.stage = computeShaderStageInfo;
-        check_vk_result(vkCreateComputePipelines(m_device->GetVkDevice(), nullptr, 1, &computePipelineCreateInfo, nullptr, &m_rayTraceResources.pipeline));
-
-        CreateRayTraceCommandPool(&m_rayTraceResources.commandPool);
-
-        // Create a command buffer for compute operations
-        VkCommandBufferAllocateInfo cmdBufAllocateInfo =VulkanInitializer::CommandBufferAllocateInfo(m_rayTraceResources.commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY, 1);
-        check_vk_result(vkAllocateCommandBuffers(m_device->GetVkDevice(), &cmdBufAllocateInfo, &m_rayTraceResources.commandBuffer));
-
-        // Fence for compute CB sync
-        VkFenceCreateInfo fenceCreateInfo = VulkanInitializer::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
-        check_vk_result(vkCreateFence(m_device->GetVkDevice(), &fenceCreateInfo, nullptr, &m_rayTraceResources.fence));
-
-    }
-
-    void Engine::CreateRayTraceCommandPool(VkCommandPool* commandPool)
-    {
-        VkCommandPoolCreateInfo cmdPoolInfo = {};
-        cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        cmdPoolInfo.queueFamilyIndex = m_device->GetInstance()->GetQueueFamilyIndices()[QueueFlags::Compute];
-        cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        check_vk_result(vkCreateCommandPool(m_device->GetVkDevice(), &cmdPoolInfo, nullptr, commandPool));
-
-    }
-
-    void Engine::RecordComputeCommandBuffer()
-    {
-        VkCommandBufferBeginInfo cmdCommandBufferBeginInfo = VulkanInitializer::CommandBufferBeginInfo();
-        check_vk_result(vkBeginCommandBuffer(m_rayTraceResources.commandBuffer, &cmdCommandBufferBeginInfo));
-
-        // Image memory barrier to make sure that compute shader writes are finished before sampling from the texture
-        VkImageMemoryBarrier imageMemoryBarrier = { };
-        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER; 
-        imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier.image = m_storageImage.m_image;
-        imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT,0,1,0,1 };
-
-        //Acquire barrier for graphics queue
-        imageMemoryBarrier.srcAccessMask = 0;
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        imageMemoryBarrier.srcQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Compute);
-        imageMemoryBarrier.dstQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Graphics);
-        vkCmdPipelineBarrier(m_rayTraceResources.commandBuffer,
-            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,0,
-            0, nullptr,
-            0, nullptr,
-            1, &imageMemoryBarrier);
-
-        vkCmdBindPipeline(m_rayTraceResources.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_rayTraceResources.pipeline);
-        vkCmdBindDescriptorSets(m_rayTraceResources.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_rayTraceResources.pipelineLayout, 0, 1, &m_rayTraceResources.descriptorSet, 0, 0);
-
-        vkCmdDispatch(m_rayTraceResources.commandBuffer, m_storageImage.width / 32, m_storageImage.height / 32, 1);
-
-        // Release barrier from compute queue
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        imageMemoryBarrier.dstAccessMask = 0;
-        imageMemoryBarrier.srcQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Compute);
-        imageMemoryBarrier.dstQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Graphics);
-        vkCmdPipelineBarrier(
-            m_rayTraceResources.commandBuffer,
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,0,
-            0, nullptr,
-            0, nullptr,
-            1, &imageMemoryBarrier);
-
-        vkEndCommandBuffer(m_rayTraceResources.commandBuffer);
-    }
-
-    void Engine::CreateRayTraceDescriptorSet()
-    {
-        // The compute pipeline uses one set and four bindings
-        // Binding 0: Storage image for raytraced output
-        // Binding 1: Uniform buffer with parameters
-        // Binding 2: Shader storage buffer with scene object definitions
-        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = 
-        {
-            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT, 0),
-            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 1),
-            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 2),
-        };
-
-        VkDescriptorSetLayoutCreateInfo descriptorLayout = VulkanInitializer::DescriptorSetLayoutCreateInfo(setLayoutBindings);
-        check_vk_result(vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &descriptorLayout, nullptr, &m_rayTraceResources.descriptorSetLayout));
-
-        VkDescriptorSetAllocateInfo allocInfo = VulkanInitializer::DescriptorSetAllocateInfo(m_descriptorPool, &m_rayTraceResources.descriptorSetLayout, 1);
-        check_vk_result(vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, &m_rayTraceResources.descriptorSet));
-        std::vector<VkWriteDescriptorSet> computeWriteDescriptorSets = {
-            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 0, &m_storageImage.descriptor),
-            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &m_rayTraceResources.uniformBuffer.descriptor),
-            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2, &m_rayTraceResources.objectStorageBuffer.descriptor),
-        };
-
-        vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(computeWriteDescriptorSets.size()), computeWriteDescriptorSets.data(), 0, nullptr);
-    }
-
-    void Engine::CreateRayTraceStorageImage()
-    {
-        const VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
-        VkFormatProperties formatProperties;
-        vkGetPhysicalDeviceFormatProperties(m_device->GetInstance()->GetPhysicalDevice(),format,&formatProperties);
-        if (!formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT)
-        {
-            LOG_CLIENT_ERROR("Raytrace required storage format is not supported");
-            return;
-        }
-        m_storageImage.width = m_swapChain->GetVkExtent().width;
-        m_storageImage.height = m_swapChain->GetVkExtent().height;
-
-        Tools::CreateImage(m_device.get(), m_storageImage.width, m_storageImage.height, 1, VK_SAMPLE_COUNT_1_BIT, 
-            format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-            m_storageImage.m_image,m_storageImage.m_imageDeviceMemory);
-
-        m_storageImage.m_imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        //Compute Shader have different  layout mask(need to write a function to handle it differently)
-        Tools::TransitionImageLayout(m_device.get(), m_storageImage.m_image, VK_IMAGE_LAYOUT_UNDEFINED, m_storageImage.m_imageLayout, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
-
-        VkCommandBuffer cmd = Tools::CreateCommandBuffer(m_device.get(), VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_device->GetGraphicCommandPool(), true);
-
-        VkImageMemoryBarrier imageMemoryBarrier = {};
-        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier.image = m_storageImage.m_image;
-        imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        imageMemoryBarrier.dstAccessMask = 0;
-        imageMemoryBarrier.srcQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Graphics);
-        imageMemoryBarrier.dstQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Compute);
-        vkCmdPipelineBarrier(
-            cmd,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &imageMemoryBarrier);
-
-        Tools::EndCommandBuffer(m_device.get(), cmd, m_device->GetGraphicCommandPool(), QueueFlags::Graphics);
-
-        // Create sampler
-        VkSamplerCreateInfo sampler = VulkanInitializer::SamplerCreateInfo();
-        sampler.magFilter = VK_FILTER_LINEAR;
-        sampler.minFilter = VK_FILTER_LINEAR;
-        sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-        sampler.addressModeV = sampler.addressModeU;
-        sampler.addressModeW = sampler.addressModeU;
-        sampler.mipLodBias = 0.0f;
-        sampler.maxAnisotropy = 1.0f;
-        sampler.compareOp = VK_COMPARE_OP_NEVER;
-        sampler.minLod = 0.0f;
-        sampler.maxLod = 0.0f;
-        sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-        check_vk_result(vkCreateSampler(m_device->GetVkDevice(), &sampler, nullptr, &m_storageImage.m_sampler));
-
-        // Create image view
-        VkImageViewCreateInfo view = VulkanInitializer::ImageViewCreateInfo();
-        view.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        view.format = format;
-        view.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-        view.image = m_storageImage.m_image;
-        check_vk_result(vkCreateImageView(m_device->GetVkDevice(), &view, nullptr, &m_storageImage.m_imageView));
-
-        m_storageImage.UpdateDescriptor();
-        m_storageImage.m_device = m_device;
     }
 
 };

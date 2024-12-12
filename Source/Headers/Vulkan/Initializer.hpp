@@ -51,6 +51,19 @@ namespace VulkanInitializer
 		return descriptorPoolInfo;
 	}
 
+
+	inline VkDescriptorPoolCreateInfo DescriptorPoolCreateInfo(
+		const std::vector<VkDescriptorPoolSize>& poolSizes,
+		uint32_t maxSets)
+	{
+		VkDescriptorPoolCreateInfo descriptorPoolInfo{};
+		descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+		descriptorPoolInfo.pPoolSizes = poolSizes.data();
+		descriptorPoolInfo.maxSets = maxSets;
+		return descriptorPoolInfo;
+	}
+
 	inline VkFenceCreateInfo FenceCreateInfo(VkFenceCreateFlags flags = 0)
 	{
 		VkFenceCreateInfo fenceCreateInfo{};

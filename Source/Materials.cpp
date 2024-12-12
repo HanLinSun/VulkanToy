@@ -36,7 +36,6 @@ void Material::DestroyResources()
         }
     }
 }
-
 void Material::SetAmbientColor(const glm::vec4& ambient)
 {
 	m_MaterialProperties->Ambient = ambient;
@@ -108,7 +107,6 @@ float Material::GetRoughness() const
 {
     return m_MaterialProperties->Roughness;
 }
-
 void Material::SetRoughness(float roughness) 
 {
     m_MaterialProperties->Roughness = roughness;
@@ -118,7 +116,6 @@ float Material::GetMetallic() const
 {
     return m_MaterialProperties->Metallic;
 }
-
 void Material::SetMetallic(float metallic)
 {
     m_MaterialProperties->Metallic = metallic;
@@ -128,7 +125,6 @@ float Material::GetClearCoatRoughness() const
 {
     return m_MaterialProperties->ClearCoatRoughness;
 }
-
 void Material::SetClearCoatRoughness(float clearCoatRoughness)
 {
     m_MaterialProperties->ClearCoatRoughness = clearCoatRoughness;
@@ -142,6 +138,7 @@ void Material::SetBumpIntensity(float bumpIntensity)
 {
 	m_MaterialProperties->BumpIntensity = bumpIntensity;
 }
+
 std::shared_ptr<Texture> Material::GetTexture(TextureType type) const
 {
     TextureMap::const_iterator iter = m_textures.find(type);
@@ -152,7 +149,6 @@ std::shared_ptr<Texture> Material::GetTexture(TextureType type) const
 
     return nullptr;
 }
-
 void Material::SetTexture(std::shared_ptr<Texture> texture, TextureType type)
 {
 		m_textures[type] = texture;
@@ -229,8 +225,8 @@ const MaterialProperties& Material::GetMaterialProperties() const
 {
 	return *m_MaterialProperties;
 }
-
 void Material::SetMaterialProperties(const MaterialProperties& materialProperties)
 {
 	*m_MaterialProperties = materialProperties;
 }
+

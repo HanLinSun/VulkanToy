@@ -17,21 +17,18 @@ namespace Renderer
 	{
 	public:
 		Model() = delete;
-		Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, std::shared_ptr<Material>  mat);
+		Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, std::shared_ptr<Material> mat,const std::vector<Triangle>& m_triangles);
 		Model(Model& model);
 
 		~Model();
 
 		void DestroyVKResources();
-
 		const std::vector<Vertex>& GetVertices() const;
 
 		VkBuffer GetVertexBuffer() const;
-
 		const std::vector<uint32_t>& GetIndices() const;
 
 		VkBuffer GetIndexBuffer() const;
-
 		const ModelBufferObject& GetModelBufferObject() const;
 
 		VkBuffer GetModelUniformBuffer() const;
@@ -53,8 +50,9 @@ namespace Renderer
 
 		ModelBufferObject m_modelBufferObject;
 		std::shared_ptr<Material> m_material;
-		
 
+		std::vector<Triangle> m_triangles;
+		
 	};
 	class ModelGroup
 	{

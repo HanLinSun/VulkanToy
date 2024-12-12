@@ -1,5 +1,5 @@
 #pragma once
-
+#include <memory>
 #include <vector>
 #include <Vulkan/Device.h>
 #include <glfw/glfw3.h>
@@ -25,14 +25,15 @@ public:
     bool Acquire();
     bool Present();
 
+    SwapChain(std::shared_ptr<Device> device, VkSurfaceKHR vkSurface, unsigned int numBuffers, GLFWwindow* window);
     ~SwapChain();
 
 private:
-    SwapChain(Device* device, VkSurfaceKHR vkSurface, unsigned int numBuffers, GLFWwindow* window);
+
     void Create();
     void Destroy();
 
-    Device* m_device;
+    std::shared_ptr<Device> m_device;
     VkSurfaceKHR m_vkSurface;
     GLFWwindow* m_window;
 

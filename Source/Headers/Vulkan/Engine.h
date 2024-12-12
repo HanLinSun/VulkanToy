@@ -13,6 +13,7 @@
 #include <Event/KeyEvent.h>
 #include <Event/MouseEvent.h>
 #include <Vulkan/Initializer.hpp>
+#include <Render/RayTraceModule.h>
 
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
@@ -30,9 +31,6 @@ const std::vector<std::string> cubeMapPaths
 		SKYBOX_CUBEMAP_PATH + "posz.jpg",
 		SKYBOX_CUBEMAP_PATH + "negz.jpg"
 };
-
-
-//const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -82,33 +80,6 @@ struct ThreadData
 	//std::vector<ObjectData> objectData;
 };
 
-// Resources for the compute part of the example
-struct ComputeResource {
-	// Object properties for planes and spheres are passed via a shade storage buffer
-	// There is no vertex data, the compute shader calculates the primitives on the fly
-	Buffer objectStorageBuffer;
-	Buffer uniformBuffer;										// Uniform buffer object containing scene parameters
-	//VkQueue queue{ VK_NULL_HANDLE };								// Separate queue for compute commands (queue family may differ from the one used for graphics)
-	VkCommandPool commandPool{ VK_NULL_HANDLE };					// Use a separate command pool (queue family may differ from the one used for graphics)
-	VkCommandBuffer commandBuffer{ VK_NULL_HANDLE };				// Command buffer storing the dispatch commands and barriers
-	VkFence fence{ VK_NULL_HANDLE };								// Synchronization fence to avoid rewriting compute CB if still in use
-	VkDescriptorSetLayout descriptorSetLayout{ VK_NULL_HANDLE };	// Compute shader binding layout
-	VkDescriptorSet descriptorSet{ VK_NULL_HANDLE };				// Compute shader bindings
-	VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };				// Layout of the compute pipeline
-	VkPipeline pipeline{ VK_NULL_HANDLE };							// Compute raytracing pipeline
-	struct UniformDataCompute {										   // Compute shader uniform block object
-		glm::vec3 lightPos;
-		float aspectRatio{ 1.0f };
-		glm::vec4 fogColor = glm::vec4(0.0f);
-		struct {
-			glm::vec3 pos = glm::vec3(0.0f, 0.0f, 4.0f);
-			glm::vec3 lookat = glm::vec3(0.0f, 0.5f, 0.0f);
-			float fov = 10.0f;
-		} camera;
-		glm::mat4 _pad;
-	} uniformData;
-};
-
 
 namespace Renderer
 {
@@ -130,10 +101,12 @@ namespace Renderer
 		std::vector<VkSampler> temp_samplers;
 	private:
 
+		std::unique_ptr<RayTraceModule> m_RayTraceModule;
+
 		std::shared_ptr<Device> m_device;
 		std::unique_ptr<Instance> m_instance;
 		GLFWwindow* m_window;
-		SwapChain* m_swapChain;
+		std::shared_ptr<SwapChain> m_swapChain;
 
 		VkDebugUtilsMessengerEXT m_debugMessenger;
 		VkSurfaceKHR m_surface;
@@ -171,9 +144,13 @@ namespace Renderer
 		VkDescriptorPool m_descriptorPool;
 		VkDescriptorSet m_cameraDescriptorSet;
 
-		std::vector<VkDescriptorSet> m_modelDescriptorSets;
-		std::vector<VkDescriptorSet> m_computeDescriptorSets;
+		//For raytrace pipeline, only need one image
+		VkDescriptorSetLayout m_rayTraceGraphicsDescriptorLayout;
+		VkDescriptorSet m_rayTraceGraphicsDescriptorSet;
+		//
 
+		std::vector<VkDescriptorSet> m_modelDescriptorSets;
+	
 		VkDescriptorPool m_imGuiDescriptorPool;
 		std::vector<VkDescriptorSet> m_imGuiDescriptorSet;
 
@@ -185,8 +162,6 @@ namespace Renderer
 			VkSemaphore renderComplete;
 		}m_Semaphores;
 
-
-		ComputeResource m_rayTraceResources;
 		Texture m_storageImage;
 
 		std::vector<VkFence> m_waitFences;
@@ -238,8 +213,6 @@ namespace Renderer
 
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-		void CreateSynchronizationPrimitives();
-
 		void CreatePipelineCache();
 
 		void SetupDebugMessenger();
@@ -251,6 +224,9 @@ namespace Renderer
 		void CreateCameraDescriptorSetLayout();
 
 		void CreateModelDescriptorSetLayout();
+
+		//This function creates graphics part of descriptor layout and descriptor sets
+		void CreateRayTraceGraphicDescriptorResources();
 
 		void UpdateIOInput();
 
@@ -278,25 +254,17 @@ namespace Renderer
 
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
+		void RecordRayTraceGraphicCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
 		void CreateSyncObjects();
 
 		void CreateSkyboxCubeMap(std::string cubeMap_texturePath);
 
-		//Raytrace Compute Pipeline
-		void CreateRayTracePipeline();
-		void CreateRayTraceCommandPool(VkCommandPool* commandPool);
-		void CreateRayTraceDescriptorSet();
-		void CreateRayTraceStorageImage();
-		//
 		void DrawFrame();
-
-		void RecordComputeCommandBuffer();
 
 		void LoadCubeMapTexture(std::vector<std::string>& texturePath );
 
 	    void LoadCubeMapTexture();
-
-		VkShaderModule CreateShaderModule(const std::vector<char>& code);
 
 		VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
 
@@ -305,8 +273,6 @@ namespace Renderer
 		std::vector<const char*> GetRequiredExtensions();
 
 		bool CheckValidationLayerSupport();
-
-		static std::vector<char> readFile(const std::string& filename);
 
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
 			std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;

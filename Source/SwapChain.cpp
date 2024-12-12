@@ -56,7 +56,7 @@ namespace {
     }
 }
 
-SwapChain::SwapChain(Device* device, VkSurfaceKHR vkSurface, unsigned int numBuffers,GLFWwindow* window)
+SwapChain::SwapChain(std::shared_ptr<Device> device, VkSurfaceKHR vkSurface, unsigned int numBuffers,GLFWwindow* window)
     :m_device(device),m_vkSurface(vkSurface),m_numBuffers(numBuffers),m_window(window)
 {
     Create();
