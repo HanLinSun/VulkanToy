@@ -1,4 +1,6 @@
-﻿#include <Vulkan/Engine.h>
+﻿//Copyright 2024 Hanlin Sun
+
+#include <Vulkan/Engine.h>
 #include <WindowsPlatform.h>
 #include <Loader.h>
 #include <Tools.h>
@@ -67,7 +69,15 @@ namespace Renderer
         m_Scene =std::make_unique<Scene>(m_Camera);
         m_time = Timestep::GetInstance();
 
+        m_runRaytracePipeline = false;
     }
+
+
+    void Engine::OnEvent(Event& e)
+    {
+
+    }
+
     void Engine::Run() 
     {
             //m_Camera->Update();
@@ -156,40 +166,35 @@ namespace Renderer
 
         //By default we use this
         LoadModel(MODEL_PATH,MODEL_FILE_PATH);
-        
         CreateRenderPass();
-
         CreatePipelineCache();
         CreateDescriptorPool();
 
         if (!m_runRaytracePipeline)
         {
             //Graphic Render Pipeline
-            CreateCameraDescriptorSets();
             CreateCameraDescriptorSetLayout();
+            CreateCameraDescriptorSets();
             CreateModelDescriptorSetLayout();
+            //Shader binding num is 2 by now and in future may need refractor
+            CreateModelDescriptorSets(2);
         }
         else
         {
             //This function creates graphics part of descriptor layout and descriptor sets
-            CreateRayTraceGraphicDescriptorResources();
             m_RayTraceModule->CreateRayTraceStorageImage(m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height);
             m_RayTraceModule->CreateDescriptorPool(m_descriptorPool);
+            CreateRayTraceGraphicDescriptorResources();
             m_RayTraceModule->CreateRayTracePipeline();
+            m_rayTraceResource = m_RayTraceModule->GetRayTraceComputeResource();
         }
-
+        CreateSubmitInfo();
         CreateGraphicsPipeline();
         CreateFrameResources();
 
 
-        CreateSubmitInfo();
-        //Shader binding num is 2 by now and in future may need refractor
-        CreateModelDescriptorSets(2);
-
         CreateCommandBuffers();
         CreateSyncObjects();
-        
- 
     }
 
     void Engine::Destroy()
@@ -235,6 +240,7 @@ namespace Renderer
 
         if (m_runRaytracePipeline)
         {
+            m_RayTraceModule->DestroyVKResources();
             m_storageImage.DestroyVKResources();
         }
 
@@ -258,6 +264,7 @@ namespace Renderer
         vkDestroySurfaceKHR(m_instance->GetVkInstance(), m_surface, nullptr);
 
         m_device->DestroyVKResources();
+
         if (enableValidationLayers) {
             DestroyDebugUtilsMessengerEXT(m_instance->GetVkInstance(), m_debugMessenger, nullptr);
         }
@@ -292,6 +299,7 @@ namespace Renderer
         createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         createInfo.pfnUserCallback = debugCallback;
     }
+
     void Engine::SetupDebugMessenger() {
         if (!enableValidationLayers) return;
 
@@ -549,7 +557,15 @@ namespace Renderer
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         dynamicState.pDynamicStates = dynamicStates.data();
 
-        std::vector<VkDescriptorSetLayout> descriptorSetLayouts = { m_cameraDescriptorSetLayout, m_modelDescriptorSetLayout };
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+        if (!m_runRaytracePipeline)
+        {
+            descriptorSetLayouts = { m_cameraDescriptorSetLayout, m_modelDescriptorSetLayout };
+        }
+        else
+        {
+            descriptorSetLayouts = { m_rayTraceResource.descriptorSetLayout };
+        }
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -798,7 +814,6 @@ namespace Renderer
     //This function creates graphics part of descriptor layout and descriptor sets
     void Engine::CreateRayTraceGraphicDescriptorResources()
     {
-        
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = {
              VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
         };
@@ -809,11 +824,11 @@ namespace Renderer
         VkDescriptorSetAllocateInfo allocInfo = VulkanInitializer::DescriptorSetAllocateInfo(m_descriptorPool, &m_rayTraceGraphicsDescriptorLayout, 1);
         check_vk_result(vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, &m_rayTraceGraphicsDescriptorSet));
 
+        auto storageImageDescriptor = m_RayTraceModule->GetStorageImage().descriptor;
         std::vector<VkWriteDescriptorSet> writeDescriptorSets = {
-             VulkanInitializer::WriteDescriptorSet(m_rayTraceGraphicsDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, &m_RayTraceModule->GetStorageImage().descriptor)
+             VulkanInitializer::WriteDescriptorSet(m_rayTraceGraphicsDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 0, &storageImageDescriptor)
         };
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
-
     }
 
     void Engine::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
@@ -962,6 +977,8 @@ namespace Renderer
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
 
+        m_ImGuiLayer->NewFrame();
+
         if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
             throw std::runtime_error("failed to begin recording command buffer!");
         }
@@ -988,10 +1005,6 @@ namespace Renderer
                 0, nullptr,
                 1, &imageMemoryBarrier);
 
-
-        // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_cameraDescriptorSet, 0, nullptr);
-
         vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
@@ -1013,6 +1026,31 @@ namespace Renderer
         scissor.extent = m_swapChain->GetVkExtent();;
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+        // Display ray traced image generated by compute shader as a full screen quad
+        // Quad vertices are generated in the vertex shader
+        // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_rayTraceGraphicsDescriptorSet, 0, nullptr);
+
+        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+        m_ImGuiLayer->DrawFrame(commandBuffer);
+
+        vkCmdEndRenderPass(commandBuffer);
+
+        imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        imageMemoryBarrier.dstAccessMask = 0;
+        imageMemoryBarrier.srcQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Graphics);
+        imageMemoryBarrier.dstQueueFamilyIndex = m_device->GetQueueIndex(QueueFlags::Compute);
+        vkCmdPipelineBarrier(
+           commandBuffer,
+            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            0,
+            0, nullptr,
+            0, nullptr,
+            1, &imageMemoryBarrier);
+
+        check_vk_result(vkEndCommandBuffer(commandBuffer));
     }
 
     void Engine::CreateSyncObjects() {
@@ -1032,6 +1070,7 @@ namespace Renderer
             }
         }
     }
+
     VkResult Engine::AcquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t* imageIndex)
     {
        return  vkAcquireNextImageKHR(m_device->GetVkDevice(), m_swapChain->GetVkSwapChain(), UINT64_MAX, presentCompleteSemaphore, VK_NULL_HANDLE, imageIndex);
@@ -1082,7 +1121,27 @@ namespace Renderer
 
         vkResetCommandBuffer(m_commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
 
-        RecordCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
+        if (!m_runRaytracePipeline)
+        {
+            RecordCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
+        }
+        else
+        {
+            m_RayTraceModule->RecordComputeCommandBuffer();
+            RecordRayTraceGraphicCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
+        }
+
+        if (m_runRaytracePipeline)
+        {
+            vkWaitForFences(m_device->GetVkDevice(), 1, &m_rayTraceResource.fence, VK_TRUE, UINT64_MAX);
+            vkResetFences(m_device->GetVkDevice(), 1, &m_rayTraceResource.fence);
+
+            VkSubmitInfo computeSubmitInfo = VulkanInitializer::SubmitInfo();
+            computeSubmitInfo.commandBufferCount = 1;
+            computeSubmitInfo.pCommandBuffers = &m_rayTraceResource.commandBuffer;
+            check_vk_result(vkQueueSubmit(m_device->GetQueue(QueueFlags::Compute), 1, &computeSubmitInfo, m_rayTraceResource.fence));
+        }
+
 
         m_submitInfo.commandBufferCount = 1;
         m_submitInfo.pCommandBuffers = &m_commandBuffers[currentFrame];
@@ -1114,6 +1173,10 @@ namespace Renderer
         DestroyFrameResources();
         CreateFrameResources();
         CreateGraphicsPipeline();
+        if (m_runRaytracePipeline)
+        {
+            m_RayTraceModule->CreateRayTracePipeline();
+        }
        // RecordCommandBuffers();
     }
 

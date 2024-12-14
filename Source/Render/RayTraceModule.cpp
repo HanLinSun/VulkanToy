@@ -22,7 +22,6 @@ namespace Renderer
         computeShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
         computeShaderStageInfo.module = computeShaderModule;
         computeShaderStageInfo.pName = "main";
-
         computePipelineCreateInfo.stage = computeShaderStageInfo;
         check_vk_result(vkCreateComputePipelines(m_device->GetVkDevice(), nullptr, 1, &computePipelineCreateInfo, nullptr, &m_rayTraceResources.pipeline));
 
@@ -35,7 +34,6 @@ namespace Renderer
         // Fence for compute CB sync
         VkFenceCreateInfo fenceCreateInfo = VulkanInitializer::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
         check_vk_result(vkCreateFence(m_device->GetVkDevice(), &fenceCreateInfo, nullptr, &m_rayTraceResources.fence));
-        
     }
 
     void RayTraceModule::CreateRayTraceCommandPool(VkCommandPool* commandPool)
@@ -75,7 +73,7 @@ namespace Renderer
         vkCmdBindPipeline(m_rayTraceResources.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_rayTraceResources.pipeline);
         vkCmdBindDescriptorSets(m_rayTraceResources.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_rayTraceResources.pipelineLayout, 0, 1, &m_rayTraceResources.descriptorSet, 0, 0);
 
-        vkCmdDispatch(m_rayTraceResources.commandBuffer, m_storageImage.width / 32, m_storageImage.height / 32, 1);
+        vkCmdDispatch(m_rayTraceResources.commandBuffer, m_storageImage.width / 16, m_storageImage.height / 16, 1);
 
         // Release barrier from compute queue
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
@@ -226,8 +224,19 @@ namespace Renderer
         return m_storageImage;
     }
 
+
+    ComputeResource RayTraceModule::GetRayTraceComputeResource() const
+    {
+        return m_rayTraceResources;
+    }
+
     void RayTraceModule::DestroyVKResources()
     {
-
+        vkDestroyPipeline(m_device->GetVkDevice(), m_rayTraceResources.pipeline,nullptr);
+        vkDestroyPipelineLayout(m_device->GetVkDevice(),m_rayTraceResources.pipelineLayout,nullptr);
+        vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_rayTraceResources.descriptorSetLayout, nullptr);
+        vkDestroyFence(m_device->GetVkDevice(), m_rayTraceResources.fence, nullptr);
+        vkDestroyCommandPool(m_device->GetVkDevice(), m_rayTraceResources.commandPool, nullptr);
+        m_storageImage.DestroyVKResources();
     }
 }

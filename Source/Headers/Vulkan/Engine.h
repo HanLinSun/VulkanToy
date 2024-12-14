@@ -147,6 +147,7 @@ namespace Renderer
 		//For raytrace pipeline, only need one image
 		VkDescriptorSetLayout m_rayTraceGraphicsDescriptorLayout;
 		VkDescriptorSet m_rayTraceGraphicsDescriptorSet;
+		ComputeResource m_rayTraceResource;
 		//
 
 		std::vector<VkDescriptorSet> m_modelDescriptorSets;

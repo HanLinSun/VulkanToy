@@ -72,31 +72,34 @@
     <None Include="Shaders\compile.bat">
       <Filter>Source\Shader</Filter>
     </None>
-    <None Include="Shaders\fragShader.glsl">
-      <Filter>Source\Shader</Filter>
-    </None>
-    <None Include="Shaders\vertShader.glsl">
-      <Filter>Source\Shader</Filter>
-    </None>
     <None Include="Shaders\ui.frag.spv">
       <Filter>Source\Shader</Filter>
     </None>
     <None Include="Shaders\ui.vert.spv">
       <Filter>Source\Shader</Filter>
     </None>
-    <None Include="Shaders\showTexture.vert.glsl">
-      <Filter>Source\Shader</Filter>
-    </None>
-    <None Include="Shaders\showTexture.frag.glsl">
-      <Filter>Source\Shader</Filter>
-    </None>
-    <None Include="Shaders\definitions.glsl">
-      <Filter>Source\Shader</Filter>
-    </None>
     <None Include="Shaders\rayTrace.comp">
       <Filter>Source\Shader</Filter>
     </None>
-    <None Include="Shaders\random.glsl">
+    <None Include="Shaders\glsl\definitions.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\glsl\fragShader.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\glsl\random.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\glsl\rayTrace.comp">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\glsl\showTexture.frag.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\glsl\showTexture.vert.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\glsl\vertShader.glsl">
       <Filter>Source\Shader</Filter>
     </None>
   </ItemGroup>
@@ -200,7 +203,7 @@
     <ClCompile Include="Source\Buffer.cpp">
       <Filter>Source\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="Source\RenderModule\RayTraceModule.cpp">
+    <ClCompile Include="Source\Render\RayTraceModule.cpp">
       <Filter>Source\Render</Filter>
     </ClCompile>
   </ItemGroup>
@@ -352,7 +355,7 @@
     <ClInclude Include="Source\Headers\Vulkan\Buffer.h">
       <Filter>Header\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Headers\RenderModule\RayTraceModule.h">
+    <ClInclude Include="Source\Headers\Render\RayTraceModule.h">
       <Filter>Header\Render</Filter>
     </ClInclude>
   </ItemGroup>

@@ -149,15 +149,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat" />
-    <None Include="Shaders\definitions.glsl" />
-    <None Include="Shaders\fragShader.glsl" />
-    <None Include="Shaders\random.glsl" />
+    <None Include="Shaders\glsl\definitions.glsl" />
+    <None Include="Shaders\glsl\fragShader.glsl" />
+    <None Include="Shaders\glsl\random.glsl" />
+    <None Include="Shaders\glsl\rayTrace.comp" />
+    <None Include="Shaders\glsl\showTexture.frag.glsl" />
+    <None Include="Shaders\glsl\showTexture.vert.glsl" />
+    <None Include="Shaders\glsl\vertShader.glsl" />
     <None Include="Shaders\rayTrace.comp" />
-    <None Include="Shaders\showTexture.frag.glsl" />
-    <None Include="Shaders\showTexture.vert.glsl" />
     <None Include="Shaders\ui.frag.spv" />
     <None Include="Shaders\ui.vert.spv" />
-    <None Include="Shaders\vertShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\backends\imgui_impl_glfw.h" />
@@ -189,6 +190,7 @@
     <ClInclude Include="Source\Headers\MouseButtonCodes.h" />
     <ClInclude Include="Source\Headers\RenderApplication.h" />
     <ClInclude Include="Source\Headers\RendererInclude.h" />
+    <ClInclude Include="Source\Headers\Render\RayTraceModule.h" />
     <ClInclude Include="Source\Headers\Scene.h" />
     <ClInclude Include="Source\Headers\SceneStructs.h" />
     <ClInclude Include="Source\Headers\ThreadPool.hpp" />
@@ -236,7 +238,6 @@
     <ClCompile Include="Source\Materials.cpp" />
     <ClCompile Include="Source\Model.cpp" />
     <ClCompile Include="Source\ModelFileLoader.cpp" />
-    <ClCompile Include="Source\RenderModule\RayTraceModule.cpp" />
     <ClCompile Include="Source\Render\RayTraceModule.cpp" />
     <ClCompile Include="Source\Scene.cpp" />
     <ClCompile Include="Source\SwapChain.cpp" />

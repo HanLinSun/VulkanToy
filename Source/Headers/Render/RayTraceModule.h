@@ -49,6 +49,7 @@ namespace Renderer
 		void CreateRayTraceStorageImage(uint32_t width, uint32_t height);
 		void UpdateUniformBuffers(const Camera& cam);
 
+		ComputeResource GetRayTraceComputeResource() const;
 		Texture2D GetStorageImage() const;
 
 	private:
