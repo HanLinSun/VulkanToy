@@ -48,7 +48,8 @@ VkResult BufferUtils::CreateBuffer(Device* device, VkBufferUsageFlags usageFlags
     memAlloc.allocationSize = memReqs.size;
     // Find a memory type index that fits the properties of the buffer
     memAlloc.memoryTypeIndex = device->GetInstance()->GetMemoryTypeIndex(memReqs.memoryTypeBits, properties);
-    // If the buffer has VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT set we also need to enable the appropriate flag during allocation
+    // If the buffer has VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT set 
+    //we also need to enable the appropriate flag during allocation
     VkMemoryAllocateFlagsInfoKHR allocFlagsInfo{};
     if (usageFlags & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
         allocFlagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO_KHR;

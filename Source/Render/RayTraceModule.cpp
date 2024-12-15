@@ -34,6 +34,8 @@ namespace Renderer
         // Fence for compute CB sync
         VkFenceCreateInfo fenceCreateInfo = VulkanInitializer::FenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
         check_vk_result(vkCreateFence(m_device->GetVkDevice(), &fenceCreateInfo, nullptr, &m_rayTraceResources.fence));
+
+        vkDestroyShaderModule(m_device->GetVkDevice(), computeShaderModule, nullptr);
     }
 
     void RayTraceModule::CreateRayTraceCommandPool(VkCommandPool* commandPool)
@@ -106,6 +108,12 @@ namespace Renderer
         m_descriptorPool = descriptorPool;
     }
 
+    void RayTraceModule::CreateUniformBuffer()
+    {
+        VkDeviceSize bufferSize = sizeof(RayTraceUniformData);
+        BufferUtils::CreateBuffer(m_device.get(),VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_rayTraceResources.uniformBuffer,bufferSize);
+    }
+
     void RayTraceModule::CreateRayTraceDescriptorSet()
     {
         // The compute pipeline uses one set and four bindings
@@ -116,7 +124,7 @@ namespace Renderer
         {
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT, 0),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 1),
-            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 2),
+            //VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 2),
         };
 
         VkDescriptorSetLayoutCreateInfo descriptorLayout = VulkanInitializer::DescriptorSetLayoutCreateInfo(setLayoutBindings);
@@ -128,7 +136,7 @@ namespace Renderer
         std::vector<VkWriteDescriptorSet> computeWriteDescriptorSets = {
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 0, &m_storageImage.descriptor),
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &m_rayTraceResources.uniformBuffer.descriptor),
-            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2, &m_rayTraceResources.objectStorageBuffer.descriptor),
+           // VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2, &m_rayTraceResources.objectStorageBuffer.descriptor),
         };
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(computeWriteDescriptorSets.size()), computeWriteDescriptorSets.data(), 0, nullptr);
     }
@@ -152,7 +160,8 @@ namespace Renderer
 
         m_storageImage.m_imageLayout = VK_IMAGE_LAYOUT_GENERAL;
         //Compute Shader have different  layout mask(need to write a function to handle it differently)
-        Tools::TransitionImageLayout(m_device.get(), m_storageImage.m_image, VK_IMAGE_LAYOUT_UNDEFINED, m_storageImage.m_imageLayout, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
+        // subresource level can not be 0, must bigger than 1. if mipmap fill the mipmap level; else use 1
+        Tools::TransitionImageLayout(m_device.get(), m_storageImage.m_image, VK_IMAGE_LAYOUT_UNDEFINED, m_storageImage.m_imageLayout, 1, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT);
 
         VkCommandBuffer cmd = Tools::CreateCommandBuffer(m_device.get(), VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_device->GetGraphicCommandPool(), true);
 
@@ -205,14 +214,14 @@ namespace Renderer
         m_storageImage.m_device = m_device;
     }
 
-    void RayTraceModule::UpdateUniformBuffers(const Camera& cam)
+    void RayTraceModule::UpdateUniformBuffer(Camera* cam)
     {
-        glm::vec4 camPos = cam.GetPosition();
-        glm::vec4 camForward = cam.GetForwardVector();
+        glm::vec4 camPos = cam->GetPosition();
+        glm::vec4 camForward = cam->GetForwardVector();
         m_rayTraceUniform.camPos = glm::vec3(camPos.x, camPos.y, camPos.z);
         m_rayTraceUniform.cam_lookat = glm::vec3(camForward.x, camForward.y, camForward.z);
-        m_rayTraceUniform.fov = cam.GetFOV();
-        m_rayTraceUniform.aspectRatio = cam.GetAspectRatio();
+        m_rayTraceUniform.fov = cam->GetFOV();
+        m_rayTraceUniform.aspectRatio = cam->GetAspectRatio();
         
         check_vk_result(m_rayTraceResources.uniformBuffer.Map());
         memcpy(m_rayTraceResources.uniformBuffer.mapped, &m_rayTraceUniform, sizeof(RayTraceUniformData));
@@ -237,6 +246,8 @@ namespace Renderer
         vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_rayTraceResources.descriptorSetLayout, nullptr);
         vkDestroyFence(m_device->GetVkDevice(), m_rayTraceResources.fence, nullptr);
         vkDestroyCommandPool(m_device->GetVkDevice(), m_rayTraceResources.commandPool, nullptr);
+        m_rayTraceResources.uniformBuffer.Destroy();
         m_storageImage.DestroyVKResources();
     }
 }
+

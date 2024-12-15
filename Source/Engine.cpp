@@ -69,7 +69,7 @@ namespace Renderer
         m_Scene =std::make_unique<Scene>(m_Camera);
         m_time = Timestep::GetInstance();
 
-        m_runRaytracePipeline = false;
+        m_runRaytracePipeline = true;
     }
 
 
@@ -82,6 +82,10 @@ namespace Renderer
     {
             //m_Camera->Update();
             m_CameraController->Update();
+            if (m_runRaytracePipeline)
+            {
+                m_RayTraceModule->UpdateUniformBuffer(m_Camera.get());
+            }
             UpdateIOInput();
             DrawFrame();
     }
@@ -165,34 +169,42 @@ namespace Renderer
         SetupDebugMessenger();
 
         //By default we use this
-        LoadModel(MODEL_PATH,MODEL_FILE_PATH);
+        if (!m_runRaytracePipeline)
+        {
+            LoadModel(MODEL_PATH, MODEL_FILE_PATH);
+        }
+   
+
         CreateRenderPass();
+        CreateFrameResources();
         CreatePipelineCache();
-        CreateDescriptorPool();
+
 
         if (!m_runRaytracePipeline)
         {
+            CreateDescriptorPool();
             //Graphic Render Pipeline
             CreateCameraDescriptorSetLayout();
             CreateCameraDescriptorSets();
             CreateModelDescriptorSetLayout();
             //Shader binding num is 2 by now and in future may need refractor
             CreateModelDescriptorSets(2);
+
         }
         else
         {
             //This function creates graphics part of descriptor layout and descriptor sets
             m_RayTraceModule->CreateRayTraceStorageImage(m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height);
+            //This is a shared descriptor pool
             m_RayTraceModule->CreateDescriptorPool(m_descriptorPool);
             CreateRayTraceGraphicDescriptorResources();
+            m_RayTraceModule->CreateUniformBuffer();
             m_RayTraceModule->CreateRayTracePipeline();
             m_rayTraceResource = m_RayTraceModule->GetRayTraceComputeResource();
         }
-        CreateSubmitInfo();
+
         CreateGraphicsPipeline();
-        CreateFrameResources();
-
-
+        CreateSubmitInfo();
         CreateCommandBuffers();
         CreateSyncObjects();
     }
@@ -230,10 +242,18 @@ namespace Renderer
         vkDestroyRenderPass(m_device->GetVkDevice(), m_renderPass, nullptr);
 
         vkDestroyPipelineCache(m_device->GetVkDevice(), m_pipelineCache, nullptr);
-
         vkDestroyDescriptorPool(m_device->GetVkDevice(), m_descriptorPool, nullptr);
-        vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_modelDescriptorSetLayout, nullptr);
-        vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_cameraDescriptorSetLayout, nullptr);
+        if (!m_runRaytracePipeline)
+        {
+          
+            vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_modelDescriptorSetLayout, nullptr);
+            vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_cameraDescriptorSetLayout, nullptr);
+        }
+        else
+        {
+            vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_rayTraceGraphicsDescriptorLayout,nullptr);
+        }
+
 
         vkDestroySemaphore(m_device->GetVkDevice(), m_Semaphores.presentComplete, nullptr);
         vkDestroySemaphore(m_device->GetVkDevice(), m_Semaphores.renderComplete, nullptr);
@@ -241,13 +261,15 @@ namespace Renderer
         if (m_runRaytracePipeline)
         {
             m_RayTraceModule->DestroyVKResources();
-            m_storageImage.DestroyVKResources();
+        }
+        else
+        {
+            for (int i = 0; i < temp_samplers.size(); i++)
+            {
+                vkDestroySampler(m_device->GetVkDevice(), temp_samplers[i], nullptr);
+            }
         }
 
-        for (int i = 0; i < temp_samplers.size(); i++)
-        {
-            vkDestroySampler(m_device->GetVkDevice(), temp_samplers[i], nullptr);
-       }
 
         for (size_t i = 0; i < m_swapChain->GetCount(); i++) {
 
@@ -399,7 +421,7 @@ namespace Renderer
             throw std::runtime_error("failed to create render pass!");
         }
     }
-    //GUI Pass
+ 
     void Engine::CreateCameraDescriptorSetLayout() {
         VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding = 0;
@@ -493,21 +515,30 @@ namespace Renderer
         fragShaderStageInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
-
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        auto bindingDescription = Vertex::GetBindingDescription();
-        auto attributeDescriptions = Vertex::GetAttributeDescriptions();
+        if (!m_runRaytracePipeline)
+        {
+            vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+            auto bindingDescription = Vertex::GetBindingDescription();
+            auto attributeDescriptions = Vertex::GetAttributeDescriptions();
 
+            vertexInputInfo.vertexBindingDescriptionCount = 1;
+            vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+            vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+            vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+        }
+        else
+        {
+            //Set vertex input to Empty
+            vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        }
+     
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+       // inputAssembly.flags = 0;
         inputAssembly.primitiveRestartEnable = VK_FALSE;
 
         VkPipelineViewportStateCreateInfo viewportState{};
@@ -564,7 +595,7 @@ namespace Renderer
         }
         else
         {
-            descriptorSetLayouts = { m_rayTraceResource.descriptorSetLayout };
+            descriptorSetLayouts = { m_rayTraceGraphicsDescriptorLayout };
         }
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -601,7 +632,7 @@ namespace Renderer
         pipelineInfo.renderPass = m_renderPass;
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-       
+
         if (vkCreateGraphicsPipelines(m_device->GetVkDevice(), m_pipelineCache, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
@@ -1031,7 +1062,7 @@ namespace Renderer
         // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_rayTraceGraphicsDescriptorSet, 0, nullptr);
 
-        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        vkCmdDraw(commandBuffer, 4, 1, 0, 0);
 
         m_ImGuiLayer->DrawFrame(commandBuffer);
 
@@ -1120,7 +1151,7 @@ namespace Renderer
         vkResetFences(m_device->GetVkDevice(), 1, &m_waitFences[currentFrame]);
 
         vkResetCommandBuffer(m_commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-
+  
         if (!m_runRaytracePipeline)
         {
             RecordCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
@@ -1140,6 +1171,8 @@ namespace Renderer
             computeSubmitInfo.commandBufferCount = 1;
             computeSubmitInfo.pCommandBuffers = &m_rayTraceResource.commandBuffer;
             check_vk_result(vkQueueSubmit(m_device->GetQueue(QueueFlags::Compute), 1, &computeSubmitInfo, m_rayTraceResource.fence));
+
+            VkResult result = AcquireNextImage(m_Semaphores.presentComplete, &imageIndex);
         }
 
 

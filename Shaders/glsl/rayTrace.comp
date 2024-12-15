@@ -35,10 +35,21 @@ layout(binding =1) uniform UniformBufferObject {
  {
      return r.origin + r.direction*t;
  }
+
+ bool hit_sphere(const vec3 center, double radius, const Ray r)
+ {
+     vec3 oc = center -r.origin;
+     double a = dot(r.direction, r.direction);
+     double b = -2.0 * dot(r.direction, oc);
+     double c = dot(oc,oc) - radius*radius;
+     double discriminant = b*b - 4*a*c;
+     if(discriminant>=0) return true;
+     else return false;
+ }
  
  //Test Experiment
  vec3 TraceRay(Ray r)
- {
+ {      
      vec3 unit_direction = normalize(r.direction);
      float a = 0.5*(unit_direction.y+ 1.0);
      return (1.0-a)*vec3(1.0, 1.0, 1.0) + a*vec3(0.5, 0.7, 1.0);

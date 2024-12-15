@@ -5,6 +5,8 @@
 #include <Vulkan/Initializer.hpp>
 #include <Vulkan/Buffer.h>
 #include <Vulkan/Texture.h>
+#include <Vulkan/BufferUtils.h>
+#include <Vulkan/Buffer.h>
 #include <Camera.h>
 #include <Log.h>
 
@@ -22,9 +24,9 @@ namespace Renderer
 	struct ComputeResource {
 		// Object properties for planes and spheres are passed via a shade storage buffer
 		// There is no vertex data, the compute shader calculates the primitives on the fly
-		Buffer objectStorageBuffer;
+		//Buffer objectStorageBuffer;
 		Buffer uniformBuffer;										// Uniform buffer object containing scene parameters
-		VkQueue queue{ VK_NULL_HANDLE };								// Separate queue for compute commands (queue family may differ from the one used for graphics)
+		//VkQueue queue{ VK_NULL_HANDLE };								// Separate queue for compute commands (queue family may differ from the one used for graphics)
 		VkCommandPool commandPool{ VK_NULL_HANDLE };					// Use a separate command pool (queue family may differ from the one used for graphics)
 		VkCommandBuffer commandBuffer{ VK_NULL_HANDLE };				// Command buffer storing the dispatch commands and barriers
 		VkFence fence{ VK_NULL_HANDLE };								// Synchronization fence to avoid rewriting compute CB if still in use
@@ -32,6 +34,8 @@ namespace Renderer
 		VkDescriptorSet descriptorSet{ VK_NULL_HANDLE };				// Compute shader bindings
 		VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };				// Layout of the compute pipeline
 		VkPipeline pipeline{ VK_NULL_HANDLE };							// Compute raytracing pipeline
+
+		void DestroyVKResource();
 	};
 
 	class RayTraceModule
@@ -47,8 +51,8 @@ namespace Renderer
 		void CreateDescriptorPool(VkDescriptorPool& m_descriptorPool);
 		void CreateRayTraceCommandPool(VkCommandPool* commandPool);
 		void CreateRayTraceStorageImage(uint32_t width, uint32_t height);
-		void UpdateUniformBuffers(const Camera& cam);
-
+		void UpdateUniformBuffer(Camera* cam);
+		void CreateUniformBuffer();
 		ComputeResource GetRayTraceComputeResource() const;
 		Texture2D GetStorageImage() const;
 

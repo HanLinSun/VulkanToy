@@ -156,7 +156,6 @@
     <None Include="Shaders\glsl\showTexture.frag.glsl" />
     <None Include="Shaders\glsl\showTexture.vert.glsl" />
     <None Include="Shaders\glsl\vertShader.glsl" />
-    <None Include="Shaders\rayTrace.comp" />
     <None Include="Shaders\ui.frag.spv" />
     <None Include="Shaders\ui.vert.spv" />
   </ItemGroup>
