@@ -63,8 +63,8 @@ namespace Renderer
         samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
         check_vk_result(vkCreateSampler(m_device->GetVkDevice(), &samplerInfo, nullptr, &m_sampler));
 
-        //Here pass 2 is because m_swapChain have 2 images
-        CreateImGuiDescriptorPool(2);
+        //Here pass 3 is because m_swapChain have 3 images
+        CreateImGuiDescriptorPool(3);
 
         // Descriptor set layout
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings = {

@@ -1062,7 +1062,7 @@ namespace Renderer
         // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_rayTraceGraphicsDescriptorSet, 0, nullptr);
 
-        vkCmdDraw(commandBuffer, 4, 1, 0, 0);
+        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
         m_ImGuiLayer->DrawFrame(commandBuffer);
 
@@ -1171,8 +1171,7 @@ namespace Renderer
             computeSubmitInfo.commandBufferCount = 1;
             computeSubmitInfo.pCommandBuffers = &m_rayTraceResource.commandBuffer;
             check_vk_result(vkQueueSubmit(m_device->GetQueue(QueueFlags::Compute), 1, &computeSubmitInfo, m_rayTraceResource.fence));
-
-            VkResult result = AcquireNextImage(m_Semaphores.presentComplete, &imageIndex);
+            vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Compute));
         }
 
 
@@ -1182,7 +1181,9 @@ namespace Renderer
         if (vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &m_submitInfo, m_waitFences[currentFrame]) != VK_SUCCESS) {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
-        
+
+        vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Graphics));
+
         result = m_swapChain->QueuePresent(m_device->GetQueue(QueueFlags::Present),imageIndex, m_Semaphores.renderComplete);
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {

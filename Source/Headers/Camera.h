@@ -14,8 +14,6 @@ namespace Renderer
 		alignas(16) glm::mat4 modelMatrix;
 	};
 
-
-
 	inline glm::vec3 Get3DVectorComponent(const glm::vec4 vec)
 	{
 		return glm::vec3(vec.x, vec.y, vec.z);

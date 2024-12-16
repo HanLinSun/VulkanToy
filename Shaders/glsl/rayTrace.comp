@@ -74,7 +74,7 @@ layout(binding =1) uniform UniformBufferObject {
 
     Ray r;
     r.origin = ubo.camera.pos;
-    r.direction =lower_left_corner +uv.x * horizontal +uv.y *vertical -r.origin;
+    r.direction =lower_left_corner +uv.x * horizontal +uv.y *vertical - r.origin;
     vec3 pixelColor = TraceRay(r);
 
     //vec4 currentColor = imageLoad(accumulationTex, ivec2(gl_GlobalInvocationID.xy)).rgba * min(ubo.currentSample, 1.0);
