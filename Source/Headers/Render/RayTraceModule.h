@@ -15,10 +15,10 @@ namespace Renderer
 	struct RayTraceUniformData
 	{										// Compute shader uniform block object
 
-		glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 4.0f);
-		glm::vec3 cam_lookat = glm::vec3(0.0f, 0.5f, 0.0f);
-		float fov = 10.0f;
-		float aspectRatio{ 1.0f };
+		alignas(16) glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 4.0f);
+		alignas(16) glm::vec3 cam_lookat = glm::vec3(0.0f, 0.5f, 0.0f);
+		alignas(16) float fov = 10.0f;
+		alignas(16) float aspectRatio{ 1.0f };
 	};
 
 	struct ComputeResource {

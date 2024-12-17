@@ -148,6 +148,8 @@ namespace Renderer
 		VkDescriptorSetLayout m_rayTraceGraphicsDescriptorLayout;
 		VkDescriptorSet m_rayTraceGraphicsDescriptorSet;
 		ComputeResource m_rayTraceResource;
+		VkPipelineLayout m_rayTraceGraphicsPipelineLayout;
+		VkPipeline m_rayTraceGraphicsPipeline;
 		//
 
 		std::vector<VkDescriptorSet> m_modelDescriptorSets;
@@ -228,6 +230,8 @@ namespace Renderer
 
 		//This function creates graphics part of descriptor layout and descriptor sets
 		void CreateRayTraceGraphicDescriptorResources();
+
+		void CreateRayTraceGraphicsPipeline();
 
 		void UpdateIOInput();
 

@@ -189,7 +189,7 @@ namespace Renderer
             CreateModelDescriptorSetLayout();
             //Shader binding num is 2 by now and in future may need refractor
             CreateModelDescriptorSets(2);
-
+            CreateGraphicsPipeline();
         }
         else
         {
@@ -200,10 +200,11 @@ namespace Renderer
             CreateRayTraceGraphicDescriptorResources();
             m_RayTraceModule->CreateUniformBuffer();
             m_RayTraceModule->CreateRayTracePipeline();
+            CreateRayTraceGraphicsPipeline();
             m_rayTraceResource = m_RayTraceModule->GetRayTraceComputeResource();
         }
 
-        CreateGraphicsPipeline();
+     
         CreateSubmitInfo();
         CreateCommandBuffers();
         CreateSyncObjects();
@@ -488,16 +489,10 @@ namespace Renderer
         std::vector<char> vertShaderCode;
         std::vector<char> fragShaderCode;
 
-        if (m_runRaytracePipeline)
-        {
-            vertShaderCode = Tools::ReadFile("./Shaders/showTexture.vert.spv");
-            fragShaderCode = Tools::ReadFile("./Shaders/showTexture.frag.spv");
-        }
-        else
-        {
-            vertShaderCode = Tools::ReadFile("./Shaders/VertexShader.spv");
-            fragShaderCode = Tools::ReadFile("./Shaders/FragmentShader.spv");
-        }
+
+        vertShaderCode = Tools::ReadFile("./Shaders/VertexShader.spv");
+        fragShaderCode = Tools::ReadFile("./Shaders/FragmentShader.spv");
+
 
         VkShaderModule vertShaderModule = Tools::CreateShaderModule(m_device.get(),vertShaderCode);
         VkShaderModule fragShaderModule = Tools::CreateShaderModule(m_device.get(),fragShaderCode);
@@ -517,24 +512,16 @@ namespace Renderer
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 
-        if (!m_runRaytracePipeline)
-        {
-            vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-            auto bindingDescription = Vertex::GetBindingDescription();
-            auto attributeDescriptions = Vertex::GetAttributeDescriptions();
+        auto bindingDescription = Vertex::GetBindingDescription();
+        auto attributeDescriptions = Vertex::GetAttributeDescriptions();
 
-            vertexInputInfo.vertexBindingDescriptionCount = 1;
-            vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-            vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-            vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-        }
-        else
-        {
-            //Set vertex input to Empty
-            vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        }
-     
+        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -589,14 +576,8 @@ namespace Renderer
         dynamicState.pDynamicStates = dynamicStates.data();
 
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-        if (!m_runRaytracePipeline)
-        {
-            descriptorSetLayouts = { m_cameraDescriptorSetLayout, m_modelDescriptorSetLayout };
-        }
-        else
-        {
-            descriptorSetLayouts = { m_rayTraceGraphicsDescriptorLayout };
-        }
+
+        descriptorSetLayouts = { m_cameraDescriptorSetLayout, m_modelDescriptorSetLayout };
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -650,6 +631,65 @@ namespace Renderer
 
     void Engine::CreateSkyboxCubeMap(std::string cubeMap_texturePath)
     {
+
+    }
+
+    void Engine::CreateRayTraceGraphicsPipeline()
+    {
+        // Layout
+        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = VulkanInitializer::PipelineLayoutCreateInfo(&m_rayTraceGraphicsDescriptorLayout, 1);
+        check_vk_result(vkCreatePipelineLayout(m_device->GetVkDevice(), &pipelineLayoutCreateInfo, nullptr, &m_rayTraceGraphicsPipelineLayout));
+
+        // Pipeline 
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = VulkanInitializer::PipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, VK_FALSE);
+        VkPipelineRasterizationStateCreateInfo rasterizationState = VulkanInitializer::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 0);
+        VkPipelineColorBlendAttachmentState blendAttachmentState = VulkanInitializer::PipelineColorBlendAttachmentState(0xf, VK_FALSE);
+        VkPipelineColorBlendStateCreateInfo colorBlendState = VulkanInitializer::PipelineColorBlendStateCreateInfo(1, &blendAttachmentState);
+        VkPipelineDepthStencilStateCreateInfo depthStencilState = VulkanInitializer::PipelineDepthStencilStateCreateInfo(VK_FALSE, VK_FALSE, VK_COMPARE_OP_LESS_OR_EQUAL);
+        VkPipelineViewportStateCreateInfo viewportState = VulkanInitializer::PipelineViewportStateCreateInfo(1, 1, 0);
+        VkPipelineMultisampleStateCreateInfo multisampleState = VulkanInitializer::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
+        std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+        VkPipelineDynamicStateCreateInfo dynamicState = VulkanInitializer::PipelineDynamicStateCreateInfo(dynamicStateEnables);
+    
+        std::vector<char> vertShaderCode;
+        std::vector<char> fragShaderCode;
+
+        vertShaderCode = Tools::ReadFile("./Shaders/showTexture.frag.spv");
+        fragShaderCode = Tools::ReadFile("./Shaders/showTexture.vert.spv");
+
+        VkShaderModule vertShaderModule = Tools::CreateShaderModule(m_device.get(), vertShaderCode);
+        VkShaderModule fragShaderModule = Tools::CreateShaderModule(m_device.get(), fragShaderCode);
+
+        VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+        vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        vertShaderStageInfo.module = vertShaderModule;
+        vertShaderStageInfo.pName = "main";
+
+        VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+        fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        fragShaderStageInfo.module = fragShaderModule;
+        fragShaderStageInfo.pName = "main";
+
+        VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+
+        VkPipelineVertexInputStateCreateInfo emptyInputState{};
+        emptyInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+
+        VkGraphicsPipelineCreateInfo pipelineCreateInfo = VulkanInitializer::PipelineCreateInfo(m_rayTraceGraphicsPipelineLayout, m_renderPass, 0);
+        pipelineCreateInfo.stageCount = 2;
+        pipelineCreateInfo.pStages = shaderStages;
+        pipelineCreateInfo.pVertexInputState = &emptyInputState;
+        pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
+        pipelineCreateInfo.pRasterizationState = &rasterizationState;
+        pipelineCreateInfo.pColorBlendState = &colorBlendState;
+        pipelineCreateInfo.pMultisampleState = &multisampleState;
+        pipelineCreateInfo.pViewportState = &viewportState;
+        pipelineCreateInfo.pDepthStencilState = &depthStencilState;
+        pipelineCreateInfo.pDynamicState = &dynamicState;
+        pipelineCreateInfo.renderPass = m_renderPass;
+       check_vk_result(vkCreateGraphicsPipelines(m_device->GetVkDevice(), m_pipelineCache, 1, &pipelineCreateInfo, nullptr, &m_rayTraceGraphicsPipeline));
 
     }
 
@@ -1038,7 +1078,7 @@ namespace Renderer
 
         vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_rayTraceGraphicsPipeline);
 
         VkViewport viewport{};
         viewport.x = 0.0f;
@@ -1060,7 +1100,7 @@ namespace Renderer
         // Display ray traced image generated by compute shader as a full screen quad
         // Quad vertices are generated in the vertex shader
         // Bind the camera descriptor set. This is set 0 in all pipelines so it will be inherited
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 0, 1, &m_rayTraceGraphicsDescriptorSet, 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_rayTraceGraphicsPipelineLayout, 0, 1, &m_rayTraceGraphicsDescriptorSet, 0, nullptr);
 
         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 

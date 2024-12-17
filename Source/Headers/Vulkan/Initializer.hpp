@@ -156,6 +156,17 @@ namespace VulkanInitializer
 		return pipelineInputAssemblyStateCreateInfo;
 	}
 
+	inline VkPipelineColorBlendAttachmentState PipelineColorBlendAttachmentState(
+		VkColorComponentFlags colorWriteMask,
+		VkBool32 blendEnable)
+	{
+		VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState{};
+		pipelineColorBlendAttachmentState.colorWriteMask = colorWriteMask;
+		pipelineColorBlendAttachmentState.blendEnable = blendEnable;
+		return pipelineColorBlendAttachmentState;
+	}
+
+
 
 	inline VkPipelineRasterizationStateCreateInfo PipelineRasterizationStateCreateInfo(
 		VkPolygonMode polygonMode,
