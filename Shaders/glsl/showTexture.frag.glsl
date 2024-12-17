@@ -8,7 +8,6 @@ layout(location = 0) out vec4 outColor;
 
 void main() {
     // Sample the texture using the interpolated UV coordinates
-    //outColor = texture(texSampler, vec2(fragUV.s, 1.0 -fragUV.t));
 
-    outColor = vec4(1, 1, 0, 1);
+    outColor = texture(texSampler, vec2(inUV.s,  inUV.t));
 }

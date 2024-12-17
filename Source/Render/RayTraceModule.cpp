@@ -13,7 +13,7 @@ namespace Renderer
         check_vk_result(vkCreatePipelineLayout(m_device->GetVkDevice(), &pipelineLayoutCreateInfo, nullptr, &m_rayTraceResources.pipelineLayout));
 
         VkComputePipelineCreateInfo computePipelineCreateInfo = VulkanInitializer::ComputePipelineCreateInfo(m_rayTraceResources.pipelineLayout, 0);
-        auto compShaderCode = Tools::ReadFile("./Shaders/rayTrace.spv");
+        auto compShaderCode = Tools::ReadFile("./Shaders/glsl/rayTrace.spv");
 
         VkShaderModule computeShaderModule = Tools::CreateShaderModule(m_device.get(), compShaderCode);
 

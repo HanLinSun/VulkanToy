@@ -238,20 +238,23 @@ namespace Renderer
     void Engine::Cleanup() {
         DestroyFrameResources();
     
-        vkDestroyPipeline(m_device->GetVkDevice(), m_graphicsPipeline, nullptr);
-        vkDestroyPipelineLayout(m_device->GetVkDevice(), m_graphicPipelineLayout, nullptr);
+    
+       
         vkDestroyRenderPass(m_device->GetVkDevice(), m_renderPass, nullptr);
 
         vkDestroyPipelineCache(m_device->GetVkDevice(), m_pipelineCache, nullptr);
         vkDestroyDescriptorPool(m_device->GetVkDevice(), m_descriptorPool, nullptr);
         if (!m_runRaytracePipeline)
         {
-          
+            vkDestroyPipeline(m_device->GetVkDevice(), m_graphicsPipeline, nullptr);
+            vkDestroyPipelineLayout(m_device->GetVkDevice(), m_graphicPipelineLayout, nullptr);
             vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_modelDescriptorSetLayout, nullptr);
             vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_cameraDescriptorSetLayout, nullptr);
         }
         else
         {
+            vkDestroyPipeline(m_device->GetVkDevice(), m_rayTraceGraphicsPipeline, nullptr);
+            vkDestroyPipelineLayout(m_device->GetVkDevice(), m_rayTraceGraphicsPipelineLayout, nullptr);
             vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_rayTraceGraphicsDescriptorLayout,nullptr);
         }
 
@@ -634,28 +637,14 @@ namespace Renderer
 
     }
 
+    //Must use a different pipeline else fragment shader output will disappear without validation error
     void Engine::CreateRayTraceGraphicsPipeline()
     {
-        // Layout
-        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = VulkanInitializer::PipelineLayoutCreateInfo(&m_rayTraceGraphicsDescriptorLayout, 1);
-        check_vk_result(vkCreatePipelineLayout(m_device->GetVkDevice(), &pipelineLayoutCreateInfo, nullptr, &m_rayTraceGraphicsPipelineLayout));
-
-        // Pipeline 
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = VulkanInitializer::PipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, VK_FALSE);
-        VkPipelineRasterizationStateCreateInfo rasterizationState = VulkanInitializer::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 0);
-        VkPipelineColorBlendAttachmentState blendAttachmentState = VulkanInitializer::PipelineColorBlendAttachmentState(0xf, VK_FALSE);
-        VkPipelineColorBlendStateCreateInfo colorBlendState = VulkanInitializer::PipelineColorBlendStateCreateInfo(1, &blendAttachmentState);
-        VkPipelineDepthStencilStateCreateInfo depthStencilState = VulkanInitializer::PipelineDepthStencilStateCreateInfo(VK_FALSE, VK_FALSE, VK_COMPARE_OP_LESS_OR_EQUAL);
-        VkPipelineViewportStateCreateInfo viewportState = VulkanInitializer::PipelineViewportStateCreateInfo(1, 1, 0);
-        VkPipelineMultisampleStateCreateInfo multisampleState = VulkanInitializer::PipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
-        std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
-        VkPipelineDynamicStateCreateInfo dynamicState = VulkanInitializer::PipelineDynamicStateCreateInfo(dynamicStateEnables);
-    
         std::vector<char> vertShaderCode;
         std::vector<char> fragShaderCode;
 
-        vertShaderCode = Tools::ReadFile("./Shaders/showTexture.frag.spv");
-        fragShaderCode = Tools::ReadFile("./Shaders/showTexture.vert.spv");
+        vertShaderCode = Tools::ReadFile("./Shaders/glsl/showTexture.vert.spv");
+        fragShaderCode = Tools::ReadFile("./Shaders/glsl/showTexture.frag.spv");
 
         VkShaderModule vertShaderModule = Tools::CreateShaderModule(m_device.get(), vertShaderCode);
         VkShaderModule fragShaderModule = Tools::CreateShaderModule(m_device.get(), fragShaderCode);
@@ -672,8 +661,22 @@ namespace Renderer
         fragShaderStageInfo.module = fragShaderModule;
         fragShaderStageInfo.pName = "main";
 
-        VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+        // Layout
+        VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = VulkanInitializer::PipelineLayoutCreateInfo(&m_rayTraceGraphicsDescriptorLayout, 1);
+        check_vk_result(vkCreatePipelineLayout(m_device->GetVkDevice(), &pipelineLayoutCreateInfo, nullptr, &m_rayTraceGraphicsPipelineLayout));
 
+        // Pipeline 
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = VulkanInitializer::PipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, 0, VK_FALSE);
+        VkPipelineRasterizationStateCreateInfo rasterizationState = VulkanInitializer::PipelineRasterizationStateCreateInfo(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, 0);
+        VkPipelineColorBlendAttachmentState blendAttachmentState = VulkanInitializer::PipelineColorBlendAttachmentState(0xf, VK_FALSE);
+        VkPipelineColorBlendStateCreateInfo colorBlendState = VulkanInitializer::PipelineColorBlendStateCreateInfo(1, &blendAttachmentState);
+        VkPipelineDepthStencilStateCreateInfo depthStencilState = VulkanInitializer::PipelineDepthStencilStateCreateInfo(VK_FALSE, VK_FALSE, VK_COMPARE_OP_LESS_OR_EQUAL);
+        VkPipelineViewportStateCreateInfo viewportState = VulkanInitializer::PipelineViewportStateCreateInfo(1, 1, 0);
+        VkPipelineMultisampleStateCreateInfo multisampleState = VulkanInitializer::PipelineMultisampleStateCreateInfo(m_msaaSamples, 0);
+        std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+        VkPipelineDynamicStateCreateInfo dynamicState = VulkanInitializer::PipelineDynamicStateCreateInfo(dynamicStateEnables);
+    
+        VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
         VkPipelineVertexInputStateCreateInfo emptyInputState{};
         emptyInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
@@ -689,8 +692,10 @@ namespace Renderer
         pipelineCreateInfo.pDepthStencilState = &depthStencilState;
         pipelineCreateInfo.pDynamicState = &dynamicState;
         pipelineCreateInfo.renderPass = m_renderPass;
-       check_vk_result(vkCreateGraphicsPipelines(m_device->GetVkDevice(), m_pipelineCache, 1, &pipelineCreateInfo, nullptr, &m_rayTraceGraphicsPipeline));
+        check_vk_result(vkCreateGraphicsPipelines(m_device->GetVkDevice(), m_pipelineCache, 1, &pipelineCreateInfo, nullptr, &m_rayTraceGraphicsPipeline));
 
+        vkDestroyShaderModule(m_device->GetVkDevice(), vertShaderModule, nullptr);
+        vkDestroyShaderModule(m_device->GetVkDevice(), fragShaderModule, nullptr);
     }
 
     void Engine::CreateFrameResources() {
