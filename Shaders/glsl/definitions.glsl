@@ -2,6 +2,7 @@ struct Intersection
 {
 	vec3 position;
 	vec3 normal;
+	bool backFaceFlag;
 	float t;
 };
 
@@ -14,15 +15,23 @@ struct Material {
 
 struct Triangle
 {
-	vec4 v1;
-	vec4 v2;
-	vec4 v3;
+	vec3 v1;
+	vec3 v2;
+	vec3 v3;
 	uint materialIdx;
 };
 
 struct Sphere
 {
-	float radius;
-	vec3 position;
+	vec4 sphere; //x,y,z is center, w is radius
 	uint materialIdx;
 };
+
+struct Ray
+{
+	vec3 origin;
+	vec3 direction;
+	//float tMax;
+	//Medium media;
+};
+

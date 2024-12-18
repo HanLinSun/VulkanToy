@@ -16,7 +16,7 @@ float StepAndOutputRNGFloat(inout uint rngState)
 	return float(word) / 4294967295.0f;
 }
 
-uint32_t rngState = (577 * gl_GlobalInvocationID.x + gl_GlobalInvocationID.y);
+uint rngState = (577 * gl_GlobalInvocationID.x + gl_GlobalInvocationID.y);
 
 float Random()
 {
@@ -25,7 +25,7 @@ float Random()
 
 float Random(float min, float max) {
 	// Returns a random real in [min,max).
-	return min + (max - min) * random();
+	return min + (max - min) * Random();
 }
 
 vec3 RandomInUnitSphere() {
@@ -41,4 +41,8 @@ vec3 RandomInHemisphere(vec3 normal)
 		return inUnitSphereVec;
 	}
 	else return -inUnitSphereVec;
+}
+
+double degrees_to_radians(double degrees) {
+	return degrees * pi / 180.0;
 }
