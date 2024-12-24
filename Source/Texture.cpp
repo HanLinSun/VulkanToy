@@ -246,4 +246,6 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
     // Clean up staging resources
     vkFreeMemory(device->GetVkDevice(), stagingBufferMemory, nullptr);
     vkDestroyBuffer(device->GetVkDevice(), stagingBuffer, nullptr);
+
+    return 0;
 }

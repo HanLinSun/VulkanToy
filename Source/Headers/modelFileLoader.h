@@ -30,13 +30,11 @@ namespace Renderer
 
 		void loadFileData(Scene* scene, std::string modelFilePath, std::string modelFolderPath) override;
 		std::vector<MeshData> GetMeshes();
-		std::vector<std::shared_ptr<Material>> GetMaterials();
 		std::shared_ptr<Device> GetDevice();
 
 	protected:
 		std::shared_ptr<Device> m_device;
 		std::vector<MeshData> m_meshes;
-		std::vector<std::shared_ptr<Material>> m_materials;
 	};
 
 	class GLTFFileLoader :public FileLoader

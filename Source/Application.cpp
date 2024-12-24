@@ -95,6 +95,7 @@ namespace Renderer
 			m_baseRenderer->Run();
 		}
 		//Detecting Memory leak
+		//_crtdbg
 		m_baseRenderer->Destroy();
 	}
 

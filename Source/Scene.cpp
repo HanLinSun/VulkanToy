@@ -60,10 +60,7 @@ namespace Renderer
 		int size = m_textures.size();
 		return size;
 	}
-	void Scene::AddModelGroup(ModelGroup* modelgroup)
-	{
-		m_modelGroups.push_back(std::make_unique<ModelGroup>(modelgroup));
-	}
+
 
 	std::shared_ptr<Material> Scene::GetMaterial(int idx)
 	{
@@ -97,5 +94,15 @@ namespace Renderer
 	void Scene::AddModelGroup(std::unique_ptr<ModelGroup> modelgroup)
 	{
 		m_modelGroups.push_back(std::move(modelgroup));
+	}
+
+	std::vector<Triangle> Scene::GetTriangles()
+	{
+		return m_triangles;
+	}
+
+	void Scene::AddTriangle(Triangle& triangle)
+	{
+		m_triangles.push_back(triangle);
 	}
 }

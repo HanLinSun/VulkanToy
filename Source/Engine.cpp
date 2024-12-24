@@ -71,7 +71,7 @@ namespace Renderer
 
         Tools::CreateImageSampler(m_device.get(), 1.0f, 0, default_sampler);
 
-        m_runRaytracePipeline = true;
+        m_runRaytracePipeline =false;
     }
 
 
@@ -833,7 +833,8 @@ namespace Renderer
 
         std::vector<VkWriteDescriptorSet> descriptorWrites(shaderBindingNums *m_modelDescriptorSets.size());
         std::vector<VkDescriptorImageInfo> diffuse_imageInfo(m_modelDescriptorSets.size());
-        
+        std::vector<std::shared_ptr<Texture2D>> textures = m_Scene->GetTextures();
+
         for (size_t i = 0; i < m_Scene->GetModelGroupSize(); i++)
         {
            const ModelGroup* t_modelGroup = m_Scene->GetSceneModelGroup(i);
@@ -846,7 +847,7 @@ namespace Renderer
                 bufferInfo.range = sizeof(ModelBufferObject);
 
                 Material* mat = t_modelGroup->GetModelAt(j)->GetMaterial();
-                Texture* ambientTexture = mat->GetTexture(TextureType::Ambient).get();
+                Texture* ambientTexture = textures[mat->GetTextureID(TextureType::Ambient)].get();
 
                 if (ambientTexture != nullptr) {
                     diffuse_imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

@@ -23,7 +23,6 @@ namespace Renderer
 		void SetSceneCamera(std::shared_ptr<Camera> Camera);
 		void DestroyVKResources();
 
-		void AddModelGroup(ModelGroup* modelgroup);
 		size_t GetModelGroupSize();
 		const ModelGroup* GetSceneModelGroup(int idx);
 
@@ -36,11 +35,17 @@ namespace Renderer
 		std::shared_ptr<Material> GetMaterial(int idx);
 		std::vector<std::shared_ptr<Material>> GetMaterials();
 
+		std::vector<Triangle> GetTriangles();
+		void AddTriangle(Triangle& triangle);
+
 	private:
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
 		std::vector<std::shared_ptr<Texture2D>> m_textures;
 		std::vector<std::shared_ptr<Material>> m_materials;
-	
+
+		std::vector<Triangle> m_triangles;
+
+
 		std::shared_ptr<Camera> m_Camera;
 		std::unique_ptr<TextureCubeMap> m_skyboxTexture;
 

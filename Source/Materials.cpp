@@ -263,6 +263,7 @@ int Material::GetTextureID(TextureType type)
     }
     break;
     }
+    return -1;
 }
 
 bool Material::IsTransparent() const

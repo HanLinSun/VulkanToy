@@ -68,6 +68,7 @@ namespace Renderer
 		std::vector<Triangle> m_triangles;
 		uint32_t m_materialID;
 	};
+
 	struct GLTFMeshData
 	{
 

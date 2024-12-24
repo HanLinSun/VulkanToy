@@ -36,10 +36,6 @@ namespace Renderer
 		return m_meshes;
 	}
 
-	std::vector<std::shared_ptr<Material>> ObjFileLoader::GetMaterials()
-	{
-		return m_materials;
-	}
 
     std::shared_ptr<Device> ObjFileLoader::GetDevice()
 	{
@@ -135,7 +131,6 @@ namespace Renderer
 				}
 			}
 			scene->AddMaterial(load_mat);
-			//m_materials.push_back(load_mat);
 		}
 
 		glm::vec3 temp_position;
@@ -200,6 +195,8 @@ namespace Renderer
 				//shapes[s].mesh.material_ids[f];
 				_triangle.material_ID = shapes[s].mesh.material_ids[f];
 				mesh.m_triangles.push_back(_triangle);
+
+				scene->AddTriangle(_triangle);
 
 				mesh.m_materialID = shapes[s].mesh.material_ids[f];
 			}
