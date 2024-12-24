@@ -75,7 +75,7 @@ namespace Renderer
         vkCmdBindPipeline(m_rayTraceResources.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_rayTraceResources.pipeline);
         vkCmdBindDescriptorSets(m_rayTraceResources.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_rayTraceResources.pipelineLayout, 0, 1, &m_rayTraceResources.descriptorSet, 0, 0);
 
-        vkCmdDispatch(m_rayTraceResources.commandBuffer, m_storageImage.width / 32, m_storageImage.height / 32, 1);
+        vkCmdDispatch(m_rayTraceResources.commandBuffer, m_storageImage.width / 16, m_storageImage.height / 16, 1);
 
         // Release barrier from compute queue
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;

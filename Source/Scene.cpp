@@ -25,6 +25,54 @@ namespace Renderer
 		{
 			modelgroup->DestroyVKResources();
 		}
+		for (auto& texture : m_textures)
+		{
+			texture->DestroyVKResources();
+		}
+		for (auto& material : m_materials)
+		{
+			material->DestroyVKResources();
+		}
+	}
+
+	void  Scene::AddTexture(std::shared_ptr<Texture2D> texture)
+	{
+		m_textures.push_back(texture);
+	}
+
+	std::shared_ptr<Texture2D> Scene::GetTexture(int idx)
+	{
+		return m_textures[idx];
+	}
+
+	std::vector <std::shared_ptr<Texture2D>> Scene::GetTextures()
+	{
+		return m_textures;
+	}
+
+	void Scene::AddMaterial(std::shared_ptr<Material> material)
+	{
+		m_materials.push_back(material);
+	}
+
+	int Scene::GetCurrentTextureSize()
+	{
+		int size = m_textures.size();
+		return size;
+	}
+	void Scene::AddModelGroup(ModelGroup* modelgroup)
+	{
+		m_modelGroups.push_back(std::make_unique<ModelGroup>(modelgroup));
+	}
+
+	std::shared_ptr<Material> Scene::GetMaterial(int idx)
+	{
+		return m_materials[idx];
+	}
+
+	std::vector<std::shared_ptr<Material>> Scene::GetMaterials()
+	{
+		return m_materials;
 	}
 
 	const std::vector<ModelGroup*> Scene::GetSceneModelGroupsRaw()

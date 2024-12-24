@@ -1,3 +1,7 @@
+#define PI 3.1415926535897932385
+#define EPSILON 0.0003
+#define INF 1000000.0
+
 struct Intersection
 {
 	vec3 position;
@@ -6,18 +10,41 @@ struct Intersection
 	float t;
 };
 
+struct Medium
+{
+	int type;
+	float density;
+	vec3 color;
+	float anisotropy;
+};
+
 struct Material {
-	uint materialType;
-	vec3 albedo;
-	vec3 specular;
-	vec3 roughness;
+	vec3 baseColor;
+	float opacity;
+	int alphaMode;
+	float alphaCutoff;
+	vec3 emission;
+	float anisotropic;
+	float metallic;
+	float roughness;
+	float subsurface;
+	float specularTint;
+	float sheen;
+	float sheenTint;
+	float clearcoat;
+	float clearcoatRoughness;
+	float specTrans;
+	float ior;
+	float ax;
+	float ay;
+
 };
 
 struct Triangle
 {
+	vec3 v0;
 	vec3 v1;
 	vec3 v2;
-	vec3 v3;
 	uint materialIdx;
 };
 

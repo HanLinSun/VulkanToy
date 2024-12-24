@@ -40,18 +40,18 @@ struct MaterialProperties
         , ClearCoatThickness(clearcoatThickness)
         , Sheen(sheen)
         , Metallic(metallic)
-        , HasAmbientTexture(false)
-        , HasEmissiveTexture(false)
-        , HasDiffuseTexture(false)
-        , HasSpecularTexture(false)
-        , HasSpecularPowerTexture(false)
-        , HasNormalTexture(false)
-        , HasBumpTexture(false)
-        , HasOpacityTexture(false)
-        ,HasAlbedoTexture(false)
-        ,HasMetallicTexture(false)
-        ,HasRoughnessTexture(false)
-        ,HasReflectionTexture(false)
+        , AmbientTextureIdx(-1)
+        , EmissiveTextureIdx(-1)
+        , DiffuseTextureIdx(-1)
+        , SpecularTextureIdx(-1)
+        , SpecularPowerTextureIdx(-1)
+        , NormalTextureIdx(-1)
+        , BumpTextureIdx(-1)
+        , OpacityTextureIdx(-1)
+        ,AlbedoTextureIdx(-1)
+        ,MetallicTextureIdx(-1)
+        ,RoughnessTextureIdx(-1)
+        ,ReflectionTextureIdx(-1)
     {}
 		glm::vec4 Diffuse ;
 		glm::vec4 Specular ;
@@ -60,33 +60,33 @@ struct MaterialProperties
 		glm::vec4 Emissive ;
 		glm::vec4 Reflectance ;
         
-        float AlphaThreshold;
-        float Opacity;                       // If Opacity < 1, then the material is transparent.
-        float SpecularPower;
-        float IndexOfRefraction;             // For transparent materials, IOR > 0.
-        float BumpIntensity;                 // When using bump textures (height maps) will need to scale the height values so the normals are visible.
+        glm::float32_t AlphaThreshold;
+        glm::float32_t Opacity;                       // If Opacity < 1, then the material is transparent.
+        glm::float32_t SpecularPower;
+        glm::float32_t IndexOfRefraction;             // For transparent materials, IOR > 0.
+        glm::float32_t BumpIntensity;                 // When using bump textures (height maps) will need to scale the height values so the normals are visible.
 
-        uint32_t HasAmbientTexture;
-        uint32_t HasEmissiveTexture;
-        uint32_t HasDiffuseTexture;
-        uint32_t HasSpecularTexture;
+       glm::int32_t AmbientTextureIdx;
+       glm::int32_t EmissiveTextureIdx;
+       glm::int32_t DiffuseTextureIdx;
+       glm::int32_t SpecularTextureIdx;
 
-        uint32_t HasSpecularPowerTexture;
-        uint32_t HasNormalTexture;
-        uint32_t HasBumpTexture;
-        uint32_t HasOpacityTexture;
+       glm::int32_t SpecularPowerTextureIdx;
+       glm::int32_t NormalTextureIdx;
+       glm::int32_t BumpTextureIdx;
+       glm::int32_t OpacityTextureIdx;
 
 
-        float Roughness;
-        float ClearCoatRoughness;
-        float ClearCoatThickness;
-        float Metallic;
-        float Sheen;
+       glm::float32_t Roughness;
+       glm::float32_t ClearCoatRoughness;
+       glm::float32_t ClearCoatThickness;
+       glm::float32_t Metallic;
+       glm::float32_t Sheen;
 
-        uint32_t HasAlbedoTexture;
-        uint32_t HasRoughnessTexture;
-        uint32_t HasMetallicTexture;
-        uint32_t HasReflectionTexture;
+       glm::int32_t AlbedoTextureIdx;
+       glm::int32_t RoughnessTextureIdx;
+       glm::int32_t MetallicTextureIdx;
+       glm::int32_t ReflectionTextureIdx;
 
 };
 
@@ -153,22 +153,22 @@ public:
     float GetBumpIntensity() const;
     void SetBumpIntensity(float bumpIntensity);
 
-    void SetTexture(std::shared_ptr<Texture> texture, TextureType type);
+    void SetTexture(int textureID, TextureType type);
+    int GetTextureID(TextureType type);
+
     bool IsTransparent() const;
 
     const MaterialProperties& GetMaterialProperties() const;
     void SetMaterialProperties(const MaterialProperties& materialProperties);
 
-    void DestroyResources();
+    void DestroyVKResources();
 
-    std::shared_ptr<Texture> GetTexture(TextureType type) const;
 
     std::string m_name;
 
 private:
 
 	std::unique_ptr<MaterialProperties, void (*)(MaterialProperties*)> m_MaterialProperties;
-    TextureMap m_textures;
 
 	//void CreateDescriptorSet(VkDescriptorPool descriptorPool, VkDescriptorSetLayout descriptorSetLayout, uint32_t descriptorBindingFlags);
 

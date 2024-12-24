@@ -1,5 +1,3 @@
-const float pi = 3.1415926535897932385;
-
 //In Compute Shader cannot use std::srand, so must implement random number generation method
 //based on pcg_setseq_32_step_r in pcg-c, using inc = 17
 uint StepRandomGeneration(uint rngState)

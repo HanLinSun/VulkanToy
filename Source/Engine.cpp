@@ -69,13 +69,15 @@ namespace Renderer
         m_Scene =std::make_unique<Scene>(m_Camera);
         m_time = Timestep::GetInstance();
 
+        Tools::CreateImageSampler(m_device.get(), 1.0f, 0, default_sampler);
+
         m_runRaytracePipeline = true;
     }
 
 
     void Engine::OnEvent(Event& e)
     {
-
+        //doing nothing for now
     }
 
     void Engine::Run() 
@@ -158,10 +160,7 @@ namespace Renderer
     void Engine::LoadModel(std::string model_path, std::string model_folder_path)
     {
         Loader loader(m_device, m_device->GetGraphicCommandPool());
-        std::unique_ptr<ModelGroup> modelgroup=std::make_unique<ModelGroup>();
-        loader.LoadModel(model_path, model_folder_path, modelgroup.get());
-
-        m_Scene->AddModelGroup(std::move(modelgroup));
+        loader.LoadModel(model_path, model_folder_path, m_Scene.get());
     }
 
     void Engine::InitVulkan() {
@@ -268,10 +267,7 @@ namespace Renderer
         }
         else
         {
-            for (int i = 0; i < temp_samplers.size(); i++)
-            {
-                vkDestroySampler(m_device->GetVkDevice(), temp_samplers[i], nullptr);
-            }
+            vkDestroySampler(m_device->GetVkDevice(), default_sampler, nullptr);
         }
 
 
@@ -820,6 +816,7 @@ namespace Renderer
         //Need to use Model group here
         int sceneModelTotalSize = GetSceneModelTotalSize(m_Scene.get());
 
+        //Here allocate too much descriptorSets here, one model image/texture will need one
         m_modelDescriptorSets.resize(sceneModelTotalSize);
 
         std::vector<VkDescriptorSetLayout> layouts = { m_modelDescriptorSets.size(), m_modelDescriptorSetLayout };
@@ -855,16 +852,12 @@ namespace Renderer
                     diffuse_imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                     diffuse_imageInfo[j].imageView = ambientTexture->m_imageView;
                     diffuse_imageInfo[j].sampler = ambientTexture->m_sampler;
-                 //   std::cout << "Texture file path: " << ambientTexture->fileName << std::endl;
                 }
                 else
                 {
                     diffuse_imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                     diffuse_imageInfo[j].imageView = VK_NULL_HANDLE;
-                    VkSampler sampler = {};
-                    Tools::CreateImageSampler(m_device.get(), 1.0f, 0, sampler);
-                    temp_samplers.push_back(sampler);
-                    diffuse_imageInfo[j].sampler = sampler;
+                    diffuse_imageInfo[j].sampler = default_sampler;
                 }
                                                                
                descriptorWrites[shaderBindingNums * j + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

@@ -149,6 +149,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="Shaders\compile.bat" />
+    <None Include="Shaders\glsl\BSDF.glsl" />
     <None Include="Shaders\glsl\definitions.glsl" />
     <None Include="Shaders\glsl\fragShader.glsl" />
     <None Include="Shaders\glsl\random.glsl" />

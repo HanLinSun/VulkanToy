@@ -11,6 +11,12 @@ static void check_vk_result(VkResult err)
 	if (err < 0)
 		abort();
 }
+template <typename T>
+struct Descriptor
+{
+	std::shared_ptr<T> data;
+	VkShaderStageFlags shaderStageFlags;
+};
 
 namespace Tools
 {
@@ -37,6 +43,8 @@ namespace Tools
 
 	VkPipelineShaderStageCreateInfo LoadShader(Device* device, std::string fileName, VkShaderStageFlagBits stage, VkShaderModule& shaderModule);
 
+
+	
 
 	void SetImageLayout(
 		VkCommandBuffer cmdbuffer,

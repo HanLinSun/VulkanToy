@@ -66,15 +66,8 @@ namespace Renderer
 		size_t GetModelSize() const;
 		void DestroyVKResources();
 
-		Material* GetMaterial(int idx) const;
-		size_t GetMaterialSize() const;
-
-		void AddMaterial(std::shared_ptr<Material> mat);
-		void AddMaterial(Material* mat);
-
 	protected:
 		std::vector<std::unique_ptr<Model>> m_models;
-		std::vector<std::shared_ptr<Material>> m_materials;
 	};
 
 }

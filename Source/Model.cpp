@@ -1,3 +1,4 @@
+// Copyright 2024 Hanlin Sun
 #include "Model.h"
 #include "Vulkan/BufferUtils.h"
 namespace Renderer
@@ -33,12 +34,6 @@ namespace Renderer
 		{
 			auto model = this->GetModelAt(i);
 			model->DestroyVKResources();
-		}
-
-		for (int i = 0; i < this->GetMaterialSize(); i++)
-		{
-			auto material = this->GetMaterial(i);
-			material->DestroyResources();
 		}
 	}
 
@@ -116,24 +111,24 @@ namespace Renderer
 		m_material = std::make_unique<Material>(std::move(mat));
 	}
 
-	size_t ModelGroup::GetMaterialSize() const
-	{
-		return m_materials.size();
-	}
+	////size_t ModelGroup::GetMaterialSize() const
+	////{
+	////	return m_materials.size();
+	////}
 
-	Material* ModelGroup::GetMaterial(int idx) const
-	{
-		return m_materials[idx].get();
-	}
-	void ModelGroup::AddMaterial(std::shared_ptr<Material> mat)
-	{
-		m_materials.push_back(mat);
-	}
+	////Material* ModelGroup::GetMaterial(int idx) const
+	////{
+	////	return m_materials[idx].get();
+	////}
+	////void ModelGroup::AddMaterial(std::shared_ptr<Material> mat)
+	////{
+	////	m_materials.push_back(mat);
+	////}
 
-	void ModelGroup::AddMaterial(Material* mat)
-	{
-		m_materials.push_back(std::shared_ptr<Material>(mat));
-	}
+	////void ModelGroup::AddMaterial(Material* mat)
+	////{
+	////	m_materials.push_back(std::shared_ptr<Material>(mat));
+	////}
 
 
 

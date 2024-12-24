@@ -99,6 +99,9 @@
     <None Include="Shaders\glsl\rayTrace.comp">
       <Filter>Source\Shader</Filter>
     </None>
+    <None Include="Shaders\glsl\BSDF.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">

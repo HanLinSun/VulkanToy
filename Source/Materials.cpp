@@ -15,27 +15,19 @@ static void DeleteMaterialProperties(MaterialProperties* p)
 
 Material::Material(const MaterialProperties& materialProperties):m_MaterialProperties(NewMaterialProperties(materialProperties),&DeleteMaterialProperties){}
 
-Material::Material(const Material& copy):m_MaterialProperties(NewMaterialProperties(*copy.m_MaterialProperties), &DeleteMaterialProperties)
-,m_textures(copy.m_textures){}
+Material::Material(const Material& copy):m_MaterialProperties(NewMaterialProperties(*copy.m_MaterialProperties), &DeleteMaterialProperties){}
 
-Material::Material(const Material* copy) :m_MaterialProperties(NewMaterialProperties(*copy->m_MaterialProperties), &DeleteMaterialProperties)
-, m_textures(copy->m_textures) {}
+Material::Material(const Material* copy) :m_MaterialProperties(NewMaterialProperties(*copy->m_MaterialProperties), &DeleteMaterialProperties) {}
 
 const glm::vec4 Material::GetAmbientColor() const
 {
 	return m_MaterialProperties->Ambient;
 }
 
-void Material::DestroyResources()
+void Material::DestroyVKResources()
 {
-    for(auto& mapElement : m_textures)
-    {
-        if (mapElement.second != nullptr)
-        {
-            mapElement.second->DestroyVKResources();
-        }
-    }
 }
+
 void Material::SetAmbientColor(const glm::vec4& ambient)
 {
 	m_MaterialProperties->Ambient = ambient;
@@ -139,86 +131,143 @@ void Material::SetBumpIntensity(float bumpIntensity)
 	m_MaterialProperties->BumpIntensity = bumpIntensity;
 }
 
-std::shared_ptr<Texture> Material::GetTexture(TextureType type) const
+void Material::SetTexture(int textureID, TextureType type)
 {
-    TextureMap::const_iterator iter = m_textures.find(type);
-    if (iter != m_textures.end())
-    {
-        return iter->second;
-    }
-
-    return nullptr;
-}
-void Material::SetTexture(std::shared_ptr<Texture> texture, TextureType type)
-{
-		m_textures[type] = texture;
         switch (type)
         {
         case TextureType::Ambient:
         {
-            m_MaterialProperties->HasAmbientTexture = (texture != nullptr);
+            m_MaterialProperties->AmbientTextureIdx = textureID;
         }
         break;
         case TextureType::Emissive:
         {
-            m_MaterialProperties->HasEmissiveTexture = (texture != nullptr);
+            m_MaterialProperties->EmissiveTextureIdx = textureID;
         }
         break;
         case TextureType::Diffuse:
         {
-            m_MaterialProperties->HasDiffuseTexture = (texture != nullptr);
+            m_MaterialProperties->DiffuseTextureIdx = textureID;
         }
         break;
         case TextureType::Specular:
         {
-            m_MaterialProperties->HasSpecularTexture = (texture != nullptr);
+            m_MaterialProperties->SpecularTextureIdx = textureID;
         }
         break;
         case TextureType::SpecularPower:
         {
-            m_MaterialProperties->HasSpecularPowerTexture = (texture != nullptr);
+            m_MaterialProperties->SpecularPowerTextureIdx = textureID;
         }
         break;
         case TextureType::Normal:
         {
-            m_MaterialProperties->HasNormalTexture = (texture != nullptr);
+            m_MaterialProperties->NormalTextureIdx = textureID;
         }
         break;
         case TextureType::Bump:
         {
-            m_MaterialProperties->HasBumpTexture = (texture != nullptr);
+            m_MaterialProperties->BumpTextureIdx = textureID;
         }
         break;
         case TextureType::Opacity:
         {
-            m_MaterialProperties->HasOpacityTexture = (texture != nullptr);
+            m_MaterialProperties->OpacityTextureIdx = textureID;
         }
         break;
         case TextureType::Albedo:
         {
-            m_MaterialProperties->HasAlbedoTexture = (texture != nullptr);
+            m_MaterialProperties->AlbedoTextureIdx = textureID;
         }
         break;
         case TextureType::Metallic:
         {
-            m_MaterialProperties->HasMetallicTexture = (texture != nullptr);
+            m_MaterialProperties->MetallicTextureIdx = textureID;
         }
         break;
         case TextureType::Roughness:
         {
-            m_MaterialProperties->HasRoughnessTexture = (texture != nullptr);
+            m_MaterialProperties->RoughnessTextureIdx = textureID;
         }
         break;
         case TextureType::Reflection:
         {
-            m_MaterialProperties->HasReflectionTexture = (texture != nullptr);
+            m_MaterialProperties->ReflectionTextureIdx = textureID;
         }
         break;
         }
 }
+
+int Material::GetTextureID(TextureType type)
+{
+    switch (type)
+    {
+    case TextureType::Ambient:
+    {
+       return m_MaterialProperties->AmbientTextureIdx;
+    }
+    break;
+    case TextureType::Emissive:
+    {
+        return m_MaterialProperties->EmissiveTextureIdx;
+    }
+    break;
+    case TextureType::Diffuse:
+    {
+        return m_MaterialProperties->DiffuseTextureIdx;
+    }
+    break;
+    case TextureType::Specular:
+    {
+        return m_MaterialProperties->SpecularTextureIdx;
+    }
+    break;
+    case TextureType::SpecularPower:
+    {
+        return m_MaterialProperties->SpecularPowerTextureIdx;
+    }
+    break;
+    case TextureType::Normal:
+    {
+        return m_MaterialProperties->NormalTextureIdx;
+    }
+    break;
+    case TextureType::Bump:
+    {
+        return m_MaterialProperties->BumpTextureIdx;
+    }
+    break;
+    case TextureType::Opacity:
+    {
+        return m_MaterialProperties->OpacityTextureIdx;
+    }
+    break;
+    case TextureType::Albedo:
+    {
+        return m_MaterialProperties->AlbedoTextureIdx;
+    }
+    break;
+    case TextureType::Metallic:
+    {
+        return m_MaterialProperties->MetallicTextureIdx;
+    }
+    break;
+    case TextureType::Roughness:
+    {
+        return m_MaterialProperties->RoughnessTextureIdx;
+    }
+    break;
+    case TextureType::Reflection:
+    {
+        return m_MaterialProperties->ReflectionTextureIdx;
+    }
+    break;
+    }
+}
+
 bool Material::IsTransparent() const
 {
-	return (m_MaterialProperties->Opacity < 1.0f || m_MaterialProperties->HasOpacityTexture);
+	return (m_MaterialProperties->Opacity < 1.0f ||( m_MaterialProperties->OpacityTextureIdx!=-1));
 }
 
 const MaterialProperties& Material::GetMaterialProperties() const

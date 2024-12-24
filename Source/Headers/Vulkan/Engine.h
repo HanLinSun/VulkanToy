@@ -97,6 +97,7 @@ namespace Renderer
 		void InitGUILayerAttribute();
 		void InitVulkan();
 
+		VkSampler default_sampler = {};
 
 		std::vector<VkSampler> temp_samplers;
 	private:

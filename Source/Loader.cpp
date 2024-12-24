@@ -6,7 +6,7 @@ namespace Renderer
 	Loader::~Loader() 
 	{
 	}
-	void Loader::LoadModel(std::string path, std::string model_folder_path, ModelGroup* modelGroup)
+	void Loader::LoadModel(std::string path, std::string model_folder_path, Scene* scene)
 	{
 		MeshData mesh;
 		int fileSplit = 0;
@@ -25,17 +25,18 @@ namespace Renderer
 			ObjFileLoader* objFileloader = new ObjFileLoader(m_device);
 			if (objFileloader != nullptr)
 			{
-				objFileloader->loadFileData(path, model_folder_path);
+				objFileloader->loadFileData(scene, path, model_folder_path);
 				std::vector<std::shared_ptr<Material>> mats = objFileloader->GetMaterials();
+
 				for (auto& mesh : objFileloader->GetMeshes())
 				{
 					Model* model=new Model(m_device.get(), m_commandPool, mesh.m_vertices, mesh.m_indices, mats[mesh.m_materialID],mesh.m_triangles);
-					modelGroup->AddModel(model);
+					//modelGroup->AddModel(model);
 				}
 
 				for (auto& ptr : mats)
 				{
-					modelGroup->AddMaterial(ptr);
+					//modelGroup->AddMaterial(ptr);
 				}
 			}
 		}
