@@ -29,11 +29,12 @@ namespace Renderer
 		void AddTexture(std::shared_ptr<Texture2D> texture);
 		std::shared_ptr<Texture2D> GetTexture(int idx);
 		std::vector <std::shared_ptr<Texture2D>> GetTextures();
-		int GetCurrentTextureSize();
+		int GetCurrentTextureSize() const;
 
 		void AddMaterial(std::shared_ptr<Material> material);
 		std::shared_ptr<Material> GetMaterial(int idx);
 		std::vector<std::shared_ptr<Material>> GetMaterials();
+		int GetMaterialSize() const;
 
 		std::vector<Triangle> GetTriangles();
 		void AddTriangle(Triangle& triangle);

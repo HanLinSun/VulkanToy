@@ -247,7 +247,7 @@ namespace Renderer
         {
             vkDestroyPipeline(m_device->GetVkDevice(), m_graphicsPipeline, nullptr);
             vkDestroyPipelineLayout(m_device->GetVkDevice(), m_graphicPipelineLayout, nullptr);
-            vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_modelDescriptorSetLayout, nullptr);
+            vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_materialDescriptorLayout, nullptr);
             vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_cameraDescriptorSetLayout, nullptr);
         }
         else
@@ -458,7 +458,6 @@ namespace Renderer
 
         std::vector<VkDescriptorSetLayoutBinding> bindings = { layoutBindings[0], layoutBindings[1]};
 
-
         // Define descriptor binding flags (allow partially bound descriptors)
         VkDescriptorBindingFlagsEXT bindingFlags[] = {
             0,  // No special flags for uniform buffer (binding 0)
@@ -478,7 +477,7 @@ namespace Renderer
         layoutInfo.pBindings = bindings.data();
         layoutInfo.pNext = &bindingFlagsInfo;
 
-        if (vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &layoutInfo, nullptr, &m_modelDescriptorSetLayout) != VK_SUCCESS) {
+        if (vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &layoutInfo, nullptr, &m_materialDescriptorLayout) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create descriptor set layout");
         }
     }
@@ -576,7 +575,7 @@ namespace Renderer
 
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
 
-        descriptorSetLayouts = { m_cameraDescriptorSetLayout, m_modelDescriptorSetLayout };
+        descriptorSetLayouts = { m_cameraDescriptorSetLayout, m_materialDescriptorLayout };
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -755,7 +754,6 @@ namespace Renderer
 
     //Diffuse
     void Engine::CreateDescriptorPool() {
-
         int modelNum = GetSceneModelTotalSize(m_Scene.get());
         std::vector<VkDescriptorPoolSize> poolSizes=  {
             //Camera
@@ -775,7 +773,6 @@ namespace Renderer
             throw std::runtime_error("failed to create descriptor pool!");
         }
     }
-
     void Engine::CreateCameraDescriptorSets()
     {
         VkDescriptorSetLayout layouts[] = {m_cameraDescriptorSetLayout};
@@ -810,29 +807,28 @@ namespace Renderer
         // Update descriptor sets
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
     }
-
     void Engine::CreateModelDescriptorSets(int shaderBindingNums) 
     {
         //Need to use Model group here
         int sceneModelTotalSize = GetSceneModelTotalSize(m_Scene.get());
 
         //Here allocate too much descriptorSets here, one model image/texture will need one
-        m_modelDescriptorSets.resize(sceneModelTotalSize);
+        m_materialDescriptorSets.resize(sceneModelTotalSize);
 
-        std::vector<VkDescriptorSetLayout> layouts = { m_modelDescriptorSets.size(), m_modelDescriptorSetLayout };
+        std::vector<VkDescriptorSetLayout> layouts = { m_materialDescriptorSets.size(), m_materialDescriptorLayout };
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = m_descriptorPool;
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(m_modelDescriptorSets.size());
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(m_materialDescriptorSets.size());
         allocInfo.pSetLayouts = layouts.data();
 
 
-        if (vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, m_modelDescriptorSets.data()) != VK_SUCCESS) {
+        if (vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, m_materialDescriptorSets.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
 
-        std::vector<VkWriteDescriptorSet> descriptorWrites(shaderBindingNums *m_modelDescriptorSets.size());
-        std::vector<VkDescriptorImageInfo> diffuse_imageInfo(m_modelDescriptorSets.size());
+        std::vector<VkWriteDescriptorSet> descriptorWrites(shaderBindingNums *m_materialDescriptorSets.size());
+        std::vector<VkDescriptorImageInfo> diffuse_imageInfo(m_materialDescriptorSets.size());
         std::vector<std::shared_ptr<Texture2D>> textures = m_Scene->GetTextures();
 
         for (size_t i = 0; i < m_Scene->GetModelGroupSize(); i++)
@@ -847,12 +843,15 @@ namespace Renderer
                 bufferInfo.range = sizeof(ModelBufferObject);
 
                 Material* mat = t_modelGroup->GetModelAt(j)->GetMaterial();
-                Texture* ambientTexture = textures[mat->GetTextureID(TextureType::Ambient)].get();
-
-                if (ambientTexture != nullptr) {
-                    diffuse_imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                    diffuse_imageInfo[j].imageView = ambientTexture->m_imageView;
-                    diffuse_imageInfo[j].sampler = ambientTexture->m_sampler;
+                if (mat->GetTextureID(TextureType::Ambient) >= 0)
+                {
+                    //In this case always can get valid texture
+                    Texture* ambientTexture = textures[mat->GetTextureID(TextureType::Ambient)].get();
+                    if (ambientTexture != nullptr) {
+                        diffuse_imageInfo[j].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                        diffuse_imageInfo[j].imageView = ambientTexture->m_imageView;
+                        diffuse_imageInfo[j].sampler = ambientTexture->m_sampler;
+                    }
                 }
                 else
                 {
@@ -860,9 +859,9 @@ namespace Renderer
                     diffuse_imageInfo[j].imageView = VK_NULL_HANDLE;
                     diffuse_imageInfo[j].sampler = default_sampler;
                 }
-                                                               
+                                                              
                descriptorWrites[shaderBindingNums * j + 0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-               descriptorWrites[shaderBindingNums * j + 0].dstSet = m_modelDescriptorSets[j];
+               descriptorWrites[shaderBindingNums * j + 0].dstSet = m_materialDescriptorSets[j];
                descriptorWrites[shaderBindingNums * j + 0].dstBinding = 0;
                descriptorWrites[shaderBindingNums * j + 0].dstArrayElement = 0;
                descriptorWrites[shaderBindingNums * j + 0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -870,7 +869,7 @@ namespace Renderer
                descriptorWrites[shaderBindingNums * j + 0].pBufferInfo = &bufferInfo;
                
                descriptorWrites[shaderBindingNums * j + 1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-               descriptorWrites[shaderBindingNums * j + 1].dstSet = m_modelDescriptorSets[j];
+               descriptorWrites[shaderBindingNums * j + 1].dstSet = m_materialDescriptorSets[j];
                descriptorWrites[shaderBindingNums * j + 1].dstBinding = 1;
                descriptorWrites[shaderBindingNums * j + 1].dstArrayElement = 0;
                descriptorWrites[shaderBindingNums * j + 1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1011,10 +1010,9 @@ namespace Renderer
                 VkBuffer vertexBuffers[] = { modelGroup->GetModelAt(j)->GetVertexBuffer()};
                 VkDeviceSize offsets[] = { 0 };
                 vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
                 vkCmdBindIndexBuffer(commandBuffer, modelGroup->GetModelAt(j)->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 1, 1, &m_modelDescriptorSets[j], 0, nullptr);
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicPipelineLayout, 1, 1, &m_materialDescriptorSets[j], 0, nullptr);
 
                 std::vector<uint32_t> indices = modelGroup->GetModelAt(j)->GetIndices();
                 vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);

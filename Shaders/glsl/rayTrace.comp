@@ -9,9 +9,8 @@ layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 layout(binding = 0, rgba8) uniform writeonly image2D targetTexture;
 
 layout(binding =1) uniform UniformBufferObject {
-    Camera camera;
-    float aspect_ratio;
-} ubo;
+    RayTraceUniformBuffer ubo;
+} 
 
 layout(std430, binding = 2) readonly buffer TriangleBufferObject
 {
@@ -129,9 +128,7 @@ bool HitTriangle(int triangle_index, float tMin, float tMax,Ray r, inout Interse
 
         intersection.t = root;
         intersection.position = RayAt(r , intersection.t);
-
         intersection.normal = (1 - 2*intersection.backFaceFlag)* ((intersection.position - center) / radius);
-
         return true;
  }
 
@@ -153,23 +150,26 @@ bool HitTriangle(int triangle_index, float tMin, float tMax,Ray r, inout Interse
  void main()
  {
     vec2 image_size =vec2(imageSize(targetTexture));
-    float theta = ubo.camera.fov * PI/180.f;
+    float theta = ubo.cameraFOV * PI/180.f;
 
     float h = tan(theta/2);
     float viewport_height =2.0*h;
     float viewport_width = image_size.x /image_size.y *viewport_height;
-    float focal_length =1.0;
+    float focal_length =ubo.focalDistance;
 
     // Calculate the vectors across the horizontal and down the vertical viewport edges.
     vec3 horizontal =vec3(viewport_width,0,0);
     vec3 vertical =vec3(0,-viewport_height,0);
 
-    vec3 lower_left_corner = ubo.camera.pos -horizontal/2 - vertical/2 -vec3(0,0,focal_length);
+    vec3 lower_left_corner = ubo.cameraPos -horizontal/2 - vertical/2 -vec3(0,0,focal_length);
     vec2 uv = (gl_GlobalInvocationID.xy) /image_size.xy;
 
     Ray r;
-    r.origin = ubo.camera.pos;
+    r.origin = ubo.cameraPos;
     r.direction = lower_left_corner +uv.x * horizontal +uv.y *vertical - r.origin;
+
+    //Ray Generation
+
 
     vec3 pixelColor = TraceRay(r);
 

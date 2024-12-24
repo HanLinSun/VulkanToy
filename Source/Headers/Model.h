@@ -10,7 +10,7 @@ namespace Renderer
 
 	struct ModelBufferObject
 	{
-		glm::mat4 modelMatrix;
+		alignas(16) glm::mat4 modelMatrix;
 	};
 
 	class Model

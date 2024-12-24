@@ -1,6 +1,8 @@
 #define PI 3.1415926535897932385
 #define EPSILON 0.0003
-#define INF 1000000.0
+#define INFINITY  1000000.0
+#define MINIMUM   0.00001
+
 
 struct Intersection
 {
@@ -18,25 +20,35 @@ struct Medium
 	float anisotropy;
 };
 
-struct Material {
+struct Material 
+{
 	vec3 baseColor;
-	float opacity;
-	int alphaMode;
-	float alphaCutoff;
 	vec3 emission;
 	float anisotropic;
+
 	float metallic;
 	float roughness;
 	float subsurface;
 	float specularTint;
+
 	float sheen;
 	float sheenTint;
 	float clearcoat;
 	float clearcoatRoughness;
+
 	float specTrans;
 	float ior;
 	float ax;
 	float ay;
+
+	float opacity;
+	int alphaMode;
+	float alphaCutoff;
+
+	int albedoTextureID; //base color map
+	int normalTextureID;
+	int metallicRoughnessTextureID;
+	int emissonMapTextureID;
 
 };
 
@@ -58,7 +70,16 @@ struct Ray
 {
 	vec3 origin;
 	vec3 direction;
-	//float tMax;
-	//Medium media;
 };
 
+struct RayTraceUniformBuffer
+{
+	mat4 viewMatrix;
+	mat4 projMatrix;
+	vec3 cameraPos;
+	uint lightNums;
+	uint spp;
+	uint maxDepth;
+	float focalDistance;
+	float cameraFOV;
+};

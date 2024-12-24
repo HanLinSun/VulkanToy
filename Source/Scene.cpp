@@ -55,7 +55,7 @@ namespace Renderer
 		m_materials.push_back(material);
 	}
 
-	int Scene::GetCurrentTextureSize()
+	int Scene::GetCurrentTextureSize() const
 	{
 		int size = m_textures.size();
 		return size;
@@ -65,6 +65,11 @@ namespace Renderer
 	std::shared_ptr<Material> Scene::GetMaterial(int idx)
 	{
 		return m_materials[idx];
+	}
+
+	int Scene::GetMaterialSize() const
+	{
+		return m_materials.size();
 	}
 
 	std::vector<std::shared_ptr<Material>> Scene::GetMaterials()

@@ -123,7 +123,7 @@ namespace Renderer
 		VkRenderPass m_renderPass;
 
 		VkDescriptorSetLayout m_cameraDescriptorSetLayout;
-		VkDescriptorSetLayout m_modelDescriptorSetLayout;
+		VkDescriptorSetLayout m_materialDescriptorLayout;
 
 		VkPipelineLayout m_graphicPipelineLayout;
 
@@ -142,6 +142,7 @@ namespace Renderer
 		uint32_t mipLevels;
 		VkSubmitInfo m_submitInfo;
 
+		//After finish raytrace pipeline need to fix this
 		VkDescriptorPool m_descriptorPool;
 		VkDescriptorSet m_cameraDescriptorSet;
 
@@ -153,11 +154,10 @@ namespace Renderer
 		VkPipeline m_rayTraceGraphicsPipeline;
 		//
 
-		std::vector<VkDescriptorSet> m_modelDescriptorSets;
+		std::vector<VkDescriptorSet> m_materialDescriptorSets;
 	
 		VkDescriptorPool m_imGuiDescriptorPool;
-		std::vector<VkDescriptorSet> m_imGuiDescriptorSet;
-
+		
 		std::vector<VkCommandBuffer> m_commandBuffers;
 
 		struct
@@ -202,8 +202,6 @@ namespace Renderer
 		bool framebufferResized = false;
 
 		void LoadModel(std::string model_path, std::string model_texture_path);
-
-		void CompileShader(std::string vertexShader, std::string fragmentShader);
 
 		void DestroyFrameResources();
 

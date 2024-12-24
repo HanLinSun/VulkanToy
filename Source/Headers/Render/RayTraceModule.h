@@ -15,11 +15,48 @@ namespace Renderer
 	struct RayTraceUniformData
 	{										
 		// Compute shader uniform block object
-
+		 alignas(16) glm::mat4 cam_viewMatrix;
+		 alignas(16) glm::mat4 cam_projectionMatrix;
 		 alignas(16) glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 0.0f);
-		 alignas(16) glm::vec3 cam_lookat = glm::vec3(0.0f, 0.5f, 0.0f);
-		 float fov = 10.0f;
-		 float aspectRatio{ 1.0f };
+		 //For tracing scene
+		 alignas(4) int lightNums;
+		 alignas(4) int samplePerPixel;
+		 alignas(4) int maxRecursiveDepth;
+		 alignas(4) glm::float32_t focalDistance;
+		 alignas(4) glm::float32_t cameraFOV = 10.0f;
+	};
+
+
+	struct PBRMaterialData
+	{
+		alignas(16) glm::vec4 baseColor;
+		alignas(16) glm::vec4 emission;
+
+		alignas(4) glm::float32_t anisotropic;
+		alignas(4) glm::float32_t metallic;
+		alignas(4) glm::float32_t roughness;
+		alignas(4) glm::float32_t subsurface;
+
+		alignas(4) glm::float32_t specularTint;
+		alignas(4) glm::float32_t sheen;
+		alignas(4) glm::float32_t sheenTint;
+		alignas(4) glm::float32_t clearcoat;
+
+		alignas(4) glm::float32_t clearcoatRoughness;
+
+		alignas(4) glm::float32_t specTrans;
+		alignas(4) glm::float32_t ior;
+		alignas(4) glm::float32_t ax;
+		alignas(4) glm::float32_t ay;
+
+		alignas(4) glm::float32_t opacity;
+		alignas(4) int alphaMode;
+		alignas(4) glm::float32_t alphaCutoff;
+
+		alignas(4) int albedoTextureID; //base color map
+		alignas(4) int normalTextureID;
+		alignas(4) int metallicRoughnessTextureID;
+		alignas(4) int emissonMapTextureID;
 	};
 
 	struct ComputeResource {
@@ -36,7 +73,6 @@ namespace Renderer
 		VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };				// Layout of the compute pipeline
 		VkPipeline pipeline{ VK_NULL_HANDLE };							// Compute raytracing pipeline
 
-		void DestroyVKResource();
 	};
 
 	class RayTraceModule

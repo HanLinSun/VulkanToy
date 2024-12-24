@@ -115,7 +115,7 @@ public:
 	Material(const MaterialProperties& materialProperties = MaterialProperties());
 	Material(const Material& copy);
     Material(const Material* copy);
-	~Material(){ std::cout << "Material deconstructor called" << std::endl; }
+	~Material(){}
 
     const glm::vec4 GetAmbientColor() const;
     void SetAmbientColor(const glm::vec4& ambient);

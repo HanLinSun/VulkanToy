@@ -86,8 +86,8 @@ namespace Renderer
 				std::shared_ptr<Texture2D> ambient_texture=std::make_shared<Texture2D>();
 				if (ambient_texture->LoadFromFile(modelFolderPath + material.ambient_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					scene->AddTexture(ambient_texture);
 					load_mat->SetTexture(scene->GetCurrentTextureSize(), TextureType::Ambient);
+					scene->AddTexture(ambient_texture);
 				}
 			}
 
@@ -96,8 +96,8 @@ namespace Renderer
 				std::shared_ptr<Texture2D> normal_texture = std::make_shared<Texture2D>();
 				if (normal_texture->LoadFromFile(modelFolderPath + material.normal_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					scene->AddTexture(normal_texture);
 					load_mat->SetTexture(scene->GetCurrentTextureSize(), TextureType::Normal);
+					scene->AddTexture(normal_texture);
 				}
 			}
 
@@ -106,8 +106,8 @@ namespace Renderer
 				std::shared_ptr<Texture2D> alpha_texture = std::make_shared<Texture2D>();
 				if (alpha_texture->LoadFromFile(modelFolderPath + material.alpha_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					scene->AddTexture(alpha_texture);
 					load_mat->SetTexture(scene->GetCurrentTextureSize(), TextureType::Opacity);
+					scene->AddTexture(alpha_texture);
 				}
 			}
 
@@ -116,8 +116,8 @@ namespace Renderer
 				std::shared_ptr<Texture2D> bump_texture = std::make_shared<Texture2D>();
 				if (bump_texture->LoadFromFile(modelFolderPath + material.bump_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					scene->AddTexture(bump_texture);
 					load_mat->SetTexture(scene->GetCurrentTextureSize(), TextureType::Bump);
+					scene->AddTexture(bump_texture);
 				}
 			}
 
@@ -126,8 +126,8 @@ namespace Renderer
 				std::shared_ptr<Texture2D> reflection_texture = std::make_shared<Texture2D>();
 				if (reflection_texture->LoadFromFile(modelFolderPath + material.reflection_texname, VK_FORMAT_R8G8B8A8_SRGB, GetDevice()) == 0)
 				{
-					scene->AddTexture(reflection_texture);
 					load_mat->SetTexture(scene->GetCurrentTextureSize(), TextureType::Reflection);
+					scene->AddTexture(reflection_texture);
 				}
 			}
 			scene->AddMaterial(load_mat);
@@ -148,7 +148,7 @@ namespace Renderer
 			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
 			{
 				size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
-				Triangle _triangle;
+				std::vector<Vertex> triVert;
 				for (size_t v = 0; v < fv; v++)
 				{
 					//access to vertex
@@ -181,7 +181,7 @@ namespace Renderer
 					}
 
 					Vertex vert = { temp_position,temp_normal,temp_color,temp_uv };
-					_triangle.verts.push_back(vert);
+					triVert.push_back(vert);
 
 					if (uniqueVertices.count(vert) == 0) {
 						uniqueVertices[vert] = static_cast<uint32_t>(mesh.m_vertices.size());
@@ -191,12 +191,15 @@ namespace Renderer
 				}
 				index_offset += fv;
 				// per-face material
-				// 
+				Triangle triangle;
+				triangle.v0 = triVert[0].position;
+				triangle.v1 = triVert[1].position;
+				triangle.v2 = triVert[2].position;
 				//shapes[s].mesh.material_ids[f];
-				_triangle.material_ID = shapes[s].mesh.material_ids[f];
-				mesh.m_triangles.push_back(_triangle);
+				triangle.material_ID = shapes[s].mesh.material_ids[f];
+				mesh.m_triangles.push_back(triangle);
 
-				scene->AddTriangle(_triangle);
+				scene->AddTriangle(triangle);
 
 				mesh.m_materialID = shapes[s].mesh.material_ids[f];
 			}

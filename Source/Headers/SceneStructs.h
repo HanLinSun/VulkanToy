@@ -56,8 +56,17 @@ namespace Renderer
 
 	struct Triangle
 	{
-		std::vector<Vertex> verts;
-		uint32_t material_ID;
+		alignas(16) glm::vec3 v0;
+		alignas(16) glm::vec3 v1;
+		alignas(16) glm::vec3 v2;
+		alignas(4) uint32_t material_ID;
+	};
+
+
+	struct Sphere
+	{
+		alignas(16) glm::vec4 s;
+		alignas(4) uint32_t materialIndex;
 	};
 
 	struct MeshData
