@@ -72,6 +72,43 @@ namespace Renderer
 		return m_materials.size();
 	}
 
+	std::vector<PBRMaterialData> Scene::GeneratePBRMaterialData()
+	{
+		std::vector<PBRMaterialData> m_pbrMats;
+		for (auto& mat : m_materials)
+		{
+			PBRMaterialData pbrMat;
+			pbrMat.baseColor = mat->GetDiffuseColor();
+			pbrMat.emission = mat->GetEmissiveColor();
+			pbrMat.roughness = mat->GetRoughness();
+			pbrMat.metallic = mat->GetMetallic();
+			pbrMat.sheen = mat->GetSheen();
+			pbrMat.sheenTint = mat->GetSheenTint();
+			pbrMat.anisotropic = mat->GetAnisotropic();
+
+			pbrMat.clearcoatThickness = mat->GetClearCoatThickness();
+			pbrMat.clearcoatRoughness = mat->GetClearCoatRoughness();
+			pbrMat.transmission = mat->GetTransmission();
+
+			pbrMat.specTrans = mat->GetSpecTrans();
+			pbrMat.specularTint = mat->GetSpecularTint();
+			pbrMat.subsurface = mat->GetSubSurface();
+			pbrMat.ior = mat->GetIndexOfRefraction();
+
+			pbrMat.albedoTextureID = mat->GetTextureID(TextureType::Diffuse);
+			pbrMat.normalTextureID = mat->GetTextureID(TextureType::Normal);
+			pbrMat.metallicRoughnessTextureID = mat->GetTextureID(TextureType::MetallicRoughness);
+			pbrMat.emissonMapTextureID = mat->GetTextureID(TextureType::Emissive);
+			m_pbrMats.push_back(pbrMat);
+		}
+		return m_pbrMats;
+	}
+
+	std::vector<Sphere> Scene::GetSpheres()
+	{
+		return m_spheres;
+	}
+
 	std::vector<std::shared_ptr<Material>> Scene::GetMaterials()
 	{
 		return m_materials;
@@ -104,6 +141,16 @@ namespace Renderer
 	std::vector<Triangle> Scene::GetTriangles()
 	{
 		return m_triangles;
+	}
+
+	void Scene::AddSphere(Sphere sphere)
+	{
+		m_spheres.push_back(sphere);
+	}
+
+	int Scene::GetSphereSize() const
+	{
+		return m_spheres.size();
 	}
 
 	void Scene::AddTriangle(Triangle& triangle)

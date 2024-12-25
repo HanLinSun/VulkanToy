@@ -59,74 +59,134 @@ void Material::SetSpecularColor(const glm::vec4& specular)
 	m_MaterialProperties->Specular = specular;
 }
 
-float Material::GetSpecularPower() const
+glm::float32_t Material::GetSpecularPower() const
 {
 	return m_MaterialProperties->SpecularPower;
 }
-void  Material::SetSpecularPower(float specularPower)
+void Material::SetSpecularPower(glm::float32_t specularPower)
 {
 	m_MaterialProperties->SpecularPower = specularPower;
 }
 
-const float Material::GetOpacity() const
+glm::float32_t  Material::GetSheenTint() const
+{
+    return m_MaterialProperties->SheenTint;
+}
+
+void Material::SetSheenTint(glm::float32_t sheenTint)
+{
+    m_MaterialProperties->SheenTint = sheenTint;
+}
+
+glm::float32_t  Material::GetSpecularTint() const
+{
+    return m_MaterialProperties->SpecularTint;
+}
+
+void  Material::SetSpecularTint(glm::float32_t specularTint)
+{
+    m_MaterialProperties->SpecularTint = specularTint;
+}
+
+glm::float32_t  Material::GetSpecTrans() const
+{
+    return m_MaterialProperties->SpecTrans;
+}
+
+void  Material::SetSpecTrans(glm::float32_t specTrans)
+{
+    m_MaterialProperties->SpecTrans = specTrans;
+}
+
+glm::float32_t Material::GetSheen() const
+{
+    return m_MaterialProperties->Sheen;
+}
+
+void Material::SetSheen(glm::float32_t sheen)
+{
+    m_MaterialProperties->Sheen = sheen;
+}
+
+glm::float32_t  Material::GetAnisotropic() const
+{
+    return m_MaterialProperties->Anisotropic;
+}
+
+void  Material::SetAnisotropic(glm::float32_t anisotropic)
+{
+    m_MaterialProperties->Anisotropic = anisotropic;
+}
+
+const glm::float32_t Material::GetOpacity() const
 {
 	return m_MaterialProperties->Opacity;
 }
-void Material::SetOpacity(float opacity)
+void Material::SetOpacity(glm::float32_t opacity)
 {
 	m_MaterialProperties->Opacity = opacity;
 }
 
-float Material::GetIndexOfRefraction() const
+glm::float32_t Material::GetIndexOfRefraction() const
 {
 	return m_MaterialProperties->IndexOfRefraction;
 }
-void Material::SetIndexOfRefraction(float indexOfRefraction)
+void Material::SetIndexOfRefraction(glm::float32_t indexOfRefraction)
 {
 	m_MaterialProperties->IndexOfRefraction = indexOfRefraction;
 }
 
-float Material::GetClearCoatThickness() const
+glm::float32_t Material::GetClearCoatThickness() const
 {
     return m_MaterialProperties->ClearCoatThickness;
 }
-void Material::SetClearCoatThickness(float clearCoatThickness)
+void Material::SetClearCoatThickness(glm::float32_t clearCoatThickness)
 {
     m_MaterialProperties->ClearCoatThickness = clearCoatThickness;
 }
 
-float Material::GetRoughness() const
+glm::float32_t Material::GetSubSurface() const
+{
+    return m_MaterialProperties->SubSurface;
+}
+
+void Material::SetSubSurface(glm::float32_t subsurface)
+{
+    m_MaterialProperties->SubSurface = subsurface;
+}
+
+glm::float32_t Material::GetRoughness() const
 {
     return m_MaterialProperties->Roughness;
 }
-void Material::SetRoughness(float roughness) 
+void Material::SetRoughness(glm::float32_t roughness)
 {
     m_MaterialProperties->Roughness = roughness;
 }
 
-float Material::GetMetallic() const
+glm::float32_t Material::GetMetallic() const
 {
     return m_MaterialProperties->Metallic;
 }
-void Material::SetMetallic(float metallic)
+void Material::SetMetallic(glm::float32_t metallic)
 {
     m_MaterialProperties->Metallic = metallic;
 }
 
-float Material::GetClearCoatRoughness() const
+glm::float32_t Material::GetClearCoatRoughness() const
 {
     return m_MaterialProperties->ClearCoatRoughness;
 }
-void Material::SetClearCoatRoughness(float clearCoatRoughness)
+void Material::SetClearCoatRoughness(glm::float32_t clearCoatRoughness)
 {
     m_MaterialProperties->ClearCoatRoughness = clearCoatRoughness;
 }
 
-float Material::GetBumpIntensity() const
+glm::float32_t Material::GetBumpIntensity() const
 {
 	return m_MaterialProperties->BumpIntensity;
 }
-void Material::SetBumpIntensity(float bumpIntensity)
+void Material::SetBumpIntensity(glm::float32_t bumpIntensity)
 {
 	m_MaterialProperties->BumpIntensity = bumpIntensity;
 }
@@ -180,14 +240,9 @@ void Material::SetTexture(int textureID, TextureType type)
             m_MaterialProperties->AlbedoTextureIdx = textureID;
         }
         break;
-        case TextureType::Metallic:
+        case TextureType::MetallicRoughness:
         {
-            m_MaterialProperties->MetallicTextureIdx = textureID;
-        }
-        break;
-        case TextureType::Roughness:
-        {
-            m_MaterialProperties->RoughnessTextureIdx = textureID;
+            m_MaterialProperties->MetallicRoughnessTextureIdx = textureID;
         }
         break;
         case TextureType::Reflection:
@@ -247,14 +302,9 @@ int Material::GetTextureID(TextureType type)
         return m_MaterialProperties->AlbedoTextureIdx;
     }
     break;
-    case TextureType::Metallic:
+    case TextureType::MetallicRoughness:
     {
-        return m_MaterialProperties->MetallicTextureIdx;
-    }
-    break;
-    case TextureType::Roughness:
-    {
-        return m_MaterialProperties->RoughnessTextureIdx;
+        return m_MaterialProperties->MetallicRoughnessTextureIdx;
     }
     break;
     case TextureType::Reflection:
@@ -264,6 +314,26 @@ int Material::GetTextureID(TextureType type)
     break;
     }
     return -1;
+}
+
+glm::vec4 Material::GetTransmittance() const
+{
+    return m_MaterialProperties->Transmittance;
+}
+
+void Material::SetTransmittance(glm::vec4 transmittance)
+{
+    m_MaterialProperties->Transmittance = transmittance;
+}
+
+glm::float32_t Material::GetTransmission() const
+{
+    return m_MaterialProperties->Transmission;
+}
+
+void Material::SetTransmission(glm::float32_t transmission)
+{
+    m_MaterialProperties->Transmission = transmission;
 }
 
 bool Material::IsTransparent() const

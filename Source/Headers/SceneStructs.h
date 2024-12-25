@@ -4,6 +4,7 @@
 #include "Material.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/Texture.h"
+#include "GPUModel.h"
 
 namespace Renderer
 {
@@ -51,23 +52,8 @@ namespace Renderer
 		bool operator==(const Vertex& other) const {
 			return position == other.position && color == other.color&& normal==other.normal && texCoord == other.texCoord;
 		}
-
 	};
 
-	struct Triangle
-	{
-		alignas(16) glm::vec3 v0;
-		alignas(16) glm::vec3 v1;
-		alignas(16) glm::vec3 v2;
-		alignas(4) uint32_t material_ID;
-	};
-
-
-	struct Sphere
-	{
-		alignas(16) glm::vec4 s;
-		alignas(4) uint32_t materialIndex;
-	};
 
 	struct MeshData
 	{

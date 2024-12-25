@@ -14,32 +14,40 @@ struct MaterialProperties
         const float specularPower = 128.0f,
         const glm::vec4 ambient = { 0, 0, 0, 1 },
         const glm::vec4 emissive = { 0, 0, 0, 1 },
-        const glm::vec4 reflectance = { 0, 0, 0, 0 }, 
+        const glm::vec4 reflectance = { 0, 0, 0, 0 },
+        const glm::vec4 transmittance = { 1,1,1,1 },
         const float opacity = 1.0f,
-        const float indexOfRefraction = 0.0f, 
+        const float indexOfRefraction = 0.0f,
         const float bumpIntensity = 1.0f,
         const float alphaThreshold = 0.1f,
+        const float transmission =1.0f,
         const float roughness = 1.0f,
-        const float sheen =1.0f,
+        const float sheen = 1.0f,
         const float clearcoatRoughness = 1.0f,
-        const float clearcoatThickness=1.0f,
-        const float metallic = 1.0f
+        const float clearcoatThickness = 1.0f,
+        const float metallic = 1.0f,
+        const float subsurface =1.0f,
+        const float anisotropic = 1.0f
     )   
         : Diffuse(diffuse)
         , Specular(specular)
         , Emissive(emissive)
         , Ambient(ambient)
         , Reflectance(reflectance)
+        , Transmittance(transmittance)
         , Opacity(opacity)
         , SpecularPower(specularPower)
         , IndexOfRefraction(indexOfRefraction)
         , BumpIntensity(bumpIntensity)
         , AlphaThreshold(alphaThreshold)
+        , Transmission(transmission)
         , Roughness(roughness)
         , ClearCoatRoughness(clearcoatRoughness)
         , ClearCoatThickness(clearcoatThickness)
         , Sheen(sheen)
         , Metallic(metallic)
+        , Anisotropic(anisotropic)
+        , SubSurface(subsurface)
         , AmbientTextureIdx(-1)
         , EmissiveTextureIdx(-1)
         , DiffuseTextureIdx(-1)
@@ -48,10 +56,9 @@ struct MaterialProperties
         , NormalTextureIdx(-1)
         , BumpTextureIdx(-1)
         , OpacityTextureIdx(-1)
-        ,AlbedoTextureIdx(-1)
-        ,MetallicTextureIdx(-1)
-        ,RoughnessTextureIdx(-1)
-        ,ReflectionTextureIdx(-1)
+        , AlbedoTextureIdx(-1)
+        , MetallicRoughnessTextureIdx(-1)
+        , ReflectionTextureIdx(-1)
     {}
 		glm::vec4 Diffuse ;
 		glm::vec4 Specular ;
@@ -59,6 +66,7 @@ struct MaterialProperties
 		glm::vec4 Ambient ;
 		glm::vec4 Emissive ;
 		glm::vec4 Reflectance ;
+        glm::vec4 Transmittance;
         
         glm::float32_t AlphaThreshold;
         glm::float32_t Opacity;                       // If Opacity < 1, then the material is transparent.
@@ -76,16 +84,23 @@ struct MaterialProperties
        glm::int32_t BumpTextureIdx;
        glm::int32_t OpacityTextureIdx;
 
-
        glm::float32_t Roughness;
        glm::float32_t ClearCoatRoughness;
        glm::float32_t ClearCoatThickness;
        glm::float32_t Metallic;
+       glm::float32_t Transmission;
+     
+
        glm::float32_t Sheen;
+       glm::float32_t SheenTint=0;
+       glm::float32_t SpecularTint = 0;
+       glm::float32_t SpecTrans=0;
+
+       glm::float32_t Anisotropic;
+       glm::float32_t SubSurface;
 
        glm::int32_t AlbedoTextureIdx;
-       glm::int32_t RoughnessTextureIdx;
-       glm::int32_t MetallicTextureIdx;
+       glm::int32_t MetallicRoughnessTextureIdx;
        glm::int32_t ReflectionTextureIdx;
 
 };
@@ -102,9 +117,8 @@ enum TextureType
     Opacity=7,
     NumTypes=8,
     Albedo=9,
-    Roughness=10,
-    Metallic=11,
-    Reflection=12,
+    MetallicRoughness=10,
+    Reflection=11,
 };
 
 using TextureMap = std::map<TextureType, std::shared_ptr<Texture>>;
@@ -129,29 +143,54 @@ public:
     const glm::vec4 GetSpecularColor() const;
     void SetSpecularColor(const glm::vec4& specular);
 
-    float GetSpecularPower() const;
-    void  SetSpecularPower(float specularPower);
+    glm::float32_t GetSpecularPower() const;
+    void SetSpecularPower(glm::float32_t specularPower);
 
-    const float GetOpacity() const;
-    void SetOpacity(float opacity);
+    const glm::float32_t GetOpacity() const;
+    void SetOpacity(glm::float32_t opacity);
 
-    float GetIndexOfRefraction() const;
-    void SetIndexOfRefraction(float indexOfRefraction);
+    glm::float32_t GetIndexOfRefraction() const;
+    void SetIndexOfRefraction(glm::float32_t indexOfRefraction);
 
-    float GetRoughness() const;
-    void SetRoughness(float roughness);
+    glm::float32_t GetRoughness() const;
+    void SetRoughness(glm::float32_t roughness);
 
-    float GetMetallic() const;
-    void SetMetallic(float metallic);
+    glm::float32_t GetMetallic() const;
+    void SetMetallic(glm::float32_t metallic);
 
-    float GetClearCoatRoughness() const;
-    void SetClearCoatRoughness(float clearCoarRoughness);
+    glm::float32_t GetClearCoatRoughness() const;
+    void SetClearCoatRoughness(glm::float32_t clearCoarRoughness);
 
-    float GetClearCoatThickness() const;
-    void SetClearCoatThickness(float clearCoatThickness);
+    glm::float32_t GetClearCoatThickness() const;
+    void SetClearCoatThickness(glm::float32_t ClearCoatThickness);
 
-    float GetBumpIntensity() const;
-    void SetBumpIntensity(float bumpIntensity);
+    glm::float32_t GetBumpIntensity() const;
+    void SetBumpIntensity(glm::float32_t bumpIntensity);
+
+    glm::float32_t GetSheen() const;
+    void SetSheen(glm::float32_t sheen);
+
+    glm::float32_t GetSheenTint() const;
+    void SetSheenTint(glm::float32_t sheenTint);
+
+    glm::float32_t GetSpecularTint() const;
+    void SetSpecularTint(glm::float32_t specularTint);
+
+    glm::float32_t GetSpecTrans() const;
+    void SetSpecTrans(glm::float32_t specTrans);
+
+    glm::float32_t GetAnisotropic() const;
+    void SetAnisotropic(glm::float32_t anisotropic);
+
+    glm::float32_t GetSubSurface() const;
+    void SetSubSurface(glm::float32_t subsurface);
+
+    glm::vec4 GetTransmittance() const;
+    void SetTransmittance(glm::vec4 tranmittance);
+
+    glm::float32_t GetTransmission() const;
+    void SetTransmission(glm::float32_t transmission);
+
 
     void SetTexture(int textureID, TextureType type);
     int GetTextureID(TextureType type);

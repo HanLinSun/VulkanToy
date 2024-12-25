@@ -38,6 +38,12 @@ namespace Renderer
         vkDestroyShaderModule(m_device->GetVkDevice(), computeShaderModule, nullptr);
     }
 
+    void RayTraceModule::SetRenderScene(Scene* scene)
+    {
+        m_scene = scene;
+    }
+
+
     void RayTraceModule::CreateRayTraceCommandPool(VkCommandPool* commandPool)
     {
         VkCommandPoolCreateInfo cmdPoolInfo = {};
@@ -93,25 +99,47 @@ namespace Renderer
         vkEndCommandBuffer(m_rayTraceResources.commandBuffer);
     }
 
-    void RayTraceModule::CreateDescriptorPool(VkDescriptorPool& descriptorPool)
+    void RayTraceModule::CreateRayTraceComputeDescriptorPool()
     {
+   
         std::vector<VkDescriptorPoolSize> poolSizes = {
-              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2),
-              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 4),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1),
-              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_scene->GetTriangles().size()),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_scene->GetMaterials().size()),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_scene->GetSphereSize()),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_scene->GetTextures().size()),
         };
         //maxSet can be changed 
         VkDescriptorPoolCreateInfo descriptorPoolInfo = VulkanInitializer::DescriptorPoolCreateInfo(poolSizes, 3);
-        check_vk_result(vkCreateDescriptorPool(m_device->GetVkDevice(), &descriptorPoolInfo, nullptr, &descriptorPool));
-
-        m_descriptorPool = descriptorPool;
+        check_vk_result(vkCreateDescriptorPool(m_device->GetVkDevice(), &descriptorPoolInfo, nullptr, &m_rayTraceComputeDescriptorPool));
     }
 
     void RayTraceModule::CreateUniformBuffer()
     {
         VkDeviceSize bufferSize = sizeof(RayTraceUniformData);
         BufferUtils::CreateBuffer(m_device.get(),VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_rayTraceResources.uniformBuffer,bufferSize);
+    }
+
+    void RayTraceModule::PrepareRenderStorageBuffer()
+    {
+        //Binding =2, triangles
+        std::vector<Triangle> scene_triangles = m_scene->GetTriangles();
+        BufferUtils::CreateGPUBuffer<Triangle>(m_device.get(), scene_triangles.data(), scene_triangles.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_trianglesGPUBuffer);
+
+        //Binding = 3, materials
+        std::vector<PBRMaterialData> scene_material = m_scene->GeneratePBRMaterialData();
+        BufferUtils::CreateGPUBuffer<PBRMaterialData>(m_device.get(), scene_material.data(), scene_material.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_materialGPUBuffer);
+
+        //Binding =4, Spheres
+        std::vector<Sphere> scene_spheres = m_scene->GetSpheres();
+        BufferUtils::CreateGPUBuffer<Sphere>(m_device.get(), scene_spheres.data(), scene_spheres.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_sphereGPUBuffer);
+
+        //Binding =5, Textures
+
+
+        //Binding =6, Lights
+
     }
 
     void RayTraceModule::CreateRayTraceDescriptorSet()
@@ -130,7 +158,7 @@ namespace Renderer
         VkDescriptorSetLayoutCreateInfo descriptorLayout = VulkanInitializer::DescriptorSetLayoutCreateInfo(setLayoutBindings);
         check_vk_result(vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &descriptorLayout, nullptr, &m_rayTraceResources.descriptorSetLayout));
 
-        VkDescriptorSetAllocateInfo allocInfo = VulkanInitializer::DescriptorSetAllocateInfo(m_descriptorPool, &m_rayTraceResources.descriptorSetLayout, 1);
+        VkDescriptorSetAllocateInfo allocInfo = VulkanInitializer::DescriptorSetAllocateInfo(m_rayTraceComputeDescriptorPool, &m_rayTraceResources.descriptorSetLayout, 1);
 
         check_vk_result(vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, &m_rayTraceResources.descriptorSet));
         std::vector<VkWriteDescriptorSet> computeWriteDescriptorSets = {
@@ -219,8 +247,7 @@ namespace Renderer
         glm::vec4 camPos = cam->GetPosition();
         glm::vec4 camForward = cam->GetForwardVector();
         m_rayTraceUniform.camPos = glm::vec3(camPos.x, camPos.y, camPos.z);
-        m_rayTraceUniform.cam_lookat = glm::vec3(camForward.x, camForward.y, camForward.z);
-        m_rayTraceUniform.fov = cam->GetFOV();
+        m_rayTraceUniform.cameraFOV = cam->GetFOV();
         m_rayTraceUniform.aspectRatio = cam->GetAspectRatio();
         
         check_vk_result(m_rayTraceResources.uniformBuffer.Map());

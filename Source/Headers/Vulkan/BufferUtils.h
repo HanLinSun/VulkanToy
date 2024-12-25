@@ -9,4 +9,7 @@ namespace BufferUtils
 	VkResult CreateBuffer(Device* device, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags, Buffer* buffer, VkDeviceSize size, void* data= nullptr);
 	void CopyBuffer(Device* device, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 	void CreateBufferFromData(Device* device, VkCommandPool commandPool, void* bufferData, VkDeviceSize bufferSize, VkBufferUsageFlags bufferUsage, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+
+	template <typename T>
+	void CreateGPUBuffer(Device* device, const T* elements, int numSizes, VkBufferUsageFlags usage, Buffer* targetGPUBuffer);
 }

@@ -73,11 +73,16 @@ namespace Renderer
 			load_mat->SetDiffuseColor(glm::vec4(material.diffuse[0], material.diffuse[1], material.diffuse[2], 1));
 			load_mat->SetEmissiveColor(glm::vec4(material.emission[0], material.emission[1], material.emission[2], 1));
 			load_mat->SetSpecularColor(glm::vec4(material.specular[0], material.specular[1], material.specular[2], 1));
+			load_mat->SetTransmittance(glm::vec4(material.transmittance[0], material.transmittance[1], material.transmittance[2], 1));
+			load_mat->SetOpacity(material.dissolve);
 			load_mat->SetIndexOfRefraction((float)material.ior);
 			load_mat->SetRoughness(material.roughness);
 			load_mat->SetMetallic(material.metallic);
+			load_mat->SetSheen(material.sheen);
+	
 			load_mat->SetClearCoatRoughness(material.clearcoat_roughness);
 			load_mat->SetClearCoatThickness(material.clearcoat_thickness);
+
 			load_mat->m_name = material.name;
 			//This is ugly and may need to  use MACRO instead in the future
 

@@ -38,8 +38,7 @@ struct Material
 
 	float specTrans;
 	float ior;
-	float ax;
-	float ay;
+	float transmission;
 
 	float opacity;
 	int alphaMode;

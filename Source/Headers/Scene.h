@@ -39,13 +39,20 @@ namespace Renderer
 		std::vector<Triangle> GetTriangles();
 		void AddTriangle(Triangle& triangle);
 
+		void AddSphere(Sphere sphere);
+		std::vector<Sphere> GetSpheres();
+		int GetSphereSize() const;
+
+		std::vector<PBRMaterialData> GeneratePBRMaterialData();
+
 	private:
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
 		std::vector<std::shared_ptr<Texture2D>> m_textures;
 		std::vector<std::shared_ptr<Material>> m_materials;
 
-		std::vector<Triangle> m_triangles;
+		std::vector<Sphere> m_spheres;
 
+		std::vector<Triangle> m_triangles;
 
 		std::shared_ptr<Camera> m_Camera;
 		std::unique_ptr<TextureCubeMap> m_skyboxTexture;

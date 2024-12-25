@@ -58,7 +58,7 @@ namespace Renderer
         m_device = m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit);
         m_swapChain = m_device->CreateSwapChain(m_surface, 3 , m_window);
 
-        m_skyboxTexture = std::make_unique<TextureCubeMap>();
+        // m_skyboxTexture = std::make_unique<TextureCubeMap>();
         imageCount = m_swapChain->GetCount();
         m_msaaSamples = GetMaxUsableSampleCount(m_instance->GetPhysicalDevice());
 
@@ -67,11 +67,17 @@ namespace Renderer
         m_Camera = std::make_shared<Camera>(m_device.get(), m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
         m_CameraController = std::make_shared<CameraController>(m_Camera);
         m_Scene =std::make_unique<Scene>(m_Camera);
+
         m_time = Timestep::GetInstance();
 
         Tools::CreateImageSampler(m_device.get(), 1.0f, 0, default_sampler);
 
+        //If set false then run rasterizer pipeline
         m_runRaytracePipeline =false;
+        if (m_runRaytracePipeline)
+        {
+            m_RayTraceModule->SetRenderScene(m_Scene.get());
+        }
     }
 
 
@@ -117,10 +123,7 @@ namespace Renderer
 
     void Engine::LoadCubeMapTexture()
     {
-        if (!m_skyboxTexture->TextureCubeMap::LoadFromFiles(cubeMapPaths, VK_FORMAT_R8G8B8A8_SRGB, m_device))
-        {
-            std::cout << "Loading Skybox texture failed" << std::endl;
-        }
+
     }
 
     VkSampleCountFlagBits Engine::GetMaxUsableSampleCount(VkPhysicalDevice physicalDevice)
@@ -163,6 +166,15 @@ namespace Renderer
         loader.LoadModel(model_path, model_folder_path, m_Scene.get());
     }
 
+    void Engine::CreateRayTraceGraphicsDescriptorPool()
+    {
+        std::vector<VkDescriptorPoolSize> poolSizes = {
+            VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1),
+        };
+        VkDescriptorPoolCreateInfo descriptorPoolInfo = VulkanInitializer::DescriptorPoolCreateInfo(poolSizes, 1);
+        check_vk_result(vkCreateDescriptorPool(m_device->GetVkDevice(), &descriptorPoolInfo, nullptr, &m_raytraceGraphicsDescriptorPool));
+    }
+
     void Engine::InitVulkan() {
 
         SetupDebugMessenger();
@@ -192,10 +204,11 @@ namespace Renderer
         }
         else
         {
+            CreateRayTraceGraphicsDescriptorPool();
             //This function creates graphics part of descriptor layout and descriptor sets
             m_RayTraceModule->CreateRayTraceStorageImage(m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height);
             //This is a shared descriptor pool
-            m_RayTraceModule->CreateDescriptorPool(m_descriptorPool);
+            m_RayTraceModule->CreateRayTraceComputeDescriptorPool();
             CreateRayTraceGraphicDescriptorResources();
             m_RayTraceModule->CreateUniformBuffer();
             m_RayTraceModule->CreateRayTracePipeline();
@@ -890,7 +903,7 @@ namespace Renderer
         VkDescriptorSetLayoutCreateInfo descriptorLayout = VulkanInitializer::DescriptorSetLayoutCreateInfo(setLayoutBindings);
         check_vk_result(vkCreateDescriptorSetLayout(m_device->GetVkDevice(), &descriptorLayout, nullptr, &m_rayTraceGraphicsDescriptorLayout));
 
-        VkDescriptorSetAllocateInfo allocInfo = VulkanInitializer::DescriptorSetAllocateInfo(m_descriptorPool, &m_rayTraceGraphicsDescriptorLayout, 1);
+        VkDescriptorSetAllocateInfo allocInfo = VulkanInitializer::DescriptorSetAllocateInfo(m_raytraceGraphicsDescriptorPool, &m_rayTraceGraphicsDescriptorLayout, 1);
         check_vk_result(vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, &m_rayTraceGraphicsDescriptorSet));
 
         auto storageImageDescriptor = m_RayTraceModule->GetStorageImage().descriptor;

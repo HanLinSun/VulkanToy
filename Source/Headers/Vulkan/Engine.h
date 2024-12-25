@@ -144,6 +144,7 @@ namespace Renderer
 
 		//After finish raytrace pipeline need to fix this
 		VkDescriptorPool m_descriptorPool;
+
 		VkDescriptorSet m_cameraDescriptorSet;
 
 		//For raytrace pipeline, only need one image
@@ -156,7 +157,7 @@ namespace Renderer
 
 		std::vector<VkDescriptorSet> m_materialDescriptorSets;
 	
-		VkDescriptorPool m_imGuiDescriptorPool;
+		VkDescriptorPool m_raytraceGraphicsDescriptorPool;
 		
 		std::vector<VkCommandBuffer> m_commandBuffers;
 
@@ -176,7 +177,7 @@ namespace Renderer
 		std::unique_ptr<Scene> m_Scene;
 		std::shared_ptr<CameraController> m_CameraController;
 		std::shared_ptr<Camera> m_Camera;
-		std::unique_ptr<TextureCubeMap> m_skyboxTexture;
+
 
 		std::vector<ThreadData> m_threadDatas;
 
@@ -226,6 +227,8 @@ namespace Renderer
 		void CreateCameraDescriptorSetLayout();
 
 		void CreateModelDescriptorSetLayout();
+
+		void CreateRayTraceGraphicsDescriptorPool();
 
 		//This function creates graphics part of descriptor layout and descriptor sets
 		void CreateRayTraceGraphicDescriptorResources();

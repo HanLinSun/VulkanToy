@@ -1,5 +1,7 @@
 ﻿// Copyright 2024 Hanlin Sun
+
 // Shader is looseley based on the ray tracing in one week, modified to Compute version
+
 #version 450
  #include "random.glsl"
  #include "definitions.glsl"
