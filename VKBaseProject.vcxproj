@@ -153,11 +153,9 @@
     <None Include="Shaders\glsl\definitions.glsl" />
     <None Include="Shaders\glsl\fragShader.glsl" />
     <None Include="Shaders\glsl\random.glsl" />
-    <None Include="Shaders\glsl\rayTrace.comp" />
     <None Include="Shaders\glsl\showTexture.frag.glsl" />
     <None Include="Shaders\glsl\showTexture.vert.glsl" />
     <None Include="Shaders\glsl\vertShader.glsl" />
-    <None Include="Shaders\intersections.glsl" />
     <None Include="Shaders\ui.frag.spv" />
     <None Include="Shaders\ui.vert.spv" />
   </ItemGroup>
@@ -249,6 +247,18 @@
     <ClCompile Include="Source\Engine.cpp" />
     <ClCompile Include="Source\WindowsInput.cpp" />
     <ClCompile Include="Source\WindowsPlatform.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\glsl\rayTrace.comp">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

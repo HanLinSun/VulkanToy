@@ -1,8 +1,10 @@
+#ifndef SHARED_GLSL
+#define SHARED_GLSL
+
 #define PI 3.1415926535897932385
 #define EPSILON 0.0003
 #define INFINITY  1000000.0
 #define MINIMUM   0.00001
-
 
 struct Intersection
 {
@@ -96,3 +98,5 @@ struct RayTraceUniformBuffer
 	float focalDistance;
 	float cameraFOV;
 };
+
+#endif
