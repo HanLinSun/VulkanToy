@@ -1,10 +1,7 @@
-﻿// Copyright 2024 Hanlin Sun
-
-// Shader is looseley based on the ray tracing in one week, modified to Compute version
-
 #version 450
- #include "random.glsl"
- #include "definitions.glsl"
+#include "random.glsl"
+#include "definitions.glsl"
+#include "intersections.glsl"
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
@@ -37,23 +34,11 @@ layout(std430,binding =6) readonly buffer LightBufferObject
 {
      Light[] lights;
 }
-
-struct Camera 
-{
-	vec3 pos;   
-	vec3 lookat;
-	float fov; 
-};
-
-// Random functions
-
-
  vec3 RayAt(Ray r, double t)
  {
      return r.origin + r.direction * float(t);
  }
 
- //Möller–Trumbore intersection algorithm
 vec3 TriangleIntersection(in vec3 ray_origin,in vec3 ray_direction, Triangle triangle, inout vec3 normal)
 {
      vec3 a =triangle.v0 -triangle.v1;

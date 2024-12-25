@@ -102,6 +102,9 @@
     <None Include="Shaders\glsl\BSDF.glsl">
       <Filter>Source\Shader</Filter>
     </None>
+    <None Include="Shaders\intersections.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
@@ -357,6 +360,9 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\Render\RayTraceModule.h">
       <Filter>Header\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\GPUModel.h">
+      <Filter>Header\Scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

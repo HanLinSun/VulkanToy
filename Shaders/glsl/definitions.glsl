@@ -89,6 +89,8 @@ struct RayTraceUniformBuffer
 	mat4 projMatrix;
 	vec3 cameraPos;
 	uint lightNums;
+	uint numTriangles;
+	uint numSpheres;
 	uint spp;
 	uint maxDepth;
 	float focalDistance;

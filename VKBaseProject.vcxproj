@@ -157,6 +157,7 @@
     <None Include="Shaders\glsl\showTexture.frag.glsl" />
     <None Include="Shaders\glsl\showTexture.vert.glsl" />
     <None Include="Shaders\glsl\vertShader.glsl" />
+    <None Include="Shaders\intersections.glsl" />
     <None Include="Shaders\ui.frag.spv" />
     <None Include="Shaders\ui.vert.spv" />
   </ItemGroup>
@@ -175,6 +176,7 @@
     <ClInclude Include="Source\Headers\Event\KeyEvent.h" />
     <ClInclude Include="Source\Headers\Event\MouseEvent.h" />
     <ClInclude Include="Source\Headers\Event\ApplicationEvent.h" />
+    <ClInclude Include="Source\Headers\GPUModel.h" />
     <ClInclude Include="Source\Headers\ImGUILayer.h" />
     <ClInclude Include="Source\Headers\IncludeUtils.h" />
     <ClInclude Include="Source\Headers\Input.h" />

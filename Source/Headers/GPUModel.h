@@ -9,6 +9,8 @@ struct RayTraceUniformData
 	alignas(16) glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 0.0f);
 	//For tracing scene
 	alignas(4) int lightNums;
+	alignas(4) int triangleNums;
+	alignas(4) int sphereNums;
 	alignas(4) int samplePerPixel;
 	alignas(4) int maxRecursiveDepth;
 	alignas(4) glm::float32_t focalDistance;

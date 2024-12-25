@@ -1,7 +1,7 @@
 #include "Headers/Vulkan/BufferUtils.h"
 #include "Headers/Vulkan/Instance.h"
 #include "Headers/Vulkan/Initializer.hpp"
-#include <Tools.h>
+
 
 void BufferUtils::CreateBuffer(Device* device, VkDeviceSize size, VkBufferUsageFlags usage, 
 	VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
@@ -142,20 +142,6 @@ void BufferUtils::CreateBufferFromData(Device* device, VkCommandPool commandPool
     vkFreeMemory(device->GetVkDevice(), stagingBufferMemory, nullptr);
 }
 
-template <typename T>
-void BufferUtils::CreateGPUBuffer(Device* device, const T* elements, int numSizes, VkBufferUsageFlags usage, Buffer* targetGPUBuffer)
-{
-    VkDeviceSize storagebufferSize = numSizes * sizeof(T);
-    Buffer stagingBuffer;
-    CreateBuffer(m_device, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, storagebufferSize, elements);
-    CreateBuffer(m_device, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, targetGPUBuffer, storagebufferSize);
 
-    VkCommandBuffer copyCmd = Tools::CreateCommandBuffer(m_device, VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_device->GetGraphicCommandPool(), true);
-    VkBufferCopy copyRegion = { 0, 0, storagebufferSize };
-    vkCmdCopyBuffer(copyCmd, stagingBuffer.buffer, targetGPUBuffer.buffer, 1, &copyRegion);
-
-    Tools::EndCommandBuffer(m_device, copyCmd, m_device->GetGraphicCommandPool(), QueueFlags::Graphics);
-    stagingBuffer.destroy();
-}
 
 

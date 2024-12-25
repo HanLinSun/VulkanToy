@@ -35,9 +35,24 @@ namespace Renderer
 		}
 	}
 
-	void  Scene::AddTexture(std::shared_ptr<Texture2D> texture)
+	void Scene::AddTexture(std::shared_ptr<Texture2D> texture)
 	{
 		m_textures.push_back(texture);
+	}
+
+	void Scene::AddLight(Light light)
+	{
+		m_lights.push_back(light);
+	}
+
+	std::vector<Light> Scene::GetLights()
+	{
+		return m_lights;
+	}
+
+	int Scene::GetLightSize() const
+	{
+		return m_lights.size();
 	}
 
 	std::shared_ptr<Texture2D> Scene::GetTexture(int idx)

@@ -209,6 +209,7 @@ namespace Renderer
             m_RayTraceModule->CreateRayTraceStorageImage(m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height);
             //This is a shared descriptor pool
             m_RayTraceModule->CreateRayTraceComputeDescriptorPool();
+            
             CreateRayTraceGraphicDescriptorResources();
             m_RayTraceModule->CreateUniformBuffer();
             m_RayTraceModule->CreateRayTracePipeline();
@@ -249,9 +250,7 @@ namespace Renderer
 
     void Engine::Cleanup() {
         DestroyFrameResources();
-    
-    
-       
+
         vkDestroyRenderPass(m_device->GetVkDevice(), m_renderPass, nullptr);
 
         vkDestroyPipelineCache(m_device->GetVkDevice(), m_pipelineCache, nullptr);
@@ -1256,10 +1255,15 @@ namespace Renderer
 
         DestroyFrameResources();
         CreateFrameResources();
-        CreateGraphicsPipeline();
+  
         if (m_runRaytracePipeline)
         {
+
             m_RayTraceModule->CreateRayTracePipeline();
+        }
+        else
+        {
+            CreateGraphicsPipeline();
         }
        // RecordCommandBuffers();
     }

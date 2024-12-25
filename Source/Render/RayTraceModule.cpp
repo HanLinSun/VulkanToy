@@ -1,5 +1,7 @@
 #include <Render/RayTraceModule.h>
 
+#include <Vulkan/BufferUtils.h>
+
 namespace Renderer
 {
     RayTraceModule::RayTraceModule(std::shared_ptr<Device> device):m_device(device){}
@@ -105,13 +107,14 @@ namespace Renderer
         std::vector<VkDescriptorPoolSize> poolSizes = {
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1),
-              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_scene->GetTriangles().size()),
-              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_scene->GetMaterials().size()),
-              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_scene->GetSphereSize()),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_scene->GetTextures().size()),
+               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1)
         };
         //maxSet can be changed 
-        VkDescriptorPoolCreateInfo descriptorPoolInfo = VulkanInitializer::DescriptorPoolCreateInfo(poolSizes, 3);
+        VkDescriptorPoolCreateInfo descriptorPoolInfo = VulkanInitializer::DescriptorPoolCreateInfo(poolSizes, m_scene->GetTextures().size() + 6);
         check_vk_result(vkCreateDescriptorPool(m_device->GetVkDevice(), &descriptorPoolInfo, nullptr, &m_rayTraceComputeDescriptorPool));
     }
 
@@ -121,7 +124,7 @@ namespace Renderer
         BufferUtils::CreateBuffer(m_device.get(),VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &m_rayTraceResources.uniformBuffer,bufferSize);
     }
 
-    void RayTraceModule::PrepareRenderStorageBuffer()
+    void RayTraceModule::CreateRenderStorageBuffer()
     {
         //Binding =2, triangles
         std::vector<Triangle> scene_triangles = m_scene->GetTriangles();
@@ -138,6 +141,8 @@ namespace Renderer
         //Binding =5, Textures, already have texture arrays. 
 
         //Binding =6, Lights
+        std::vector<Light> scene_lights = m_scene->GetLights();
+        BufferUtils::CreateGPUBuffer<Light>(m_device.get(), scene_lights.data(), scene_lights.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_lightGPUBuffer);
 
     }
 
@@ -146,12 +151,21 @@ namespace Renderer
         // The compute pipeline uses one set and four bindings
         // Binding 0: Storage image for raytraced output
         // Binding 1: Uniform buffer with parameters
-        // Binding 2: Shader storage buffer with scene object definitions
+        // Binding 2: Triangle buffer
+        // Binding 3: Material buffer
+        // Binding 4: Sphere buffer
+        // Binding 5: Texture buffer
+        // Binding 6: Light buffer
+
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings =
         {
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT, 0),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 1),
-            //VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 2),
+            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 2),
+            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 3),
+            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 4),
+            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT, 5),
+            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 6),
         };
 
         VkDescriptorSetLayoutCreateInfo descriptorLayout = VulkanInitializer::DescriptorSetLayoutCreateInfo(setLayoutBindings);
@@ -160,10 +174,24 @@ namespace Renderer
         VkDescriptorSetAllocateInfo allocInfo = VulkanInitializer::DescriptorSetAllocateInfo(m_rayTraceComputeDescriptorPool, &m_rayTraceResources.descriptorSetLayout, 1);
 
         check_vk_result(vkAllocateDescriptorSets(m_device->GetVkDevice(), &allocInfo, &m_rayTraceResources.descriptorSet));
+
+        std::vector<VkDescriptorImageInfo> imageInfos(m_scene->GetTextures().size());
+
+        for (size_t t = 0; t < imageInfos.size(); ++t)
+        {
+            imageInfos[t].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfos[t].imageView = m_scene->GetTexture(t)->m_imageView;
+            imageInfos[t].sampler = m_scene->GetTexture(t)->m_sampler;
+        }
+
         std::vector<VkWriteDescriptorSet> computeWriteDescriptorSets = {
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 0, &m_storageImage.descriptor),
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &m_rayTraceResources.uniformBuffer.descriptor),
-           // VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2, &m_rayTraceResources.objectStorageBuffer.descriptor),
+            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2, &m_trianglesGPUBuffer.descriptor),
+            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3, &m_materialGPUBuffer.descriptor),
+            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 4 ,&m_sphereGPUBuffer.descriptor),
+            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,5,imageInfos.data(),static_cast<uint32_t>(imageInfos.size())),
+            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 6 ,&m_lightGPUBuffer.descriptor),
         };
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(computeWriteDescriptorSets.size()), computeWriteDescriptorSets.data(), 0, nullptr);
     }
@@ -247,7 +275,14 @@ namespace Renderer
         glm::vec4 camForward = cam->GetForwardVector();
         m_rayTraceUniform.camPos = glm::vec3(camPos.x, camPos.y, camPos.z);
         m_rayTraceUniform.cameraFOV = cam->GetFOV();
+        m_rayTraceUniform.cam_projectionMatrix = cam->GetProjectionMatrix();
+        m_rayTraceUniform.cam_viewMatrix = cam->GetViewmatrix();
         m_rayTraceUniform.aspectRatio = cam->GetAspectRatio();
+        m_rayTraceUniform.lightNums = 2;
+        m_rayTraceUniform.samplePerPixel = 1;
+        m_rayTraceUniform.maxRecursiveDepth = 6;
+        m_rayTraceUniform.triangleNums = m_scene->GetTriangles().size();
+        m_rayTraceUniform.sphereNums = m_scene->GetSpheres().size();
         
         check_vk_result(m_rayTraceResources.uniformBuffer.Map());
         memcpy(m_rayTraceResources.uniformBuffer.mapped, &m_rayTraceUniform, sizeof(RayTraceUniformData));

@@ -37,6 +37,7 @@ namespace Renderer
 		void SetRenderScene(Scene* scene);
 		void DestroyVKResources();
 		void RecordComputeCommandBuffer();
+		void CreateRenderStorageBuffer();
 		void CreateRayTracePipeline();
 		void CreateRayTraceDescriptorSet();
 		void CreateRayTraceComputeDescriptorPool();
@@ -47,17 +48,19 @@ namespace Renderer
 		ComputeResource GetRayTraceComputeResource() const;
 		Texture2D GetStorageImage() const;
 
-		void PrepareRenderStorageBuffer();
+	
 
 	private:
 		Scene* m_scene;
 		ComputeResource m_rayTraceResources;
 		RayTraceUniformData m_rayTraceUniform;
 
+		//buffers that contains 
 		Buffer m_trianglesGPUBuffer;
 		Buffer m_materialGPUBuffer;
 		Buffer m_texturesGPUBuffer;
 		Buffer m_sphereGPUBuffer;
+		Buffer m_lightGPUBuffer;
 
 
 		std::shared_ptr<Device> m_device;
