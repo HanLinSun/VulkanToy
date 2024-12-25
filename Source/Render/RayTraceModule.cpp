@@ -135,8 +135,7 @@ namespace Renderer
         std::vector<Sphere> scene_spheres = m_scene->GetSpheres();
         BufferUtils::CreateGPUBuffer<Sphere>(m_device.get(), scene_spheres.data(), scene_spheres.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_sphereGPUBuffer);
 
-        //Binding =5, Textures
-
+        //Binding =5, Textures, already have texture arrays. 
 
         //Binding =6, Lights
 

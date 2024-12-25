@@ -71,6 +71,18 @@ struct Ray
 	vec3 direction;
 };
 
+struct Light
+{
+	vec3 position;
+	vec3 emission;
+	vec3 u;
+	vec3 v;
+	float area;
+	int type;
+	float radius;
+};
+
+
 struct RayTraceUniformBuffer
 {
 	mat4 viewMatrix;

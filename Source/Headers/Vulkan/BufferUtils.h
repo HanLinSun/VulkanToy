@@ -12,4 +12,6 @@ namespace BufferUtils
 
 	template <typename T>
 	void CreateGPUBuffer(Device* device, const T* elements, int numSizes, VkBufferUsageFlags usage, Buffer* targetGPUBuffer);
+
+	void CreateGPUTextureBuffer();
 }
