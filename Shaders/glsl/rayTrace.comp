@@ -1,71 +1,43 @@
 #version 450 core
 #include "random.glsl"
-#include "definitions.glsl"
-
-#extension GL_EXT_scalar_block_layout : enable
+#include "intersections.glsl"
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 layout(binding = 0, rgba8) uniform writeonly image2D targetTexture;
 
-layout(std430, binding = 1) uniform UniformBufferObject {
+layout(binding = 1) uniform UniformBufferObject{
     RayTraceUniformBuffer ubo;
 };
 
-layout(std430, binding = 2) readonly buffer TriangleBufferObject
+layout(binding = 2) readonly buffer TriangleBufferObject
 {
     Triangle[] triangles;
 };
 
-layout(std430, binding = 3) readonly buffer MaterialBufferObject
+layout(binding = 3) readonly buffer MaterialBufferObject
 {
     Material[] materials;
 };
 
-layout(std430, binding = 4) readonly buffer SpheresBufferObject {
+layout(binding = 4) readonly buffer SpheresBufferObject {
     Sphere[] spheres;
 };
 
-layout(std430, binding = 5) readonly buffer TextureBufferObject
-{
-    image2D[] materialTextures;
-};
+layout(binding = 5) uniform sampler2D[] materialTextures;
 
-layout(std430, binding = 6) readonly buffer LightBufferObject
+layout(binding = 6) readonly buffer LightBufferObject
 {
     Light[] lights;
 };
+
 
 vec3 RayAt(Ray r, double t)
 {
     return r.origin + r.direction * float(t);
 }
 
-vec3 TriangleIntersection(in vec3 ray_origin, in vec3 ray_direction, Triangle triangle, inout vec3 normal)
-{
-    vec3 a = triangle.v0 - triangle.v1;
-    vec3 b = triangle.v2 - triangle.v0;
-    vec3 p = triangle.v0 - ray_origin;
-    normal = cross(b, a);
 
-    //If this value is close to zero, it means the ray is parallel to the plane and there is no intersection.
-    float det = dot(ray_direction, normal);
-
-   if (det > -EPSILON && det < EPSILON)
-   {
-            return vec3(0, 0, 0); //in this case no intersection
-   }
-    float idet = 1.0f / det;
-
-    //Using barycentric coordinates, any point on the triangle can be expressed as a convex combination of the triangle's vertices
-    vec3 q = cross(p, ray_direction);
-
-    float u = dot(q, b) * idet;
-    float v = dot(q, a) * idet;
-    float t = dot(normal, p) * idet;
-
-    return vec3(t, u, v);
-}
 
 bool HitTriangle(int triangle_index, float tMin, float tMax, Ray r, inout Intersection intersection)
 {
@@ -74,7 +46,7 @@ bool HitTriangle(int triangle_index, float tMin, float tMax, Ray r, inout Inters
     vec3 hit = TriangleIntersection(r.origin, r.direction, t, n);
     if (!(hit.y < 0.0 || hit.y>1.0 || hit.z < 0.0 || (hit.y + hit.z)>1.0))
     {
-        intersecton.position = r.origin + hit.x * r.direction;
+        intersection.position = r.origin + hit.x * r.direction;
         intersection.normal = normalize(n);
         intersection.backFaceFlag = dot(r.direction, intersection.normal) > 0 ? 1 : 0;
         intersection.normal *= 1 - 2 * intersection.backFaceFlag;
@@ -86,7 +58,7 @@ bool HitTriangle(int triangle_index, float tMin, float tMax, Ray r, inout Inters
     return false;
 }
 
-float HitSphere(int sphere_index, float tMin, float tmax, Ray r, inout Intersection intersection)
+bool HitSphere(int sphere_index, Ray r, float tMin, float tMax, inout Intersection intersection)
 {
     vec3 center = spheres[sphere_index].sphere.xyz;
     float radius = spheres[sphere_index].sphere.w;
@@ -98,7 +70,7 @@ float HitSphere(int sphere_index, float tMin, float tmax, Ray r, inout Intersect
 
     if (discriminant < 0)
     {
-        return -1.0;
+        return false;
     }
     float sqrt_d = sqrt(discriminant);
 
@@ -119,20 +91,64 @@ float HitSphere(int sphere_index, float tMin, float tmax, Ray r, inout Intersect
     return true;
 }
 
+bool HitScene(Ray r, inout Intersection intersection) {
+    float tMin = MINIMUM;
+    float tMax = INFINITY;
+
+    Intersection temp_intersection;
+    bool hitAnything = false;
+    float closestSoFar = tMax;
+
+    //Currently do not try triangle intersection
+
+    //for (int i = 0; i<ubo.numTriangles; i++) {
+    //    if (HitTriangle(i, r, tMin, closestSoFar, temp_intersection)) {
+    //        hitAnything = true;
+    //        closestSoFar = temp_intersection.t;
+    //        intersection = temp_intersection;
+    //    }
+    //}
+
+    closestSoFar = tMax;
+
+    for (int j = 0; j < ubo.numSpheres; j++) {
+        if (HitSphere(j, r, tMin, closestSoFar, temp_intersection)) {
+            hitAnything = true;
+            closestSoFar = temp_intersection.t;
+            intersection = temp_intersection;
+        }
+    }
+
+    return hitAnything;
+}
+
 
 vec3 TraceRay(Ray r)
 {
-    double t = HitSphere(vec3(0, 0, -1), 0.3, r);
-    if (t > 0.0)
-    {
-        vec3 sphereNormal = normalize(RayAt(r, t) - vec3(0, 0, -1));
-        return 0.5 * vec3(sphereNormal.x + 1, sphereNormal.y + 1, sphereNormal.z + 1);
-    }
-    vec3 unit_direction = normalize(r.direction);
-    float a = 0.5 * (unit_direction.y + 1.0);
-    return (1.0 - a) * vec3(1.0, 1.0, 1.0) + a * vec3(0.5, 0.7, 1.0);
-}
+    Intersection intersection;
+    vec3 accumulatedColor = vec3(1.0);
+    Ray currentRay = r;
 
+    for (int i = 0; i < ubo.maxDepth; i++)
+    {
+        if (HitScene(r, intersection))
+        {
+            vec3 direction = RandomInHemisphere(intersection.normal);
+            currentRay.origin = intersection.position;
+            currentRay.direction = normalize(direction);
+            accumulatedColor *= 0.5;
+        }
+        else
+        {
+            vec3 unitDirection = normalize(currentRay.direction);
+            float a = 0.5 * (unitDirection.y + 1.0);
+            accumulatedColor *= (1.0 - a) * vec3(1.0, 1.0, 1.0) + a * vec3(0.5, 0.7, 1.0);
+            break; // Exit the loop since there's no further intersection
+        }
+    }
+
+    return  accumulatedColor;
+}
 
 void main()
 {
@@ -155,12 +171,7 @@ void main()
     r.origin = ubo.cameraPos;
     r.direction = lower_left_corner + uv.x * horizontal + uv.y * vertical - r.origin;
 
-    //Ray Generation
-
-
     vec3 pixelColor = TraceRay(r);
-
-
     imageStore(targetTexture, ivec2(gl_GlobalInvocationID.xy), vec4(pixelColor, 0.0));
 
 }

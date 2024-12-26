@@ -73,7 +73,7 @@ namespace Renderer
         Tools::CreateImageSampler(m_device.get(), 1.0f, 0, default_sampler);
 
         //If set false then run rasterizer pipeline
-        m_runRaytracePipeline =false;
+        m_runRaytracePipeline =true;
         if (m_runRaytracePipeline)
         {
             m_RayTraceModule->SetRenderScene(m_Scene.get());

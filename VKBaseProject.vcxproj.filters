@@ -78,9 +78,6 @@
     <None Include="Shaders\ui.vert.spv">
       <Filter>Source\Shader</Filter>
     </None>
-    <None Include="Shaders\glsl\definitions.glsl">
-      <Filter>Source\Shader</Filter>
-    </None>
     <None Include="Shaders\glsl\fragShader.glsl">
       <Filter>Source\Shader</Filter>
     </None>
@@ -97,6 +94,15 @@
       <Filter>Source\Shader</Filter>
     </None>
     <None Include="Shaders\glsl\BSDF.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\glsl\rayTrace.comp">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\glsl\intersections.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
+    <None Include="Shaders\glsl\definitions.glsl">
       <Filter>Source\Shader</Filter>
     </None>
   </ItemGroup>
@@ -358,10 +364,5 @@
     <ClInclude Include="Source\Headers\GPUModel.h">
       <Filter>Header\Scene</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\glsl\rayTrace.comp">
-      <Filter>Source\Shader</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>

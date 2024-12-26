@@ -129,6 +129,11 @@ namespace Renderer
 		return m_materials;
 	}
 
+	void Scene::SetSceneCamera(std::shared_ptr<Camera> Camera)
+	{
+		m_Camera = Camera;
+	}
+
 	const std::vector<ModelGroup*> Scene::GetSceneModelGroupsRaw()
 	{
 		std::vector<ModelGroup*> rawPointers;
