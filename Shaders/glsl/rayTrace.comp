@@ -39,7 +39,7 @@ vec3 RayAt(Ray r, double t)
 
 
 
-bool HitTriangle(int triangle_index, float tMin, float tMax, Ray r, inout Intersection intersection)
+bool HitTriangle(int triangle_index, Ray r, float tMin, float tMax, inout Intersection intersection)
 {
     Triangle t = triangles[triangle_index];
     vec3 n = vec3(0, 0, 0);
@@ -99,17 +99,16 @@ bool HitScene(Ray r, inout Intersection intersection) {
     bool hitAnything = false;
     float closestSoFar = tMax;
 
-    //Currently do not try triangle intersection
 
-    //for (int i = 0; i<ubo.numTriangles; i++) {
-    //    if (HitTriangle(i, r, tMin, closestSoFar, temp_intersection)) {
-    //        hitAnything = true;
-    //        closestSoFar = temp_intersection.t;
-    //        intersection = temp_intersection;
-    //    }
-    //}
+//   for (int i = 0; i<ubo.numTriangles; i++) {
+//      if (HitTriangle(i, r, tMin, closestSoFar, temp_intersection)) {
+//       hitAnything = true;
+//      closestSoFar = temp_intersection.t;
+//        intersection = temp_intersection;
+//      }
+//  }
 
-    closestSoFar = tMax;
+   closestSoFar = tMax;
 
     for (int j = 0; j < ubo.numSpheres; j++) {
         if (HitSphere(j, r, tMin, closestSoFar, temp_intersection)) {
@@ -146,7 +145,6 @@ vec3 TraceRay(Ray r)
             break; // Exit the loop since there's no further intersection
         }
     }
-
     return  accumulatedColor;
 }
 

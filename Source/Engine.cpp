@@ -1224,9 +1224,8 @@ namespace Renderer
         m_submitInfo.commandBufferCount = 1;
         m_submitInfo.pCommandBuffers = &m_commandBuffers[currentFrame];
 
-        if (vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &m_submitInfo, m_waitFences[currentFrame]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to submit draw command buffer!");
-        }
+        check_vk_result(vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &m_submitInfo, m_waitFences[currentFrame]));
+
 
         vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Graphics));
 

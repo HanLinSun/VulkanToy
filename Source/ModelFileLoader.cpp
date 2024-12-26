@@ -138,10 +138,10 @@ namespace Renderer
 			scene->AddMaterial(load_mat);
 		}
 
-		glm::vec3 temp_position;
-        glm::vec3 temp_normal;
+		glm::vec3 temp_position=glm::vec3(0,0,0);
+        glm::vec3 temp_normal=glm::vec3(0,0,0);
 		glm::vec3 temp_color=glm::vec3(1,1,1);
-        glm::vec2 temp_uv;
+        glm::vec2 temp_uv=glm::vec2(0,0);
 
 		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 

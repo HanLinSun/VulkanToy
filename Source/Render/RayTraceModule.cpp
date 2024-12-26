@@ -209,17 +209,23 @@ namespace Renderer
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2, &m_trianglesGPUBuffer.descriptor),
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3, &m_materialGPUBuffer.descriptor),
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 4 ,&m_sphereGPUBuffer.descriptor),
-            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,5, imageInfos.data(),static_cast<uint32_t>(imageInfos.size())),
+            //VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,5, imageInfos.data(),static_cast<uint32_t>(imageInfos.size())),
             //VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 6 ,&m_lightGPUBuffer.descriptor),
         };
 
-        vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(computeWriteDescriptorSets.size()), computeWriteDescriptorSets.data(), 0, nullptr);
-
-        for (int i = 0; i < imageInfos.size(); i++)
+        if (imageInfos.size()!= 0)
         {
-            VkWriteDescriptorSet descriptorWriteSet {};
+                VkWriteDescriptorSet descriptorWriteSet{};
+                descriptorWriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                descriptorWriteSet.dstSet = m_rayTraceResources.descriptorSet;
+                descriptorWriteSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                descriptorWriteSet.dstBinding = 5;
+                descriptorWriteSet.pImageInfo = imageInfos.data();
+                descriptorWriteSet.descriptorCount = static_cast<uint32_t>(imageInfos.size());
+                computeWriteDescriptorSets.push_back(descriptorWriteSet);
         }
 
+        vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(computeWriteDescriptorSets.size()), computeWriteDescriptorSets.data(), 0, nullptr);
     }
 
     void RayTraceModule::CreateRayTraceStorageImage(uint32_t width, uint32_t height)
