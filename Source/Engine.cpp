@@ -277,11 +277,8 @@ namespace Renderer
         {
             m_RayTraceModule->DestroyVKResources();
         }
-        else
-        {
-            vkDestroySampler(m_device->GetVkDevice(), default_sampler, nullptr);
-        }
 
+        vkDestroySampler(m_device->GetVkDevice(), default_sampler, nullptr);
 
         for (size_t i = 0; i < m_swapChain->GetCount(); i++) {
 
