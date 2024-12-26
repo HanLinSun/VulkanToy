@@ -49,6 +49,8 @@ namespace Renderer
 
 		std::vector<PBRMaterialData> GeneratePBRMaterialData();
 
+		void InitDebugSpheres();
+
 	private:
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
 		std::vector<std::shared_ptr<Texture2D>> m_textures;

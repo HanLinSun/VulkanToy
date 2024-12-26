@@ -76,6 +76,7 @@ namespace Renderer
         m_runRaytracePipeline =true;
         if (m_runRaytracePipeline)
         {
+            m_Scene->InitDebugSpheres();
             m_RayTraceModule->SetRenderScene(m_Scene.get());
         }
     }
@@ -180,11 +181,8 @@ namespace Renderer
         SetupDebugMessenger();
 
         //By default we use this
-        if (!m_runRaytracePipeline)
-        {
-            LoadModel(MODEL_PATH, MODEL_FILE_PATH);
-        }
-   
+ 
+        LoadModel(MODEL_PATH, MODEL_FILE_PATH);
 
         CreateRenderPass();
         CreateFrameResources();
@@ -208,10 +206,11 @@ namespace Renderer
             //This function creates graphics part of descriptor layout and descriptor sets
             m_RayTraceModule->CreateRayTraceStorageImage(m_swapChain->GetVkExtent().width, m_swapChain->GetVkExtent().height);
             //This is a shared descriptor pool
+          
             m_RayTraceModule->CreateRayTraceComputeDescriptorPool();
-            
             CreateRayTraceGraphicDescriptorResources();
             m_RayTraceModule->CreateUniformBuffer();
+            m_RayTraceModule->CreateRenderStorageBuffer();
             m_RayTraceModule->CreateRayTracePipeline();
             CreateRayTraceGraphicsPipeline();
             m_rayTraceResource = m_RayTraceModule->GetRayTraceComputeResource();
@@ -266,6 +265,7 @@ namespace Renderer
         {
             vkDestroyPipeline(m_device->GetVkDevice(), m_rayTraceGraphicsPipeline, nullptr);
             vkDestroyPipelineLayout(m_device->GetVkDevice(), m_rayTraceGraphicsPipelineLayout, nullptr);
+            vkDestroyDescriptorPool(m_device->GetVkDevice(), m_raytraceGraphicsDescriptorPool, nullptr);
             vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_rayTraceGraphicsDescriptorLayout,nullptr);
         }
 

@@ -4,7 +4,8 @@
 
 namespace Renderer
 {
-    RayTraceModule::RayTraceModule(std::shared_ptr<Device> device):m_device(device){}
+    RayTraceModule::RayTraceModule(std::shared_ptr<Device> device):m_device(device),isTriangleGPUBufferAlloc(false),
+        isMaterialGPUBufferAlloc(false),isSphereGPUBufferAlloc(false), isLightGPUBufferAlloc(false) {}
 
     //Compute RayTrace Pipeline Functions
     void RayTraceModule::CreateRayTracePipeline()
@@ -83,7 +84,7 @@ namespace Renderer
         vkCmdBindPipeline(m_rayTraceResources.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_rayTraceResources.pipeline);
         vkCmdBindDescriptorSets(m_rayTraceResources.commandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_rayTraceResources.pipelineLayout, 0, 1, &m_rayTraceResources.descriptorSet, 0, 0);
 
-        vkCmdDispatch(m_rayTraceResources.commandBuffer, m_storageImage.width / 16, m_storageImage.height / 16, 1);
+        vkCmdDispatch(m_rayTraceResources.commandBuffer, m_storageImage.width / 32, m_storageImage.height / 32, 1);
 
         // Release barrier from compute queue
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
@@ -103,15 +104,14 @@ namespace Renderer
 
     void RayTraceModule::CreateRayTraceComputeDescriptorPool()
     {
-   
         std::vector<VkDescriptorPoolSize> poolSizes = {
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
-              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, m_scene->GetTextures().size()),
-               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1)
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_scene->GetTextures().size()),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1)
         };
         //maxSet can be changed 
         VkDescriptorPoolCreateInfo descriptorPoolInfo = VulkanInitializer::DescriptorPoolCreateInfo(poolSizes, m_scene->GetTextures().size() + 6);
@@ -128,21 +128,38 @@ namespace Renderer
     {
         //Binding =2, triangles
         std::vector<Triangle> scene_triangles = m_scene->GetTriangles();
-        BufferUtils::CreateGPUBuffer<Triangle>(m_device.get(), scene_triangles.data(), scene_triangles.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_trianglesGPUBuffer);
-
+        if (scene_triangles.size() != 0)
+        {
+            BufferUtils::CreateGPUBuffer<Triangle>(m_device.get(), scene_triangles.data(), scene_triangles.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_trianglesGPUBuffer);
+            isTriangleGPUBufferAlloc = true;
+        }
+    
         //Binding = 3, materials
         std::vector<PBRMaterialData> scene_material = m_scene->GeneratePBRMaterialData();
-        BufferUtils::CreateGPUBuffer<PBRMaterialData>(m_device.get(), scene_material.data(), scene_material.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_materialGPUBuffer);
-
+        if (scene_material.size() != 0)
+        {
+            BufferUtils::CreateGPUBuffer<PBRMaterialData>(m_device.get(), scene_material.data(), scene_material.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_materialGPUBuffer);
+            isMaterialGPUBufferAlloc = true;
+        }
+      
         //Binding =4, Spheres
         std::vector<Sphere> scene_spheres = m_scene->GetSpheres();
-        BufferUtils::CreateGPUBuffer<Sphere>(m_device.get(), scene_spheres.data(), scene_spheres.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_sphereGPUBuffer);
+        if (scene_spheres.size() != 0)
+        {
+            BufferUtils::CreateGPUBuffer<Sphere>(m_device.get(), scene_spheres.data(), scene_spheres.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_sphereGPUBuffer);
+            isSphereGPUBufferAlloc = true;
+        }
 
         //Binding =5, Textures, already have texture arrays. 
 
         //Binding =6, Lights
         std::vector<Light> scene_lights = m_scene->GetLights();
-        BufferUtils::CreateGPUBuffer<Light>(m_device.get(), scene_lights.data(), scene_lights.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_lightGPUBuffer);
+        if (scene_lights.size() != 0)
+        {
+            BufferUtils::CreateGPUBuffer<Light>(m_device.get(), scene_lights.data(), scene_lights.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_lightGPUBuffer);
+            isLightGPUBufferAlloc = true;
+        }
+     
 
     }
 
@@ -184,16 +201,19 @@ namespace Renderer
             imageInfos[t].sampler = m_scene->GetTexture(t)->m_sampler;
         }
 
+        //Modify this to loop update
         std::vector<VkWriteDescriptorSet> computeWriteDescriptorSets = {
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 0, &m_storageImage.descriptor),
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, &m_rayTraceResources.uniformBuffer.descriptor),
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2, &m_trianglesGPUBuffer.descriptor),
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 3, &m_materialGPUBuffer.descriptor),
             VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 4 ,&m_sphereGPUBuffer.descriptor),
-            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,5,imageInfos.data(),static_cast<uint32_t>(imageInfos.size())),
-            VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 6 ,&m_lightGPUBuffer.descriptor),
+           // VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet,VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,5, imageInfos.data(),static_cast<uint32_t>(imageInfos.size())),
+            //VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 6 ,&m_lightGPUBuffer.descriptor),
         };
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(computeWriteDescriptorSets.size()), computeWriteDescriptorSets.data(), 0, nullptr);
+
+
     }
 
     void RayTraceModule::CreateRayTraceStorageImage(uint32_t width, uint32_t height)
@@ -280,10 +300,11 @@ namespace Renderer
         m_rayTraceUniform.aspectRatio = cam->GetAspectRatio();
         m_rayTraceUniform.lightNums = 2;
         m_rayTraceUniform.samplePerPixel = 1;
-        m_rayTraceUniform.maxRecursiveDepth = 6;
+        m_rayTraceUniform.maxRecursiveDepth =3;
         m_rayTraceUniform.triangleNums = m_scene->GetTriangles().size();
         m_rayTraceUniform.sphereNums = m_scene->GetSpheres().size();
-        
+        m_rayTraceUniform.focalDistance = 1.0f;
+                
         check_vk_result(m_rayTraceResources.uniformBuffer.Map());
         memcpy(m_rayTraceResources.uniformBuffer.mapped, &m_rayTraceUniform, sizeof(RayTraceUniformData));
         m_rayTraceResources.uniformBuffer.Unmap();
@@ -293,7 +314,6 @@ namespace Renderer
     {
         return m_storageImage;
     }
-
 
     ComputeResource RayTraceModule::GetRayTraceComputeResource() const
     {
@@ -307,7 +327,14 @@ namespace Renderer
         vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_rayTraceResources.descriptorSetLayout, nullptr);
         vkDestroyFence(m_device->GetVkDevice(), m_rayTraceResources.fence, nullptr);
         vkDestroyCommandPool(m_device->GetVkDevice(), m_rayTraceResources.commandPool, nullptr);
+        vkDestroyDescriptorPool(m_device->GetVkDevice(), m_rayTraceComputeDescriptorPool, nullptr);
         m_rayTraceResources.uniformBuffer.Destroy();
+
+        if (isTriangleGPUBufferAlloc) m_trianglesGPUBuffer.Destroy();
+        if (isSphereGPUBufferAlloc) m_sphereGPUBuffer.Destroy();
+        if (isLightGPUBufferAlloc) m_lightGPUBuffer.Destroy();
+        if (isMaterialGPUBufferAlloc) m_materialGPUBuffer.Destroy();
+
         m_storageImage.DestroyVKResources();
     }
 }

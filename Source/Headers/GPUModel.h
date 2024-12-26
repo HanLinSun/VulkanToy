@@ -61,7 +61,7 @@ struct Triangle
 
 struct Sphere
 {
-	alignas(16) glm::vec4 s;
+	alignas(16) glm::vec4 s; // x,y,z is position, w is radius
 	alignas(4) uint32_t materialIndex;
 };
 

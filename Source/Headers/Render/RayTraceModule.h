@@ -56,10 +56,16 @@ namespace Renderer
 		RayTraceUniformData m_rayTraceUniform;
 
 		//buffers that contains 
+		bool isTriangleGPUBufferAlloc;
 		Buffer m_trianglesGPUBuffer;
+
+		bool isMaterialGPUBufferAlloc;
 		Buffer m_materialGPUBuffer;
-		Buffer m_texturesGPUBuffer;
+
+		bool isSphereGPUBufferAlloc;
 		Buffer m_sphereGPUBuffer;
+
+		bool isLightGPUBufferAlloc;
 		Buffer m_lightGPUBuffer;
 
 

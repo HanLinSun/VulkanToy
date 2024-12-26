@@ -177,4 +177,20 @@ namespace Renderer
 	{
 		m_triangles.push_back(triangle);
 	}
+
+	// =========== For Debug Only ===============
+	
+	void Scene::InitDebugSpheres()
+	{
+		Sphere test_sphere1;
+		test_sphere1.s = glm::vec4(0, 0, -1, 0.4);
+
+		Sphere test_sphere2;
+		test_sphere2.s = glm::vec4(0, -100.5, -1, 100);
+
+		AddSphere(test_sphere1);
+		AddSphere(test_sphere2);
+	}
+	// =====================================
+
 }
