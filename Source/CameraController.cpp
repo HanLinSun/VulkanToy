@@ -6,7 +6,7 @@ namespace Renderer
 	glm::vec2 rotationLimit_X = glm::vec2(-2.f * glm::pi<float>(), 2.f * glm::pi<float>());
 	glm::vec2 rotationLimit_Y = glm::vec2(-glm::half_pi<float>(), glm::half_pi<float>());
 
-	CameraController::CameraController(std::shared_ptr<Camera> m_cam):m_Camera(m_cam),m_moveSpeed(200.f){}
+	CameraController::CameraController(std::shared_ptr<Camera> m_cam):m_Camera(m_cam),m_moveSpeed(10.f){}
 
 	glm::vec4 CameraController::GetUpVector()
 	{
