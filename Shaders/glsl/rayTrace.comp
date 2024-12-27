@@ -38,8 +38,7 @@ vec3 RayAt(Ray r, double t)
 }
 
 
-
-bool HitTriangle(int triangle_index, float tMin, float tMax, Ray r, inout Intersection intersection)
+bool HitTriangle(int triangle_index, Ray r,float tMin, float tMax,  inout Intersection intersection)
 {
     Triangle t = triangles[triangle_index];
     vec3 n = vec3(0, 0, 0);
@@ -92,7 +91,7 @@ bool HitSphere(int sphere_index, Ray r, float tMin, float tMax, inout Intersecti
 }
 
 bool HitScene(Ray r, inout Intersection intersection) {
-    float tMin = MINIMUM;
+    float tMin = 0.0001;
     float tMax = INFINITY;
 
     Intersection temp_intersection;
@@ -101,23 +100,24 @@ bool HitScene(Ray r, inout Intersection intersection) {
 
     //Currently do not try triangle intersection
 
-    //for (int i = 0; i<ubo.numTriangles; i++) {
-    //    if (HitTriangle(i, r, tMin, closestSoFar, temp_intersection)) {
-    //        hitAnything = true;
-    //        closestSoFar = temp_intersection.t;
-    //        intersection = temp_intersection;
-    //    }
-    //}
+    for (int i = 0; i<ubo.numTriangles; i++) {
+//      if (HitTriangle(i, r, tMin, closestSoFar, temp_intersection)) {   // uncomment these lines will lead draw command buffer submission fail
+//                hitAnything = true;
+//                closestSoFar = temp_intersection.t;
+//               intersection = temp_intersection;
+//         }
+   }
 
     closestSoFar = tMax;
-
+    
+    // sphere works fine
     for (int j = 0; j < ubo.numSpheres; j++) {
         if (HitSphere(j, r, tMin, closestSoFar, temp_intersection)) {
-            hitAnything = true;
-            closestSoFar = temp_intersection.t;
-            intersection = temp_intersection;
-        }
-    }
+           hitAnything = true;
+           closestSoFar = temp_intersection.t; 
+           intersection = temp_intersection;
+       }
+     }
 
     return hitAnything;
 }
@@ -126,32 +126,35 @@ bool HitScene(Ray r, inout Intersection intersection) {
 vec3 TraceRay(Ray r)
 {
     Intersection intersection;
-    vec3 accumulatedColor = vec3(1.0);
+    vec3 radiance = vec3(1.0);
     Ray currentRay = r;
 
     for (int i = 0; i < ubo.maxDepth; i++)
     {
-        if (HitScene(r, intersection))
+        if (HitScene(currentRay, intersection))
         {
             vec3 direction = RandomInHemisphere(intersection.normal);
             currentRay.origin = intersection.position;
             currentRay.direction = normalize(direction);
-            accumulatedColor *= 0.9;
+            radiance *= 0.5;
         }
         else
         {
             vec3 unitDirection = normalize(currentRay.direction);
             float a = 0.5 * (unitDirection.y + 1.0);
-            accumulatedColor *= (1.0 - a) * vec3(1.0, 1.0, 1.0) + a * vec3(0.5, 0.7, 1.0);
+            radiance *= (1.0 - a) * vec3(1.0, 1.0, 1.0) + a * vec3(0.5, 0.7, 1.0);
             break; // Exit the loop since there's no further intersection
         }
     }
-
-    return  accumulatedColor;
+    return radiance;
 }
 
 void main()
 {
+
+	mat4 projInv = inverse(ubo.projMatrix);
+	mat4 viewInv = inverse(ubo.viewMatrix);
+
     vec2 image_size = vec2(imageSize(targetTexture));
     float theta = ubo.cameraFOV * PI / 180.f;
 
@@ -166,12 +169,24 @@ void main()
 
     vec3 lower_left_corner = ubo.cameraPos - horizontal / 2 - vertical / 2 - vec3(0, 0, focal_length);
     vec2 uv = (gl_GlobalInvocationID.xy) / image_size.xy;
+    vec3 radiance = vec3(0.0);
 
-    Ray r;
-    r.origin = ubo.cameraPos;
-    r.direction = lower_left_corner + uv.x * horizontal + uv.y * vertical - r.origin;
+    uint SPP = ubo.spp; //sample per pixel
 
-    vec3 pixelColor = TraceRay(r);
-    imageStore(targetTexture, ivec2(gl_GlobalInvocationID.xy), vec4(pixelColor, 0.0));
+    for(int i=0;i<SPP;i++)
+    {
+       //size varient from pixel size[x: 0-1 y: 0-1]
+        vec2 jitter = vec2(Random(),Random())/ image_size;
+
+        Ray r;
+        r.origin = ubo.cameraPos;
+        r.direction = lower_left_corner + (uv.x+jitter.x) * horizontal + (uv.y+jitter.y) * vertical - r.origin;
+
+        radiance += TraceRay(r);
+    }
+
+    radiance /= float(SPP);
+
+    imageStore(targetTexture, ivec2(gl_GlobalInvocationID.xy), vec4(radiance, 0.0));
 
 }

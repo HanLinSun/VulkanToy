@@ -105,6 +105,9 @@
     <None Include="Shaders\glsl\definitions.glsl">
       <Filter>Source\Shader</Filter>
     </None>
+    <None Include="Shaders\denoiser.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">

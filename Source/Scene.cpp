@@ -180,7 +180,7 @@ namespace Renderer
 
 	// =========== For Debug Only ===============
 	
-	void Scene::InitDebugSpheres()
+	void Scene::InitTestSpheresScene_1()
 	{
 		Sphere test_sphere1;
 		test_sphere1.s = glm::vec4(0, 0, -1, 0.4);

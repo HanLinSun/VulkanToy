@@ -49,7 +49,7 @@ namespace Renderer
 
 		std::vector<PBRMaterialData> GeneratePBRMaterialData();
 
-		void InitDebugSpheres();
+		void InitTestSpheresScene_1();
 
 	private:
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;

@@ -76,7 +76,7 @@ namespace Renderer
         m_runRaytracePipeline =true;
         if (m_runRaytracePipeline)
         {
-            m_Scene->InitDebugSpheres();
+            m_Scene->InitTestSpheresScene_1();
             m_RayTraceModule->SetRenderScene(m_Scene.get());
         }
     }
@@ -181,13 +181,14 @@ namespace Renderer
         SetupDebugMessenger();
 
         //By default we use this
- 
-        LoadModel(MODEL_PATH, MODEL_FILE_PATH);
+        if (!m_runRaytracePipeline)
+        {
+            LoadModel(MODEL_PATH, MODEL_FILE_PATH);
+        }
 
         CreateRenderPass();
         CreateFrameResources();
         CreatePipelineCache();
-
 
         if (!m_runRaytracePipeline)
         {
@@ -1220,13 +1221,10 @@ namespace Renderer
             vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Compute));
         }
 
-
         m_submitInfo.commandBufferCount = 1;
         m_submitInfo.pCommandBuffers = &m_commandBuffers[currentFrame];
 
-        if (vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &m_submitInfo, m_waitFences[currentFrame]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to submit draw command buffer!");
-        }
+        check_vk_result(vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &m_submitInfo, m_waitFences[currentFrame]));
 
         vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Graphics));
 
