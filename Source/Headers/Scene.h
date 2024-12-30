@@ -4,6 +4,8 @@
 #include <Camera.h>
 #include <CameraController.h>
 #include <Model.h>
+#include <BVH.h>
+#include <GPUModel.h>
 
 namespace Renderer
 {
@@ -51,11 +53,15 @@ namespace Renderer
 
 		void InitTestSpheresScene_1();
 
+		std::vector<BVHObject> GenerateBVHObjectArray();
+
 	private:
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
 		std::vector<std::shared_ptr<Texture2D>> m_textures;
 		std::vector<std::shared_ptr<Material>> m_materials;
 
+		std::vector<std::shared_ptr<TestMaterial>> m_testMaterials;
+		
 		std::vector<Sphere> m_spheres;
 		std::vector<Triangle> m_triangles;
 		std::vector<Light> m_lights;

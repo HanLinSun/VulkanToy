@@ -5,6 +5,13 @@
 #include <map>
 #include <memory>
 
+struct TestMaterial
+{
+    uint32_t type;
+    glm::vec3 albedo;
+    double refraction_index;
+};
+
 struct MaterialProperties
 {
 

@@ -13,7 +13,7 @@ namespace Renderer
 		m_position_W = glm::vec4(0.0f, 0.0f, 0.0f,1.0f);
 		m_upVector_W = glm::vec4(0.0f, 1.0f, 0.0f,0.0f);
 		
-		m_lookTarget_W = glm::vec4(0.0f,0.0f, 1.0f, 1.0f);
+		m_lookTarget_W = glm::vec4(0.0f,0.0f, -1.0f, 1.0f);
 
 		m_forwardVector_W = glm::normalize(m_lookTarget_W -m_position_W);
 

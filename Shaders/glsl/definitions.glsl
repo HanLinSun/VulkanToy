@@ -3,6 +3,11 @@
 
 #define PI 3.1415926535897932385
 #define INV_PI 0.3183098861837906
+#define INV_2PI 0.15915494309189533577;
+
+#define PiOver2  1.57079632679489661923;
+#define PiOver4  0.78539816339744830961;
+
 #define EPSILON 0.0003
 #define INFINITY  1000000.0
 #define MINIMUM   0.00001
@@ -24,7 +29,7 @@ struct Medium
 	float anisotropy;
 };
 
-struct Material
+struct PBRMaterial
 {
 	vec3 baseColor;
 	vec3 emission;
@@ -55,6 +60,23 @@ struct Material
 
 };
 
+struct NormalMaterial
+{
+	uint materialType;
+	vec3 albedo;
+	double refraction_index;
+};
+
+struct BVHNode
+{
+	vec3 min;
+	vec3 max;
+	int leftNodeIndex;
+	int rightNodeIndex;
+	int objectType;
+	int objectIndex;
+};
+
 struct Triangle
 {
 	vec3 v0;
@@ -71,8 +93,8 @@ struct Sphere
 
 struct Ray
 {
-	vec3 origin;
-	vec3 direction;
+	vec3 origin; //world space
+	vec3 direction; //world space
 };
 
 struct Light
@@ -92,6 +114,7 @@ struct RayTraceUniformBuffer
 	mat4 viewMatrix;
 	mat4 projMatrix;
 	vec3 cameraPos;
+	vec3 cameraLookAt;
 	uint lightNums;
 	uint numTriangles;
 	uint numSpheres;

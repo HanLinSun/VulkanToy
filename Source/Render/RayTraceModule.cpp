@@ -305,7 +305,9 @@ namespace Renderer
     {
         glm::vec4 camPos = cam->GetPosition();
         glm::vec4 camForward = cam->GetForwardVector();
+        glm::vec4 camLookAt = cam->GetLookTarget();
         m_rayTraceUniform.camPos = glm::vec3(camPos.x, camPos.y, camPos.z);
+        m_rayTraceUniform.camLookAt = glm::vec3(camLookAt.x, camLookAt.y, camLookAt.z);
         m_rayTraceUniform.cameraFOV = cam->GetFOV();
         m_rayTraceUniform.cam_projectionMatrix = cam->GetProjectionMatrix();
         m_rayTraceUniform.cam_viewMatrix = cam->GetViewmatrix();

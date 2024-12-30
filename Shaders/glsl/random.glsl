@@ -32,6 +32,7 @@ vec3 RandomInUnitSphere() {
 	return normalize(p);
 }
 
+
 vec3 RandomInHemisphere(vec3 normal)
 {
 	vec3 inUnitSphereVec = RandomInUnitSphere();

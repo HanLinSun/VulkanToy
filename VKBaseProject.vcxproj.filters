@@ -108,6 +108,9 @@
     <None Include="Shaders\denoiser.glsl">
       <Filter>Source\Shader</Filter>
     </None>
+    <None Include="Shaders\glsl\sample.glsl">
+      <Filter>Source\Shader</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
@@ -366,6 +369,9 @@
     </ClInclude>
     <ClInclude Include="Source\Headers\GPUModel.h">
       <Filter>Header\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Headers\BVH.h">
+      <Filter>Header\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

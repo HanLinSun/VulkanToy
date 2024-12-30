@@ -7,6 +7,7 @@ struct RayTraceUniformData
 	alignas(16) glm::mat4 cam_viewMatrix;
 	alignas(16) glm::mat4 cam_projectionMatrix;
 	alignas(16) glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 0.0f);
+	alignas(16) glm::vec3 camLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
 	//For tracing scene
 	alignas(4) int lightNums;
 	alignas(4) int triangleNums;
@@ -65,7 +66,6 @@ struct Sphere
 	alignas(4) uint32_t materialIndex;
 };
 
-
 struct Light
 {
 	alignas(16) glm::vec3 position;
@@ -75,4 +75,88 @@ struct Light
 	alignas(4) float area;
 	alignas(4) int type;
 	alignas(4) float radius;
+};
+
+
+struct AABB_Box
+{
+	alignas(16) glm::vec3 min;
+	alignas(16) glm::vec3 max;
+
+	int RandomAxis()
+	{
+		return rand() % 3;
+	}
+
+};
+
+// Node in a non recursive BVH for use on GPU.
+struct BVHNodeGPU
+{
+	alignas(16) glm::vec3 min;
+	alignas(16) glm::vec3 max;
+
+	int leftNodeIndex;
+	int rightNodeIndex;
+
+	int triangleIndex; //triangle buffer index
+	int sphereIndex; //sphere buffer index
+
+	int objectType;
+
+};
+
+struct BVHNodeCPU
+{
+	AABB_Box boundingBox;
+
+	// index refers to the index in the array of bvh nodes. Used for sorting a flattened Bvh.
+	int index = -1;
+
+	int leftNodeIndex;
+	int rightNodeIndex;
+
+	int triangleIndex;
+	int sphereIndex;
+
+	int objectType; // 0 is triangle, 1 is sphere
+
+	std::vector<BVHObject> objects;
+
+	BVHNodeGPU GetBVHGPUModel()
+	{
+		bool leaf = leftNodeIndex == -1 && rightNodeIndex == -1;
+		BVHNodeGPU node;
+		node.min = boundingBox.min;
+		node.max =boundingBox.max;
+
+		node.leftNodeIndex = leftNodeIndex;
+		node.rightNodeIndex = rightNodeIndex;
+		node.objectType = objectType;
+
+		if (leaf)
+		{
+			if (objects[0].triangle != nullptr)
+			{
+				node.triangleIndex = objects[0].triangle_index;
+			}
+			if (objects[1].sphere != nullptr)
+			{
+				node.sphereIndex = objects[0].sphere_index;
+			}
+			
+		}
+		return node;
+	}
+
+};
+
+// Utility structure to keep track of the initial triangle index in the triangles array while sorting.
+struct BVHObject
+{
+	uint32_t triangle_index;
+	uint32_t sphere_index;
+	uint32_t type;
+	Triangle* triangle=nullptr;
+	Sphere* sphere=nullptr;
 };

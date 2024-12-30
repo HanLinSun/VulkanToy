@@ -15,9 +15,9 @@ layout(binding = 2) readonly buffer TriangleBufferObject
     Triangle[] triangles;
 };
 
-layout(binding = 3) readonly buffer MaterialBufferObject
+layout(binding = 3) readonly buffer PBRMaterialBufferObject
 {
-    Material[] materials;
+    PBRMaterial[] PBRaterials;
 };
 
 layout(binding = 4) readonly buffer SpheresBufferObject {
@@ -26,10 +26,15 @@ layout(binding = 4) readonly buffer SpheresBufferObject {
 
 layout(binding = 5) uniform sampler2D[] materialTextures;
 
+
 layout(binding = 6) readonly buffer LightBufferObject
 {
     Light[] lights;
 };
+
+layout(std430, binding = 7) readonly buffer AabbBufferObject {
+    BVHNode[] bvh;
+ };
 
 
 vec3 RayAt(Ray r, double t)
@@ -55,6 +60,18 @@ bool HitTriangle(int triangle_index, Ray r,float tMin, float tMax,  inout Inters
         return hit.x > tMin && hit.x < tMax;
     }
     return false;
+}
+
+bool Hit_AABB_Box(Ray r, vec3 boxMin, vec3 boxMax)
+{
+    vec3 tMin = (boxMin - r.origin)/r.direction;
+    vec3 tMax = (boxMax -r.origin)/r.direction;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+    if(tNear >=tFar) return false;
+    else return true;
 }
 
 bool HitSphere(int sphere_index, Ray r, float tMin, float tMax, inout Intersection intersection)
@@ -100,17 +117,8 @@ bool HitScene(Ray r, inout Intersection intersection) {
 
     //Currently do not try triangle intersection
 
-    for (int i = 0; i<ubo.numTriangles; i++) {
-//      if (HitTriangle(i, r, tMin, closestSoFar, temp_intersection)) {   // uncomment these lines will lead draw command buffer submission fail
-//                hitAnything = true;
-//                closestSoFar = temp_intersection.t;
-//               intersection = temp_intersection;
-//         }
-   }
-
     closestSoFar = tMax;
     
-    // sphere works fine
     for (int j = 0; j < ubo.numSpheres; j++) {
         if (HitSphere(j, r, tMin, closestSoFar, temp_intersection)) {
            hitAnything = true;
@@ -133,7 +141,7 @@ vec3 TraceRay(Ray r)
     {
         if (HitScene(currentRay, intersection))
         {
-            vec3 direction = RandomInHemisphere(intersection.normal);
+            vec3 direction = intersection.normal + RandomInUnitSphere();
             currentRay.origin = intersection.position;
             currentRay.direction = normalize(direction);
             radiance *= 0.5;
@@ -149,26 +157,40 @@ vec3 TraceRay(Ray r)
     return radiance;
 }
 
+vec3 GammaCorrect(vec3 color)
+{
+     float gammaVal =1/2.2;
+     float r = pow(color.r, gammaVal);
+     float g = pow(color.g,gammaVal);
+     float b = pow(color.b,gammaVal);
+     return vec3(r,g,b);
+}
+
 void main()
 {
 
-	mat4 projInv = inverse(ubo.projMatrix);
-	mat4 viewInv = inverse(ubo.viewMatrix);
+	mat4 projInv = inverse(ubo.projMatrix); //projection to camera
+	mat4 viewInv = inverse(ubo.viewMatrix); //cameraToWorld
 
     vec2 image_size = vec2(imageSize(targetTexture));
     float theta = ubo.cameraFOV * PI / 180.f;
 
     float h = tan(theta / 2);
     float viewport_height = 2.0 * h;
-    float viewport_width = image_size.x / image_size.y * viewport_height;
+    float viewport_width = (image_size.x / image_size.y) * viewport_height;
     float focal_length = ubo.focalDistance;
 
     // Calculate the vectors across the horizontal and down the vertical viewport edges.
-    vec3 horizontal = vec3(viewport_width, 0, 0);
-    vec3 vertical = vec3(0, -viewport_height, 0);
+    vec3 viewport_u = vec3(viewport_width, 0, 0);
+    vec3 viewport_v = vec3(0, -viewport_height, 0);
 
-    vec3 lower_left_corner = ubo.cameraPos - horizontal / 2 - vertical / 2 - vec3(0, 0, focal_length);
-    vec2 uv = (gl_GlobalInvocationID.xy) / image_size.xy;
+    vec3 pixel_delta_u = viewport_u / image_size.x; //pixel width
+    vec3 pixel_delta_v = viewport_v / image_size.y; //pixel height
+
+    vec3 viewport_upper_left = ubo.cameraPos - viewport_u/ 2 - viewport_v / 2 - vec3(0, 0, focal_length);
+    vec3 pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+     
+
     vec3 radiance = vec3(0.0);
 
     uint SPP = ubo.spp; //sample per pixel
@@ -178,14 +200,18 @@ void main()
        //size varient from pixel size[x: 0-1 y: 0-1]
         vec2 jitter = vec2(Random(),Random())/ image_size;
 
+        vec3 pixelPos_vs = pixel00_loc + (gl_GlobalInvocationID.x+jitter.x) * pixel_delta_u + (gl_GlobalInvocationID.y+jitter.y) * pixel_delta_v;
+        vec4 pixelPos_ws = viewInv  * vec4(pixelPos_vs,1);
+
         Ray r;
         r.origin = ubo.cameraPos;
-        r.direction = lower_left_corner + (uv.x+jitter.x) * horizontal + (uv.y+jitter.y) * vertical - r.origin;
+        r.direction =vec3(pixelPos_vs.xyz - r.origin);
 
         radiance += TraceRay(r);
     }
 
     radiance /= float(SPP);
+    radiance =GammaCorrect(radiance);
 
     imageStore(targetTexture, ivec2(gl_GlobalInvocationID.xy), vec4(radiance, 0.0));
 
