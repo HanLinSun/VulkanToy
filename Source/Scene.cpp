@@ -11,7 +11,11 @@ namespace Renderer
 
 	Scene::~Scene()
 	{
-		std::cout << "Scene deconstructor called" << std::endl;
+		for (auto bvhObject : m_bvhObjects)
+		{
+			delete[] bvhObject.triangle;
+			delete[] bvhObject.sphere;
+		}
 	}
 
 	const ModelGroup* Scene::GetSceneModelGroup(int idx)
@@ -192,5 +196,38 @@ namespace Renderer
 		AddSphere(test_sphere2);
 	}
 	// =====================================
+
+	
+	std::vector<BVHObject> Scene::GetBVHObjectArray()
+	{
+		return m_bvhObjects;
+	}
+
+    void Scene::GenerateBVHObjectArray()
+	{
+		int triangleIdx = 0;
+		int sphereIdx = 0;
+		for (auto triangle : m_triangles)
+		{
+			BVHObject object;
+			object.triangle_index = triangleIdx;
+			object.sphere_index = -1;
+			object.boundbox = BVHBuildTool::CreateBoundingBox(triangle);
+			object.ComputeCentroid();
+			triangleIdx++;
+			m_bvhObjects.push_back(object);
+		}
+
+		for(auto sphere:m_spheres)
+		{
+			BVHObject object;
+			object.sphere_index = sphereIdx;
+			object.triangle_index = -1;
+			object.boundbox = BVHBuildTool::CreateBoundingBox(sphere);
+			object.ComputeCentroid();
+			sphereIdx++;
+			m_bvhObjects.push_back(object);
+		}
+	}
 
 }

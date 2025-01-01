@@ -53,12 +53,14 @@ namespace Renderer
 
 		void InitTestSpheresScene_1();
 
-		std::vector<BVHObject> GenerateBVHObjectArray();
+		void GenerateBVHObjectArray();
+		std::vector<BVHObject> GetBVHObjectArray();
 
 	private:
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
 		std::vector<std::shared_ptr<Texture2D>> m_textures;
 		std::vector<std::shared_ptr<Material>> m_materials;
+		std::vector<BVHObject> m_bvhObjects;
 
 		std::vector<std::shared_ptr<TestMaterial>> m_testMaterials;
 		

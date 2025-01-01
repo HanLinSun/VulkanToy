@@ -48,7 +48,7 @@ namespace Renderer
 		ComputeResource GetRayTraceComputeResource() const;
 		Texture2D GetStorageImage() const;
 
-	
+		inline void AddGPUWriteDescriptorSet(bool isGPUBufferAlloc, std::vector<VkWriteDescriptorSet>& computeDescriptorSets, VkDescriptorType type, VkDescriptorBufferInfo* bufferInfo, int binding);
 
 	private:
 		Scene* m_scene;
@@ -67,6 +67,9 @@ namespace Renderer
 
 		bool isLightGPUBufferAlloc;
 		Buffer m_lightGPUBuffer;
+
+		bool isBVHNodeBufferAlloc;
+		Buffer m_BVHNodeGPUBuffer;
 
 
 		std::shared_ptr<Device> m_device;

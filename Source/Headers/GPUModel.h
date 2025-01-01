@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
-
+#include <memory>
+#include <vector>
 struct RayTraceUniformData
 {
 	// Compute shader uniform block object
@@ -53,9 +54,14 @@ struct PBRMaterialData
 
 struct Triangle
 {
-	alignas(16) glm::vec3 v0;
-	alignas(16) glm::vec3 v1;
-	alignas(16) glm::vec3 v2;
+	alignas(16) glm::vec3 position_0;
+	alignas(16) glm::vec3 position_1;
+	alignas(16) glm::vec3 position_2;
+
+	alignas(16) glm::vec3 normal_0;
+	alignas(16) glm::vec3 normal_1;
+	alignas(16) glm::vec3 normal_2;
+
 	alignas(4) uint32_t material_ID;
 };
 
@@ -63,7 +69,7 @@ struct Triangle
 struct Sphere
 {
 	alignas(16) glm::vec4 s; // x,y,z is position, w is radius
-	alignas(4) uint32_t materialIndex;
+	alignas(4) uint32_t material_ID;
 };
 
 struct Light
@@ -78,16 +84,15 @@ struct Light
 };
 
 
-struct AABB_Box
+struct Boundbox
 {
-	alignas(16) glm::vec3 min;
-	alignas(16) glm::vec3 max;
+	glm::vec3 min;
+	glm::vec3 max;
 
-	int RandomAxis()
+	glm::vec3 Centroid()
 	{
-		return rand() % 3;
+		return 0.5f * min + 0.5f * max;
 	}
-
 };
 
 // Node in a non recursive BVH for use on GPU.
@@ -99,64 +104,70 @@ struct BVHNodeGPU
 	int leftNodeIndex;
 	int rightNodeIndex;
 
+	int isLeaf;
+	int axis;
+
 	int triangleIndex; //triangle buffer index
 	int sphereIndex; //sphere buffer index
 
-	int objectType;
+};
 
+// Utility structure to keep track of the initial triangle and sphere index in the triangles array while sorting.
+struct BVHObject
+{
+	Boundbox boundbox;
+	glm::vec3 centroid;
+	uint32_t triangle_index=-1;
+	uint32_t sphere_index = -1;
+
+	void ComputeCentroid()
+	{
+		centroid = 0.5f * (boundbox.min + boundbox.max);
+	}
 };
 
 struct BVHNodeCPU
 {
-	AABB_Box boundingBox;
+	Boundbox boundingBox;
 
 	// index refers to the index in the array of bvh nodes. Used for sorting a flattened Bvh.
 	int index = -1;
 
-	int leftNodeIndex;
-	int rightNodeIndex;
+	int leftNodeIndex=-2;
+	int rightNodeIndex=-2;
+
+	int splitAxis=0;
 
 	int triangleIndex;
 	int sphereIndex;
 
-	int objectType; // 0 is triangle, 1 is sphere
-
 	std::vector<BVHObject> objects;
+
+	
 
 	BVHNodeGPU GetBVHGPUModel()
 	{
-		bool leaf = leftNodeIndex == -1 && rightNodeIndex == -1;
+		//bool leaf = leftNodeIndex == -1 && rightNodeIndex == -1;
 		BVHNodeGPU node;
 		node.min = boundingBox.min;
 		node.max =boundingBox.max;
 
 		node.leftNodeIndex = leftNodeIndex;
 		node.rightNodeIndex = rightNodeIndex;
-		node.objectType = objectType;
 
-		if (leaf)
+		if (leftNodeIndex == -1 && rightNodeIndex == -1)
 		{
-			if (objects[0].triangle != nullptr)
-			{
-				node.triangleIndex = objects[0].triangle_index;
-			}
-			if (objects[1].sphere != nullptr)
-			{
-				node.sphereIndex = objects[0].sphere_index;
-			}
-			
+			node.isLeaf = 1;
 		}
+		else node.isLeaf = 0;
+
+		node.axis = splitAxis;
+
+		node.triangleIndex = objects[0].triangle_index;
+	    node.sphereIndex = objects[0].sphere_index;
+
 		return node;
 	}
 
 };
 
-// Utility structure to keep track of the initial triangle index in the triangles array while sorting.
-struct BVHObject
-{
-	uint32_t triangle_index;
-	uint32_t sphere_index;
-	uint32_t type;
-	Triangle* triangle=nullptr;
-	Sphere* sphere=nullptr;
-};

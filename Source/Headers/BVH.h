@@ -5,19 +5,21 @@
 
 namespace BVHBuildTool
 {
-	AABB_Box CreateAABB_Box(Sphere* sphere);
-	AABB_Box CreateAABB_Box(Triangle* triangle);
-	AABB_Box CreateAABB_Box(std::vector<BVHObject>& objects);
+	Boundbox CreateBoundingBox(Sphere sphere);
+	Boundbox CreateBoundingBox(Triangle triangle);
+	Boundbox CreateBoundingBox(std::vector<BVHObject>& objects);
 
-	AABB_Box CreateSurroundAABB_Box(AABB_Box& box_A, AABB_Box& box_B);
+	inline Boundbox Union(Boundbox& b1, Boundbox& b2);
+	inline Boundbox Union(Boundbox& b1, glm::vec3 point);
+	inline Boundbox Intersect(Boundbox& b1, Boundbox& b2);
+	inline bool Overlaps(Boundbox& b1, Boundbox& b2);
 
-	std::vector<BVHNodeGPU> BuildBVH( std::vector<BVHObject>& srcObjects);
 
-	bool NodeCompare(BVHNodeCPU& a, BVHNodeCPU& b);
 
-	bool BoxCompare(AABB_Box& a, AABB_Box& b, int axis);
-	bool BoxCompare_X(AABB_Box& a, AABB_Box& b);
-	bool BoxCompare_Y(AABB_Box& a, AABB_Box& b);
-	bool BoxCompare_Z(AABB_Box& a, AABB_Box& b);
+	Boundbox CreateSurroundAABB_Box(Boundbox& box_A, Boundbox& box_B);
+
+	std::vector<BVHNodeGPU> BuildBVHGPUNode( std::vector<BVHObject>& srcObjects);
+	void BuildBVHRecursive(int node, std::vector<BVHObject>& srcObjects, std::vector<BVHNodeCPU>& bvhTree_cpu);
+	
 
 }

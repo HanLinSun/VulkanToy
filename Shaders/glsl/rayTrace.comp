@@ -2,6 +2,8 @@
 #include "random.glsl"
 #include "intersections.glsl"
 
+#define MAX_STACK_DEPTH 24
+
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 layout(binding = 0, rgba8) uniform writeonly image2D targetTexture;
@@ -64,6 +66,7 @@ bool HitTriangle(int triangle_index, Ray r,float tMin, float tMax,  inout Inters
 
 bool Hit_AABB_Box(Ray r, vec3 boxMin, vec3 boxMax)
 {
+    // world space intersection test
     vec3 tMin = (boxMin - r.origin)/r.direction;
     vec3 tMax = (boxMax -r.origin)/r.direction;
     vec3 t1 = min(tMin, tMax);
@@ -107,28 +110,90 @@ bool HitSphere(int sphere_index, Ray r, float tMin, float tMax, inout Intersecti
     return true;
 }
 
+
+//Based on PBRT - BVH intersect
+bool HitBVHNode(Ray r , inout Intersection intersection)
+{
+    int toVisitOffset = 0;
+    int currentNodeIndex = 0;
+    int nodesToVisit[64];
+
+    vec3 invDir=vec3(1 / r.direction.x, 1 / ray.direction.y, 1 / ray.direction.z);
+    bool dirIsNeg[3] = { invDir.x < 0, invDir.y < 0, invDir.z < 0 };
+
+    while(true)
+    {
+       BVHNode node = bvh[currentNodeIndex];
+       if(Hit_AABB_Box(r,node.min, node.max))
+       {
+            if(node.isLeaf ==1)
+            {
+                 if(node.triangleIndex !=-1)
+                 {
+                       Intersection temp_insec;
+
+                 }
+                 else if(node.sphereIndex>0)
+                 {
+                        Intersection temp_insec;
+                 }
+
+                 if (toVisitOffset == 0) break;
+                 currentNodeIndex = nodesToVisit[--toVisitOffset];
+            }
+            else
+            {
+                //Intersect bounding box, but not leave, add new node into stack
+                //int leftIdx = currIdx * 2 + 1;
+                //int rightIdx = leftIdx + 1;
+                if (dirIsNeg[bvhNodes[currIdx].axis]) 
+                {
+                   idxToVisit[toVisitOffset++] = node.leftNodeIndex;
+                   idxToVisit[toVisitOffset++] = node.rightNodeIndex;
+                }
+                else 
+               {
+                  idxToVisit[toVisitOffset++] = node.rightNodeIndex;
+                  idxToVisit[toVisitOffset++] = node.leftNodeIndex;
+               }
+            }
+       }
+       else
+       {
+             //Not hit bounding box
+              if (toVisitOffset == 0) break;
+              currentNodeIndex = nodesToVisit[--toVisitOffset];
+       }
+    }
+
+}
+
 bool HitScene(Ray r, inout Intersection intersection) {
     float tMin = 0.0001;
     float tMax = INFINITY;
 
     Intersection temp_intersection;
     bool hitAnything = false;
-    float closestSoFar = tMax;
+    float closestIntersection = tMax;
 
-    //Currently do not try triangle intersection
-
-    closestSoFar = tMax;
+        for (int i = 0; i<ubo.numTriangles; i++) {
+        if (HitTriangle(i, r, tMin, closestIntersection, temp_intersection)) {
+            hitAnything = true;
+            closestIntersection = temp_intersection.t;
+            intersection =  temp_intersection;
+        }
+    }
+    closestIntersection = tMax;
     
-    for (int j = 0; j < ubo.numSpheres; j++) {
-        if (HitSphere(j, r, tMin, closestSoFar, temp_intersection)) {
-           hitAnything = true;
-           closestSoFar = temp_intersection.t; 
-           intersection = temp_intersection;
-       }
-     }
-
+//    for (int j = 0; j < ubo.numSpheres; j++) {
+//        if (HitSphere(j, r, tMin, closestIntersection, temp_intersection)) {
+//           hitAnything = true;
+//           closestIntersection = temp_intersection.t; 
+//           intersection = temp_intersection;
+//       }
+//     }
     return hitAnything;
-}
+ }
 
 
 vec3 TraceRay(Ray r)
@@ -139,10 +204,11 @@ vec3 TraceRay(Ray r)
 
     for (int i = 0; i < ubo.maxDepth; i++)
     {
-        if (HitScene(currentRay, intersection))
+       if (HitScene(currentRay, intersection))
+//       if(HitBVH(currentRay,intersection))
         {
             vec3 direction = intersection.normal + RandomInUnitSphere();
-            currentRay.origin = intersection.position;
+           currentRay.origin = intersection.position;
             currentRay.direction = normalize(direction);
             radiance *= 0.5;
         }
@@ -154,7 +220,10 @@ vec3 TraceRay(Ray r)
             break; // Exit the loop since there's no further intersection
         }
     }
-    return radiance;
+
+
+
+     return radiance;
 }
 
 vec3 GammaCorrect(vec3 color)

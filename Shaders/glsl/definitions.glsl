@@ -73,8 +73,10 @@ struct BVHNode
 	vec3 max;
 	int leftNodeIndex;
 	int rightNodeIndex;
-	int objectType;
-	int objectIndex;
+	int isLeaf;
+	int axis;
+	int triangleIndex;
+	int sphereIndex;
 };
 
 struct Triangle
@@ -82,6 +84,11 @@ struct Triangle
 	vec3 v0;
 	vec3 v1;
 	vec3 v2;
+
+	vec3 n0;
+	vec3 n1;
+	vec3 n2;
+
 	uint materialIdx;
 };
 

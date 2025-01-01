@@ -181,10 +181,8 @@ namespace Renderer
         SetupDebugMessenger();
 
         //By default we use this
-        if (!m_runRaytracePipeline)
-        {
-            LoadModel(MODEL_PATH, MODEL_FILE_PATH);
-        }
+
+        LoadModel(MODEL_PATH, MODEL_FILE_PATH);
 
         CreateRenderPass();
         CreateFrameResources();
@@ -1226,7 +1224,7 @@ namespace Renderer
 
         check_vk_result(vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &m_submitInfo, m_waitFences[currentFrame]));
 
-        vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Graphics));
+        check_vk_result(vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Graphics)));
 
         result = m_swapChain->QueuePresent(m_device->GetQueue(QueueFlags::Present),imageIndex, m_Semaphores.renderComplete);
 

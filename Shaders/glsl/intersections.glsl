@@ -29,3 +29,9 @@ vec3 TriangleIntersection(in vec3 ray_origin, in vec3 ray_direction, Triangle tr
 vec3 Reflect(vec3 v, vec3 n) {
     return v - 2 * dot(v, n) * n;
 }
+
+vec3 multiplyMV(mat4 mat, vec4 v)
+{
+    vec4 res =mat * v;
+    return vec3(res.xyz);
+}
