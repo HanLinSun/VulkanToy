@@ -197,9 +197,9 @@ namespace Renderer
 				index_offset += fv;
 				// per-face material
 				Triangle triangle;
-				triangle.v0 = triVert[0].position;
-				triangle.v1 = triVert[1].position;
-				triangle.v2 = triVert[2].position;
+				triangle.position_0 = triVert[0].position;
+				triangle.position_1 = triVert[1].position;
+				triangle.position_2 = triVert[2].position;
 				//shapes[s].mesh.material_ids[f];
 				triangle.material_ID = shapes[s].mesh.material_ids[f];
 				mesh.m_triangles.push_back(triangle);

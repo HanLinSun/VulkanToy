@@ -11,11 +11,6 @@ namespace Renderer
 
 	Scene::~Scene()
 	{
-		for (auto bvhObject : m_bvhObjects)
-		{
-			delete[] bvhObject.triangle;
-			delete[] bvhObject.sphere;
-		}
 	}
 
 	const ModelGroup* Scene::GetSceneModelGroup(int idx)

@@ -158,13 +158,19 @@ struct BVHNodeCPU
 		if (leftNodeIndex == -1 && rightNodeIndex == -1)
 		{
 			node.isLeaf = 1;
+			node.triangleIndex = objects[0].triangle_index;
+			node.sphereIndex = objects[0].sphere_index;
 		}
-		else node.isLeaf = 0;
+		else
+		{
+			node.isLeaf = 0;
+			node.triangleIndex = -1;
+			node.sphereIndex = -1;
+		}
 
 		node.axis = splitAxis;
 
-		node.triangleIndex = objects[0].triangle_index;
-	    node.sphereIndex = objects[0].sphere_index;
+
 
 		return node;
 	}

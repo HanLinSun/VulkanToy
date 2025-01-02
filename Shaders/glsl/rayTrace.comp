@@ -35,7 +35,7 @@ layout(binding = 6) readonly buffer LightBufferObject
 };
 
 layout(std430, binding = 7) readonly buffer AabbBufferObject {
-    BVHNode[] bvh;
+    BVHNode[] bvhNodes;
  };
 
 
@@ -64,7 +64,7 @@ bool HitTriangle(int triangle_index, Ray r,float tMin, float tMax,  inout Inters
     return false;
 }
 
-bool Hit_AABB_Box(Ray r, vec3 boxMin, vec3 boxMax)
+bool HitBoundingBox(Ray r, vec3 boxMin, vec3 boxMax)
 {
     // world space intersection test
     vec3 tMin = (boxMin - r.origin)/r.direction;
@@ -114,57 +114,66 @@ bool HitSphere(int sphere_index, Ray r, float tMin, float tMax, inout Intersecti
 //Based on PBRT - BVH intersect
 bool HitBVHNode(Ray r , inout Intersection intersection)
 {
+    float tMin = 0.001;
+    float tMax = 10000;
     int toVisitOffset = 0;
     int currentNodeIndex = 0;
     int nodesToVisit[64];
 
-    vec3 invDir=vec3(1 / r.direction.x, 1 / ray.direction.y, 1 / ray.direction.z);
+    float closest_intersection = tMax;
+    nodesToVisit[toVisitOffset++] =0;
+
+    vec3 invDir=vec3(1 / r.direction.x, 1 / r.direction.y, 1 / r.direction.z);
     bool dirIsNeg[3] = { invDir.x < 0, invDir.y < 0, invDir.z < 0 };
 
-    while(true)
+    bool hitAnything =false;
+    while(toVisitOffset>0)
     {
-       BVHNode node = bvh[currentNodeIndex];
-       if(Hit_AABB_Box(r,node.min, node.max))
+       currentNodeIndex= nodesToVisit[--toVisitOffset];
+
+       BVHNode node = bvhNodes[currentNodeIndex];
+       if(node.isLeaf !=1)
        {
-            if(node.isLeaf ==1)
-            {
-                 if(node.triangleIndex !=-1)
-                 {
-                       Intersection temp_insec;
+          bool intersectBoundBox = HitBoundingBox(r, node.min, node.max);
+          if(!intersectBoundBox) continue;
 
-                 }
-                 else if(node.sphereIndex>0)
-                 {
-                        Intersection temp_insec;
-                 }
-
-                 if (toVisitOffset == 0) break;
-                 currentNodeIndex = nodesToVisit[--toVisitOffset];
+            // Advance to the near node first
+            if (dirIsNeg[bvhNodes[currentNodeIndex].axis]) {
+                nodesToVisit[toVisitOffset++] = node.leftNodeIndex;
+                nodesToVisit[toVisitOffset++] = node.rightNodeIndex;
             }
-            else
-            {
-                //Intersect bounding box, but not leave, add new node into stack
-                //int leftIdx = currIdx * 2 + 1;
-                //int rightIdx = leftIdx + 1;
-                if (dirIsNeg[bvhNodes[currIdx].axis]) 
-                {
-                   idxToVisit[toVisitOffset++] = node.leftNodeIndex;
-                   idxToVisit[toVisitOffset++] = node.rightNodeIndex;
-                }
-                else 
-               {
-                  idxToVisit[toVisitOffset++] = node.rightNodeIndex;
-                  idxToVisit[toVisitOffset++] = node.leftNodeIndex;
-               }
+            else {
+                nodesToVisit[toVisitOffset++] = node.rightNodeIndex;
+                nodesToVisit[toVisitOffset++] = node.leftNodeIndex;
             }
        }
        else
        {
-             //Not hit bounding box
-              if (toVisitOffset == 0) break;
-              currentNodeIndex = nodesToVisit[--toVisitOffset];
+            if (node.triangleIndex ==-1 && node.sphereIndex==-1) continue;
+            if(node.triangleIndex !=-1)
+            {
+                Intersection temp_insec;
+                if(HitTriangle(node.triangleIndex, r, tMin, closest_intersection ,temp_insec))
+                {
+                  hitAnything =true;
+                  closest_intersection=temp_insec.t;
+                  intersection =temp_insec;
+                }
+            }
+
+            if(node.sphereIndex!=-1)
+            {
+                Intersection temp_insec;
+                if(HitSphere(node.triangleIndex, r, tMin, closest_intersection,temp_insec))
+                {
+                   hitAnything =true;
+                   closest_intersection=temp_insec.t;
+                  intersection =temp_insec;
+                }
+            }
        }
     }
+    return hitAnything;
 
 }
 
@@ -204,8 +213,8 @@ vec3 TraceRay(Ray r)
 
     for (int i = 0; i < ubo.maxDepth; i++)
     {
-       if (HitScene(currentRay, intersection))
-//       if(HitBVH(currentRay,intersection))
+//       if (HitScene(currentRay, intersection))
+       if(HitBVHNode(currentRay,intersection))
         {
             vec3 direction = intersection.normal + RandomInUnitSphere();
            currentRay.origin = intersection.position;

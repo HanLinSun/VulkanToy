@@ -171,7 +171,7 @@ namespace Renderer
 
         m_scene->GenerateBVHObjectArray();
         std::vector<BVHObject> bvhObjects = m_scene->GetBVHObjectArray();
-        std::vector<BVHNodeGPU> bvhNodes = BVHBuildTool::BuildBVH(bvhObjects);
+        std::vector<BVHNodeGPU> bvhNodes = BVHBuildTool::BuildBVHGPUNode(bvhObjects);
         //Binding =7,BVHNodes
         if (bvhNodes.size() != 0)
         {
@@ -346,8 +346,8 @@ namespace Renderer
         m_rayTraceUniform.cam_viewMatrix = cam->GetViewmatrix();
         m_rayTraceUniform.aspectRatio = cam->GetAspectRatio();
         m_rayTraceUniform.lightNums = 2;
-        m_rayTraceUniform.samplePerPixel = 8;
-        m_rayTraceUniform.maxRecursiveDepth =50;
+        m_rayTraceUniform.samplePerPixel = 6;
+        m_rayTraceUniform.maxRecursiveDepth =20;
         m_rayTraceUniform.triangleNums = m_scene->GetTriangles().size();
         m_rayTraceUniform.sphereNums = m_scene->GetSpheres().size();
         m_rayTraceUniform.focalDistance = 1.0f;
