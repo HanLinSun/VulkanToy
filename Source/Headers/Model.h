@@ -52,6 +52,8 @@ namespace Renderer
 		std::shared_ptr<Material> m_material;
 
 		std::vector<Triangle> m_triangles;
+
+		glm::mat4 m_transformMatrix; //Translate*Rotation*Scale
 		
 	};
 	class ModelGroup
@@ -64,6 +66,7 @@ namespace Renderer
 		void AddModel(Model* _model);
 		void AddModels(std::vector<Model*>& _models);
 		size_t GetModelSize() const;
+
 		void DestroyVKResources();
 
 	protected:

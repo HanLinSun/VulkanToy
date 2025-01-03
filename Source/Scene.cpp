@@ -18,6 +18,7 @@ namespace Renderer
 		return m_modelGroups[idx].get();
 	}
 
+
 	void Scene::DestroyVKResources()
 	{
 		for (auto& modelgroup : m_modelGroups)

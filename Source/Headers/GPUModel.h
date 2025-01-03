@@ -9,6 +9,7 @@ struct RayTraceUniformData
 	alignas(16) glm::mat4 cam_projectionMatrix;
 	alignas(16) glm::vec3 camPos = glm::vec3(0.0f, 0.0f, 0.0f);
 	alignas(16) glm::vec3 camLookAt = glm::vec3(0.0f, 0.0f, 0.0f);
+	alignas(16) glm::vec3 cam_Up = glm::vec3(0.0f, 1.0f, 0.0f);
 	//For tracing scene
 	alignas(4) int lightNums;
 	alignas(4) int triangleNums;
@@ -62,6 +63,7 @@ struct Triangle
 	alignas(16) glm::vec3 normal_1;
 	alignas(16) glm::vec3 normal_2;
 
+	alignas(16) glm::mat4 transformMatrix;
 	alignas(4) uint32_t material_ID;
 };
 

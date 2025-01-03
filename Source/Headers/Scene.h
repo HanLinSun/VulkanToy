@@ -6,6 +6,7 @@
 #include <Model.h>
 #include <BVH.h>
 #include <GPUModel.h>
+#include <ModelFileLoader.h>
 
 namespace Renderer
 {
@@ -20,7 +21,6 @@ namespace Renderer
 		const std::vector<ModelGroup*> GetSceneModelGroupsRaw();
 
 		void AddModelGroup(std::unique_ptr<ModelGroup> modelgroup);
-
 		const std::shared_ptr<Camera> GetCamera();
 		void SetSceneCamera(std::shared_ptr<Camera> Camera);
 		void DestroyVKResources();
@@ -55,6 +55,8 @@ namespace Renderer
 
 		void GenerateBVHObjectArray();
 		std::vector<BVHObject> GetBVHObjectArray();
+
+
 
 	private:
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;

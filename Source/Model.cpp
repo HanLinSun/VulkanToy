@@ -52,7 +52,10 @@ namespace Renderer
 			BufferUtils::CreateBufferFromData(device, commandPool, this->m_indices.data(), m_indices.size() * sizeof(uint32_t),
 				VK_BUFFER_USAGE_INDEX_BUFFER_BIT, m_indexBuffer, m_indexBufferMemory);
 		}
-		m_modelBufferObject.modelMatrix = glm::mat4(1.0f);
+
+		m_transformMatrix = glm::mat4(1.0f);
+		m_modelBufferObject.modelMatrix = m_transformMatrix;
+
 		BufferUtils::CreateBufferFromData(device, commandPool, &m_modelBufferObject, sizeof(ModelBufferObject), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, m_modelUniformBuffer, m_modelUniformBufferMemory);
 	}
 

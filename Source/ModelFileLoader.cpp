@@ -20,6 +20,9 @@ namespace Renderer
 
 	FileLoader::FileLoader() {}
 	void FileLoader::loadFileData(Scene* scene,std::string path, std::string modelFolderPath) {}
+	void FileLoader::loadFileData(Scene*, std::string sceneDescriptionPath){}
+
+
 
 	ObjFileLoader::ObjFileLoader(std::shared_ptr<Device> device):m_device(device) {}
 
@@ -40,6 +43,11 @@ namespace Renderer
     std::shared_ptr<Device> ObjFileLoader::GetDevice()
 	{
 		return m_device;
+	}
+	void ObjFileLoader::loadFileData(Scene* scene, std::string sceneDescriptionPath)
+	{
+		//Parse scene 
+		
 	}
 
 	void ObjFileLoader::loadFileData(Scene* scene, std::string modelFilePath, std::string modelFolderPath)

@@ -89,12 +89,16 @@ struct Triangle
 	vec3 n1;
 	vec3 n2;
 
+	mat4 transformMatrix;
+	mat4 inverseTranspose;
 	uint materialIdx;
 };
 
 struct Sphere
 {
 	vec4 sphere; //x,y,z is center, w is radius
+	mat4 transformMatrix;
+	mat4 inverseTranspose;
 	uint materialIdx;
 };
 
@@ -122,6 +126,7 @@ struct RayTraceUniformBuffer
 	mat4 projMatrix;
 	vec3 cameraPos;
 	vec3 cameraLookAt;
+	vec3 camera_Up;
 	uint lightNums;
 	uint numTriangles;
 	uint numSpheres;

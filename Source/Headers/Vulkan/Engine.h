@@ -18,12 +18,13 @@
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
 
-//const std::string MODEL_PATH = "./Models/CornellBox/CornellBox-Original.obj";
-//const std::string MODEL_FILE_PATH = "./Models/CornellBox/";
+//Texture folder need to put in model file path
+const std::string MODEL_PATH = "./Models/CornellBox/CornellBox-Original.obj";
+const std::string MODEL_FILE_PATH = "./Models/CornellBox/";
 
 //Seems that this object is too large and will crash vulkan driver
-const std::string MODEL_PATH = "./Models/Sponza/sponza.obj";
-const std::string MODEL_FILE_PATH = "./Models/Sponza/";
+//const std::string MODEL_PATH = "./Models/Sponza/sponza.obj";
+//const std::string MODEL_FILE_PATH = "./Models/Sponza/";
 const std::string SKYBOX_CUBEMAP_PATH = "./Textures/Skybox/";
 
 const std::vector<std::string> cubeMapPaths
