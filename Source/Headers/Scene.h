@@ -7,6 +7,7 @@
 #include <BVH.h>
 #include <GPUModel.h>
 #include <ModelFileLoader.h>
+#include <fstream>
 
 namespace Renderer
 {
@@ -56,9 +57,10 @@ namespace Renderer
 		void GenerateBVHObjectArray();
 		std::vector<BVHObject> GetBVHObjectArray();
 
-
+		std::ifstream fp_in;
 
 	private:
+
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
 		std::vector<std::shared_ptr<Texture2D>> m_textures;
 		std::vector<std::shared_ptr<Material>> m_materials;

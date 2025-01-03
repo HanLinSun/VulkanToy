@@ -1,6 +1,8 @@
 // Copyright 2024 Hanlin Sun
 #include "Model.h"
 #include "Vulkan/BufferUtils.h"
+
+#define PI 3.1415926535897932385
 namespace Renderer
 {
 	ModelGroup::ModelGroup() {};
@@ -37,6 +39,26 @@ namespace Renderer
 		}
 	}
 
+	void ModelGroup::buildTransformationMatrix(glm::vec3 trans, glm::vec3 rot, glm::vec3 scale)
+	{
+		glm::mat4 translationMat = glm::translate(glm::mat4(), trans);
+		glm::mat4 rotationMat = glm::rotate(glm::mat4(), rot.x * (float)PI / 180, glm::vec3(1, 0, 0));
+		rotationMat = rotationMat * glm::rotate(glm::mat4(), rot.y * (float)PI / 180, glm::vec3(0, 1, 0));
+		rotationMat = rotationMat * glm::rotate(glm::mat4(), rot.z * (float)PI / 180, glm::vec3(0, 0, 1));
+		glm::mat4 scaleMat = glm::scale(glm::mat4(), scale);
+
+		transformMatrix = translationMat * rotationMat * scaleMat;
+	}
+
+	glm::mat4 ModelGroup::GetTransformMatrix()
+	{
+		return transformMatrix;
+	}
+
+	void ModelGroup::SetTransformMatrix(glm::mat4& _transformMatrix)
+	{
+		transformMatrix = _transformMatrix;
+	}
 
 	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,std::shared_ptr<Material> mat, const std::vector<Triangle>& m_triangles)
 		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(mat),m_triangles(m_triangles)

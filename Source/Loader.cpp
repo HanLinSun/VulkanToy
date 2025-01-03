@@ -1,14 +1,153 @@
 #include "Loader.h"
-
+#include <iostream>
+#include <fstream>
 namespace Renderer
 {
 	Loader::Loader(std::shared_ptr<Device> device, VkCommandPool commandPool):m_device(device),m_commandPool(commandPool){}
 	Loader::~Loader() 
 	{
 	}
-	void Loader::LoadFromSceneFile(Scene* scene, std::string sceneFile)
-	{
 
+	void Loader::LoadModel(Scene* scene,  std::string type)
+	{
+		if (strcmp(type.c_str(), "Mesh") == 0)
+		{
+			std::string line;
+			SafeGetline(scene->fp_in, line);
+			std::string modelFilePath;
+			std::string modelDataPath;
+			if (!line.empty() && scene->fp_in.good())
+			{
+				std::vector<std::string> tokens = TokenizeString(line);
+				if (strcmp(tokens[0].c_str(), "ModelFilePath") == 0)
+				{
+					modelFilePath = tokens[1];
+				}
+			}
+
+			SafeGetline(scene->fp_in, line);
+			if (!line.empty() && scene->fp_in.good())
+			{
+				std::vector<std::string> tokens = TokenizeString(line);
+				if (strcmp(tokens[0].c_str(), "ModelDataPath") == 0)
+				{
+					modelDataPath = tokens[1];
+				}
+			}
+			LoadModel(modelDataPath, modelFilePath, scene);
+
+			glm::vec3 translation;
+			glm::vec3 rotation;
+			glm::vec3 scale;
+
+			SafeGetline(scene->fp_in, line);
+			while (!line.empty() && scene->fp_in.good()) {
+				std::vector<std::string> tokens = TokenizeString(line);
+
+				//load tranformations
+				if (strcmp(tokens[0].c_str(), "Translate") == 0) {
+					translation = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+				}
+				else if (strcmp(tokens[0].c_str(), "Rotation") == 0) {
+					rotation = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+				}
+				else if (strcmp(tokens[0].c_str(), "Scale") == 0) {
+					scale = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+				}
+				SafeGetline(scene->fp_in, line);
+			}
+			scene->GetSceneModelGroupsRaw().back()->buildTransformationMatrix(translation, rotation, scale);
+		}
+		else if (strcmp(type.c_str(), "Sphere") == 0)
+		{
+			glm::vec3 position;
+			float radius;
+			std::string line;
+			SafeGetline(scene->fp_in, line);
+			while (!line.empty() && scene->fp_in.good())
+			{
+				std::vector<std::string> tokens = TokenizeString(line);
+				if (strcmp(tokens[0].c_str(), "Position") == 0) {
+					position = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+				}
+				else if (strcmp(tokens[0].c_str(), "Radius") == 0)
+				{
+					radius = atof(tokens[1].c_str());
+				}
+				Sphere sphere;
+				sphere.s = glm::vec4(position.x, position.y, position.z, radius);
+				scene->AddSphere(sphere);
+				SafeGetline(scene->fp_in, line);
+			}
+		}
+	}
+
+	void  Loader::LoadSceneCamera(Scene* scene)
+	{
+		std::string line;
+		SafeGetline(scene->fp_in, line);
+		glm::vec2 resolution;
+		float fov;
+		glm::vec4 position;
+		glm::vec4 lookAt;
+		glm::vec4 upvec;
+
+		while (!line.empty() && scene->fp_in.good())
+		{
+			std::vector<std::string> tokens = TokenizeString(line);
+			if (strcmp(tokens[0].c_str(), "Resolution") == 0) {
+				resolution = glm::vec2(atof(tokens[1].c_str()), atof(tokens[2].c_str()));
+			}
+			else if (strcmp(tokens[0].c_str(), "FOV") == 0)
+			{
+				fov = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "Position") == 0)
+			{
+				position = glm::vec4(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()),1.0f);
+			}
+			else if (strcmp(tokens[0].c_str(), "LookAt")==0)
+			{
+				lookAt = glm::vec4(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()),1.0f);
+			}
+			SafeGetline(scene->fp_in, line);
+		}
+
+		auto cam = scene->GetCamera();
+		glm::vec4 lookAt =glm::normalize(lookAt - position);
+		cam->SetForwardVector(lookAt);
+		cam->SetLookTarget(lookAt);
+		cam->SetPosition(position);
+		cam->SetUpVector(upvec);
+
+	}
+
+	void Loader::LoadFromSceneFile(Scene* scene, std::string sceneFileName)
+	{
+		scene->fp_in.open(sceneFileName);
+		if (!scene->fp_in.is_open()) {
+			std::cerr << "Failed to open:"<< sceneFileName << std::endl;
+		}
+
+		while (scene->fp_in.good())
+		{
+			std::string line;
+			SafeGetline(scene->fp_in, line);
+			std::vector<std::string> tokens = TokenizeString(line);
+
+			if (!line.empty())
+			{
+				//load tranformations
+				if (strcmp(tokens[0].c_str(), "Object") == 0)
+				{
+					LoadModel(scene, tokens[1].c_str());
+				}
+				else if (strcmp(tokens[0].c_str(), "Camera") == 0)
+				{
+					LoadSceneCamera(scene);
+				}
+			}
+		}
 	}
 
 	void Loader::LoadModel(std::string path, std::string model_folder_path, Scene* scene)
@@ -75,4 +214,13 @@ namespace Renderer
 			}
 		}
 	}
+
+	std::vector<std::string> TokenizeString(std::string str) {
+		std::stringstream strstr(str);
+		std::istream_iterator<std::string> it(strstr);
+		std::istream_iterator<std::string> end;
+		std::vector<std::string> results(it, end);
+		return results;
+	}
+
 }

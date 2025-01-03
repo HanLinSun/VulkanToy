@@ -68,8 +68,12 @@ namespace Renderer
 		size_t GetModelSize() const;
 
 		void DestroyVKResources();
+		void buildTransformationMatrix(glm::vec3 trans, glm::vec3 rot, glm::vec3 scale);
+		glm::mat4 GetTransformMatrix();
+		void SetTransformMatrix(glm::mat4& transformMatrix);
 
 	protected:
+		glm::mat4 transformMatrix;
 		std::vector<std::unique_ptr<Model>> m_models;
 	};
 

@@ -11,6 +11,8 @@ namespace Renderer
 		Loader(std::shared_ptr<Device> device, VkCommandPool commandPool);
 		~Loader();
 		void LoadModel(std::string path, std::string folder_path, Scene* scene);
+		void LoadModel(Scene* scene, std::string type);
+		void LoadSceneCamera(Scene* scene);
 		void LoadFromSceneFile(Scene* scene, std::string sceneFile);
 
 	protected:
