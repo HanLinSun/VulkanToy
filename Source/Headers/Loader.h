@@ -15,9 +15,15 @@ namespace Renderer
 		void LoadSceneCamera(Scene* scene);
 		void LoadFromSceneFile(Scene* scene, std::string sceneFile);
 
+
+		std::istream& SafeGetline(std::istream& is, std::string& t);
+		std::vector<std::string> TokenizeString(std::string str);
+
 	protected:
 		std::shared_ptr<Device> m_device;
 		VkCommandPool m_commandPool;
 	};
+
+
 
 }

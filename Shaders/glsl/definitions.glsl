@@ -90,6 +90,7 @@ struct Triangle
 	vec3 n2;
 
 	mat4 transformMatrix;
+	mat4 inverseTransformMatrix;
 	mat4 inverseTranspose;
 	uint materialIdx;
 };
@@ -98,6 +99,7 @@ struct Sphere
 {
 	vec4 sphere; //x,y,z is center, w is radius
 	mat4 transformMatrix;
+	mat4 inverseTransformMatrix;
 	mat4 inverseTranspose;
 	uint materialIdx;
 };

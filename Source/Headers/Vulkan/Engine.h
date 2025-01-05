@@ -18,6 +18,7 @@
 const uint32_t WIDTH = 1600;
 const uint32_t HEIGHT = 720;
 
+const std::string SCENE_FILE_PATH = "./Scene/cornellbox.txt";
 //Texture folder need to put in model file path
 const std::string MODEL_PATH = "./Models/CornellBox/CornellBox-Original.obj";
 const std::string MODEL_FILE_PATH = "./Models/CornellBox/";
@@ -208,6 +209,8 @@ namespace Renderer
 		bool framebufferResized = false;
 
 		void LoadModel(std::string model_path, std::string model_texture_path);
+
+		void LoadScene(std::string SceneFile);
 
 		void DestroyFrameResources();
 

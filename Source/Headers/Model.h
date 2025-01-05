@@ -10,7 +10,7 @@ namespace Renderer
 
 	struct ModelBufferObject
 	{
-		alignas(16) glm::mat4 modelMatrix;
+		alignas(16) glm::mat4 transformMatrix;
 	};
 
 	class Model
@@ -31,11 +31,18 @@ namespace Renderer
 		VkBuffer GetIndexBuffer() const;
 		const ModelBufferObject& GetModelBufferObject() const;
 
+		void SetTransformMatrix(glm::mat4 transformMat);
+
+	
 		VkBuffer GetModelUniformBuffer() const;
 		Material* GetMaterial() const;
 		void SetMaterial(Material* mat);
 
+		std::vector<Triangle> GetTriangles();
+
 	protected:
+		void UpdateTriangleTransformMatrix(glm::mat4& transformMat);
+
 		Device* m_device;
 		std::vector<Vertex> m_vertices; 
 		VkBuffer m_vertexBuffer;
@@ -45,6 +52,7 @@ namespace Renderer
 		VkBuffer m_indexBuffer;
 		VkDeviceMemory m_indexBufferMemory;
 
+		void* m_mappedData;
 		VkBuffer m_modelUniformBuffer;
 		VkDeviceMemory m_modelUniformBufferMemory;
 
@@ -54,6 +62,7 @@ namespace Renderer
 		std::vector<Triangle> m_triangles;
 
 		glm::mat4 m_transformMatrix; //Translate*Rotation*Scale
+		glm::mat4 m_inverseTransposeMatrix; 
 		
 	};
 	class ModelGroup
@@ -68,12 +77,16 @@ namespace Renderer
 		size_t GetModelSize() const;
 
 		void DestroyVKResources();
-		void buildTransformationMatrix(glm::vec3 trans, glm::vec3 rot, glm::vec3 scale);
+		void buildTransformationMatrix(glm::vec3& trans, glm::vec3& rot, glm::vec3& scale);
 		glm::mat4 GetTransformMatrix();
 		void SetTransformMatrix(glm::mat4& transformMatrix);
+		void SetModelTransformMatrix();
+		 
+		std::vector<Triangle> GetAllModelTriangles();
+		int GetAllTriangleSize();
 
 	protected:
-		glm::mat4 transformMatrix;
+		glm::mat4 m_transformMatrix;
 		std::vector<std::unique_ptr<Model>> m_models;
 	};
 

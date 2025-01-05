@@ -98,7 +98,6 @@ namespace Renderer
 		glm::vec4 m_position_W;
 		glm::vec4 m_lookTarget_W;
 
-
 		void UpdateProjectionMatrix();
 	};
 }

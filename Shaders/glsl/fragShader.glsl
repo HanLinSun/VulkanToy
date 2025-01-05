@@ -12,7 +12,7 @@ void main() {
    vec3 textureCol =texture(diffuseTexture, fragTexCoords).rgb;
    if(textureCol ==vec3(0.0))
    {
-      outColor = vec4(fragNormal,1);
+      outColor = vec4(1,1,1,1);
    }else outColor = vec4(textureCol.rgb,1);
 
 }

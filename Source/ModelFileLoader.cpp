@@ -4,6 +4,7 @@
 #include <Log.h>
 #define TINYOBJLOADER_IMPLEMENTATION 
 #include <tiny_obj_loader.h>
+#include <glm/gtc/matrix_inverse.hpp>
 
 namespace std {
 	template<> struct hash<Renderer::Vertex> {
@@ -151,6 +152,10 @@ namespace Renderer
 		glm::vec3 temp_color=glm::vec3(1,1,1);
         glm::vec2 temp_uv=glm::vec2(0,0);
 
+		glm::mat4 defaultTransformMat = glm::mat4(1.0f);
+		glm::mat4 defaultInverseTransformMat = glm::inverse(defaultTransformMat);
+		glm::mat4 defaultInverseTransposeMat = glm::inverseTranspose(defaultTransformMat);
+
 		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
 		for (size_t s = 0; s < shapes.size(); s++)
@@ -208,11 +213,18 @@ namespace Renderer
 				triangle.position_0 = triVert[0].position;
 				triangle.position_1 = triVert[1].position;
 				triangle.position_2 = triVert[2].position;
+
+				triangle.normal_0 = triVert[0].normal;
+				triangle.normal_1= triVert[1].normal;
+				triangle.normal_2 = triVert[2].normal;
 				//shapes[s].mesh.material_ids[f];
 				triangle.material_ID = shapes[s].mesh.material_ids[f];
+				triangle.transformMatrix = defaultTransformMat;
+				triangle.inverseTransform = defaultInverseTransformMat;
+				triangle.inverseTranspose = defaultInverseTransposeMat;
 				mesh.m_triangles.push_back(triangle);
 
-				scene->AddTriangle(triangle);
+				//scene->AddTriangle(triangle);
 
 				mesh.m_materialID = shapes[s].mesh.material_ids[f];
 			}
@@ -220,6 +232,10 @@ namespace Renderer
 		}
 
 
+	}
+
+	void GLTFFileLoader::loadFileData(Scene* scene, std::string sceneDescriptionPath)
+	{
 	}
 
 }

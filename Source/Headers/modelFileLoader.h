@@ -7,6 +7,7 @@
 #include "Scene.h"
 #include <memory>
 
+class Scene;
 
 namespace Renderer
 {
@@ -18,7 +19,7 @@ namespace Renderer
 		virtual ~FileLoader() {};
 
 		virtual void loadFileData(Scene* scene, std::string modelFilePath, std::string modelFolderPath);
-		virtual void loadFileData(Scene*, std::string sceneDescriptionPath);
+		virtual void loadFileData(Scene* scene, std::string sceneDescriptionPath);
 	};
 
 
@@ -30,7 +31,7 @@ namespace Renderer
 		virtual ~ObjFileLoader();
 
 		void loadFileData(Scene* scene, std::string modelFilePath, std::string modelFolderPath) override;
-		virtual void loadFileData(Scene*, std::string sceneDescriptionPath);
+		void loadFileData(Scene* scene, std::string sceneDescriptionPath) override;
 
 		std::vector<MeshData> GetMeshes();
 		std::shared_ptr<Device> GetDevice();
@@ -47,7 +48,7 @@ namespace Renderer
 		virtual ~GLTFFileLoader();
 
 		void loadFileData(Scene* scene, std::string modelFilePath,std::string modelFolderPath) override;
-		virtual void loadFileData(Scene*, std::string sceneDescriptionPath);
+		void loadFileData(Scene* scene, std::string sceneDescriptionPath) override;
 		std::vector<GLTFMeshData> m_meshes;
 	};
 }

@@ -64,6 +64,8 @@ struct Triangle
 	alignas(16) glm::vec3 normal_2;
 
 	alignas(16) glm::mat4 transformMatrix;
+	alignas(16) glm::mat4 inverseTransform;
+	alignas(16) glm::mat4 inverseTranspose;
 	alignas(4) uint32_t material_ID;
 };
 
@@ -71,6 +73,9 @@ struct Triangle
 struct Sphere
 {
 	alignas(16) glm::vec4 s; // x,y,z is position, w is radius
+	alignas(16) glm::mat4 transformMatrix;
+	alignas(16) glm::mat4 inverseTransform;
+	alignas(16) glm::mat4 inverseTranspose;
 	alignas(4) uint32_t material_ID;
 };
 

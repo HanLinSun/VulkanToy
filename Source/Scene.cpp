@@ -163,6 +163,16 @@ namespace Renderer
 		return m_triangles;
 	}
 
+	void Scene::GetTriangleFromModelGroups()
+	{
+		m_triangles.resize(0);
+		for (auto& modelgroup : m_modelGroups)
+		{
+			auto modelGroupTriangles = modelgroup->GetAllModelTriangles();
+			m_triangles.insert(m_triangles.end(), modelGroupTriangles.begin(), modelGroupTriangles.end());
+		}
+	}
+
 	void Scene::AddSphere(Sphere sphere)
 	{
 		m_spheres.push_back(sphere);
@@ -172,6 +182,7 @@ namespace Renderer
 	{
 		return m_spheres.size();
 	}
+	
 
 	void Scene::AddTriangle(Triangle& triangle)
 	{

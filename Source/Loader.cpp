@@ -36,9 +36,9 @@ namespace Renderer
 			}
 			LoadModel(modelDataPath, modelFilePath, scene);
 
-			glm::vec3 translation;
-			glm::vec3 rotation;
-			glm::vec3 scale;
+			glm::vec3 translation=glm::vec3(0,0,0);
+			glm::vec3 rotation = glm::vec3(0, 0, 0);
+			glm::vec3 scale=glm::vec3(0,0,0);
 
 			SafeGetline(scene->fp_in, line);
 			while (!line.empty() && scene->fp_in.good()) {
@@ -57,6 +57,8 @@ namespace Renderer
 				SafeGetline(scene->fp_in, line);
 			}
 			scene->GetSceneModelGroupsRaw().back()->buildTransformationMatrix(translation, rotation, scale);
+			scene->GetSceneModelGroupsRaw().back()->SetModelTransformMatrix();
+			scene->GetTriangleFromModelGroups();
 		}
 		else if (strcmp(type.c_str(), "Sphere") == 0)
 		{
@@ -90,7 +92,7 @@ namespace Renderer
 		float fov;
 		glm::vec4 position;
 		glm::vec4 lookAt;
-		glm::vec4 upvec;
+		glm::vec4 upVec;
 
 		while (!line.empty() && scene->fp_in.good())
 		{
@@ -110,16 +112,20 @@ namespace Renderer
 			{
 				lookAt = glm::vec4(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()),1.0f);
 			}
+			else if (strcmp(tokens[0].c_str(), "Up") == 0)
+			{
+				upVec = glm::vec4(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()), 1.0f);
+			}
 			SafeGetline(scene->fp_in, line);
 		}
 
 		auto cam = scene->GetCamera();
-		glm::vec4 lookAt =glm::normalize(lookAt - position);
-		cam->SetForwardVector(lookAt);
+		glm::vec4 camForward =glm::normalize(lookAt - position);
+		cam->SetForwardVector(camForward);
 		cam->SetLookTarget(lookAt);
 		cam->SetPosition(position);
-		cam->SetUpVector(upvec);
-
+		cam->SetUpVector(upVec);
+		scene->SetSceneCamera(cam);
 	}
 
 	void Loader::LoadFromSceneFile(Scene* scene, std::string sceneFileName)
@@ -183,7 +189,7 @@ namespace Renderer
 		
 	}
 
-	std::istream& SafeGetline(std::istream& is, std::string& t) {
+	std::istream& Loader::SafeGetline(std::istream& is, std::string& t) {
 		t.clear();
 
 		// The characters in the stream are read one-by-one using a std::streambuf.
@@ -215,12 +221,13 @@ namespace Renderer
 		}
 	}
 
-	std::vector<std::string> TokenizeString(std::string str) {
+	std::vector<std::string> Loader::TokenizeString(std::string str) {
 		std::stringstream strstr(str);
 		std::istream_iterator<std::string> it(strstr);
 		std::istream_iterator<std::string> end;
 		std::vector<std::string> results(it, end);
 		return results;
 	}
+
 
 }

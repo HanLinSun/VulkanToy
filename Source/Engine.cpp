@@ -64,7 +64,7 @@ namespace Renderer
 
         m_RayTraceModule = std::make_unique<RayTraceModule>(m_device);
 
-        m_Camera = std::make_shared<Camera>(m_device.get(), m_swapChain->GetVkExtent().width / m_swapChain->GetVkExtent().height);
+        m_Camera = std::make_shared<Camera>(m_device.get(), (float)m_swapChain->GetVkExtent().width / (float)m_swapChain->GetVkExtent().height);
         m_CameraController = std::make_shared<CameraController>(m_Camera);
         m_Scene =std::make_unique<Scene>(m_Camera);
 
@@ -161,6 +161,12 @@ namespace Renderer
         app->framebufferResized = true;
     }
 
+    void Engine::LoadScene(std::string SceneFile)
+    {
+        Loader loader(m_device, m_device->GetGraphicCommandPool());
+        loader.LoadFromSceneFile(m_Scene.get(), SceneFile);
+    }
+
     void Engine::LoadModel(std::string model_path, std::string model_folder_path)
     {
         Loader loader(m_device, m_device->GetGraphicCommandPool());
@@ -181,8 +187,9 @@ namespace Renderer
         SetupDebugMessenger();
 
         //By default we use this
-
-        LoadModel(MODEL_PATH, MODEL_FILE_PATH);
+        
+       // LoadModel(MODEL_PATH, MODEL_FILE_PATH);
+        LoadScene(SCENE_FILE_PATH);
 
         CreateRenderPass();
         CreateFrameResources();

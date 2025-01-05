@@ -9,6 +9,6 @@ Up          0 1 0
 Object Mesh
 ModelFilePath ./Models/Sponza/
 ModelDataPath ./Models/Sponza/sponza.obj
-Translate 0 0 -1
-Rotation  0 0 0
+Translate 0 -100 0
+Rotation  0 90 0
 Scale     1 1 1

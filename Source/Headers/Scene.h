@@ -42,6 +42,8 @@ namespace Renderer
 		std::vector<Triangle> GetTriangles();
 		void AddTriangle(Triangle& triangle);
 
+		void GetTriangleFromModelGroups();
+
 		void AddSphere(Sphere sphere);
 		std::vector<Sphere> GetSpheres();
 		int GetSphereSize() const;
