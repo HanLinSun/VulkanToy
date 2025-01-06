@@ -3,6 +3,7 @@
 #include <fstream>
 #include <assert.h>
 #include <vulkan/Initializer.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 void Tools::SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
 	VkImageSubresourceRange subresourceRange,
@@ -608,4 +609,14 @@ std::vector<char> Tools::ReadFile(const std::string& filename) {
 	file.close();
 
 	return buffer;
+}
+
+glm::mat4  Tools::BuildTransformMatrix(glm::vec3& trans, glm::vec3& rot, glm::vec3& scale)
+{
+	glm::mat4 translationMat = glm::translate(glm::mat4(1.0f), trans);
+	glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), rot.x * (float)PI / 180, glm::vec3(1, 0, 0));
+	rotationMat = rotationMat * glm::rotate(glm::mat4(1.0f), rot.y * (float)PI / 180, glm::vec3(0, 1, 0));
+	rotationMat = rotationMat * glm::rotate(glm::mat4(1.0f), rot.z * (float)PI / 180, glm::vec3(0, 0, 1));
+	glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), scale);
+	return translationMat * rotationMat * scaleMat;
 }

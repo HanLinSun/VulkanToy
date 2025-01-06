@@ -56,7 +56,7 @@ namespace Renderer
 				}
 				SafeGetline(scene->fp_in, line);
 			}
-			scene->GetSceneModelGroupsRaw().back()->buildTransformationMatrix(translation, rotation, scale);
+			scene->GetSceneModelGroupsRaw().back()->BuildTransformationMatrix(translation, rotation, scale);
 			scene->GetSceneModelGroupsRaw().back()->SetModelTransformMatrix();
 			scene->GetTriangleFromModelGroups();
 		}

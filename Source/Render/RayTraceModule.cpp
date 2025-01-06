@@ -120,6 +120,7 @@ namespace Renderer
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_scene->GetTextures().size()),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
         };
@@ -251,7 +252,7 @@ namespace Renderer
             //VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 7  ,&m_BVHNodeGPUBuffer.descriptor),
         };
 
-        AddGPUWriteDescriptorSet(isTriangleGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_meshGPUBuffer.descriptor, 2);
+        AddGPUWriteDescriptorSet(isMeshGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_meshGPUBuffer.descriptor, 2);
         AddGPUWriteDescriptorSet(isTriangleGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_trianglesGPUBuffer.descriptor, 3);
         AddGPUWriteDescriptorSet(isMaterialGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_materialGPUBuffer.descriptor, 4);
         AddGPUWriteDescriptorSet(isSphereGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_sphereGPUBuffer.descriptor,5);
@@ -358,10 +359,11 @@ namespace Renderer
         m_rayTraceUniform.cam_viewMatrix = cam->GetViewmatrix();
         m_rayTraceUniform.aspectRatio = cam->GetAspectRatio();
         m_rayTraceUniform.lightNums = 2;
-        m_rayTraceUniform.samplePerPixel = 15;
-        m_rayTraceUniform.maxRecursiveDepth =30;
+        m_rayTraceUniform.samplePerPixel = 1;
+        m_rayTraceUniform.maxRecursiveDepth =5;
         m_rayTraceUniform.triangleNums = m_scene->GetTriangles().size();
         m_rayTraceUniform.sphereNums = m_scene->GetSpheres().size();
+        m_rayTraceUniform.meshNums = m_scene->GetMeshArray().size();
         m_rayTraceUniform.focalDistance = 1.0f;
                 
         check_vk_result(m_rayTraceResources.uniformBuffer.Map());

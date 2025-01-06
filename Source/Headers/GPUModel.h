@@ -14,6 +14,7 @@ struct RayTraceUniformData
 	alignas(4) int lightNums;
 	alignas(4) int triangleNums;
 	alignas(4) int sphereNums;
+	alignas(4) int meshNums;
 	alignas(4) int samplePerPixel;
 	alignas(4) int maxRecursiveDepth;
 	alignas(4) glm::float32_t focalDistance;
@@ -55,6 +56,8 @@ struct PBRMaterialData
 
 struct Mesh
 {
+	alignas(4) uint32_t meshType; //0 is mesh, 1 is sphere
+	alignas(4) uint32_t sphereIdx;
 	alignas(4) uint32_t startTriangleIdx;
 	alignas(4) uint32_t triangleNums;
 	alignas(16) glm::mat4 transformMatrix;
@@ -80,9 +83,6 @@ struct Triangle
 struct Sphere
 {
 	alignas(16) glm::vec4 s; // x,y,z is position, w is radius
-	alignas(16) glm::mat4 transformMatrix;
-	alignas(16) glm::mat4 inverseTransform;
-	alignas(16) glm::mat4 inverseTranspose;
 	alignas(4) uint32_t material_ID;
 };
 
@@ -115,14 +115,14 @@ struct BVHNodeGPU
 	alignas(16) glm::vec3 min;
 	alignas(16) glm::vec3 max;
 
-	int leftNodeIndex;
-	int rightNodeIndex;
+	alignas(4) int leftNodeIndex;
+	alignas(4) int rightNodeIndex;
 
-	int isLeaf;
-	int axis;
+	alignas(4) int isLeaf;
+	alignas(4) int axis;
 
-	int triangleIndex; //triangle buffer index
-	int sphereIndex; //sphere buffer index
+	alignas(4) int triangleIndex; //triangle buffer index
+	alignas(4) int sphereIndex; //sphere buffer index
 
 };
 

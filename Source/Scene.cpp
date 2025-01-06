@@ -211,6 +211,8 @@ namespace Renderer
 			{
 				auto model = modelgroup->GetModelAt(i);
 				Mesh mesh;
+				mesh.meshType = MESH;
+				mesh.sphereIdx = -1;
 				mesh.material_ID = model->material_ID;
 				mesh.transformMatrix = model->GetTransformMatrix();
 				mesh.inverseTransform = glm::inverse(mesh.transformMatrix);
@@ -220,6 +222,25 @@ namespace Renderer
 				startTriangleIdx += model->GetTriangleSize();
 				m_meshes.push_back(mesh);
 			}
+		}
+
+		for (int i=0;i<m_spheres.size();i++)
+		{
+			glm::vec3 translation = glm::vec3(m_spheres[i].s.x, m_spheres[i].s.y, m_spheres[i].s.z);
+			glm::vec3 rotation = glm::vec3(0, 0, 0);
+			glm::vec3 scale = glm::vec3(m_spheres[i].s.w, m_spheres[i].s.w,m_spheres[i].s.w);
+
+			glm::mat4 transformMatrix = Tools::BuildTransformMatrix(translation, rotation, scale);
+			Mesh mesh;
+			mesh.meshType = SPHERE;
+			mesh.sphereIdx = i;
+			mesh.material_ID = m_spheres[i].material_ID;
+			mesh.transformMatrix = transformMatrix;
+			mesh.inverseTransform = glm::inverse(mesh.transformMatrix);
+			mesh.inverseTranspose = glm::inverseTranspose(mesh.transformMatrix);
+			mesh.startTriangleIdx = -1;
+			mesh.triangleNums = -1;
+			m_meshes.push_back(mesh);
 		}
 	}
 

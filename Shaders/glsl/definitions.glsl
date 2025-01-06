@@ -17,7 +17,7 @@ struct Intersection
 	vec3 position;
 	vec3 normal;
 	int backFaceFlag;
-	uint materialIndex;
+	uint materialID;
 	float t;
 };
 
@@ -81,12 +81,14 @@ struct BVHNode
 
 struct Mesh
 {
+	uint meshType;
+	uint sphereIdx;
 	uint triangleStartIdx;
 	uint triangleNums;
 	mat4 transformMatrix;
 	mat4 inverseTransform;
 	mat4 inverseTranspose;
-	uint32_t material_ID;
+	uint material_ID;
 };
 
 struct Triangle
@@ -104,10 +106,7 @@ struct Triangle
 
 struct Sphere
 {
-	vec4 sphere; //x,y,z is center, w is radius
-	mat4 transformMatrix;
-	mat4 inverseTransformMatrix;
-	mat4 inverseTranspose;
+	vec4 s; //x,y,z is center, w is radius
 	uint materialIdx;
 };
 
@@ -139,6 +138,7 @@ struct RayTraceUniformBuffer
 	uint lightNums;
 	uint numTriangles;
 	uint numSpheres;
+	uint numMeshes;
 	uint spp;
 	uint maxDepth;
 	float focalDistance;

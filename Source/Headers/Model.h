@@ -82,7 +82,7 @@ namespace Renderer
 		size_t GetModelSize() const;
 
 		void DestroyVKResources();
-		void buildTransformationMatrix(glm::vec3& trans, glm::vec3& rot, glm::vec3& scale);
+		void BuildTransformationMatrix(glm::vec3& trans, glm::vec3& rot, glm::vec3& scale);
 		glm::mat4 GetTransformMatrix();
 		void SetTransformMatrix(glm::mat4& transformMatrix);
 		void SetModelTransformMatrix();

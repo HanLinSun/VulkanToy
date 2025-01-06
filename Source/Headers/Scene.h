@@ -11,6 +11,14 @@
 
 namespace Renderer
 {
+	enum PrimitiveType
+	{
+		MESH =0,
+		SPHERE=1,
+		CUBE=2,
+		MEDIUM=3
+	};
+
 	class Scene
 	{
 	public:

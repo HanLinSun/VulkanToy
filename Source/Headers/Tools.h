@@ -2,6 +2,9 @@
 #include <Vulkan/vulkan.h>
 #include <Vulkan/Device.h>
 #include <Vulkan/Instance.h>
+#include <glm/glm.hpp>
+
+#define PI 3.1415926535897932384626422832795028841971f
 
 static void check_vk_result(VkResult err)
 {
@@ -80,7 +83,6 @@ namespace Tools
 	VkSampler CreateImageSampler(Device* device, float maxAnisotropy, float maxlod, VkSampler& sampler);
 	VkImageView CreateImageView(Device* device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
-
-
+	glm::mat4 BuildTransformMatrix(glm::vec3& trans, glm::vec3& rot, glm::vec3& scale);
 	std::vector<char> ReadFile(const std::string& filename);
 }

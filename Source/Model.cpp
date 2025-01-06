@@ -3,7 +3,7 @@
 #include "Vulkan/BufferUtils.h"
 #include <glm/gtc/matrix_inverse.hpp>
 
-#define PI 3.1415926535897932384626422832795028841971f
+
 namespace Renderer
 {
 	ModelGroup::ModelGroup() {};
@@ -40,15 +40,9 @@ namespace Renderer
 		}
 	}
 
-	void ModelGroup::buildTransformationMatrix(glm::vec3& trans, glm::vec3& rot, glm::vec3& scale)
+	void ModelGroup::BuildTransformationMatrix(glm::vec3& trans, glm::vec3& rot, glm::vec3& scale)
 	{
-		glm::mat4 translationMat = glm::translate(glm::mat4(1.0f), trans);
-		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), rot.x * (float)PI / 180, glm::vec3(1, 0, 0));
-		rotationMat = rotationMat * glm::rotate(glm::mat4(1.0f), rot.y * (float)PI / 180, glm::vec3(0, 1, 0));
-		rotationMat = rotationMat * glm::rotate(glm::mat4(1.0f), rot.z * (float)PI / 180, glm::vec3(0, 0, 1));
-		glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), scale);
-
-		m_transformMatrix = translationMat * rotationMat * scaleMat;
+		m_transformMatrix =Tools::BuildTransformMatrix(trans,rot,scale);
 	}
 
 	glm::mat4 ModelGroup::GetTransformMatrix()

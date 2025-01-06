@@ -6,19 +6,8 @@ vec3 multiplyMV(mat4 mat, vec4 v)
     return vec3(res.xyz);
 }
 
-float TriangleIntersectionTest(Triangle triangle, Ray r, inout Intersection intersectionPoint)
-{
-    vec3 baryPos;
-    bool hasIntersect = RayTriangleIntersectionCheck(r.origin, r.direction, triangle.v0, triangle.v1, triangle.v2, baryPos);
-    if (!hasIntersect) return -1.f;
-
-    intersectionPoint = (1.f - baryPos.x - baryPos.y) * triangle.v0 + baryPos.x * triangle.v1 + baryPos.y * triangle.v2;
-
-    return glm::length(r.origin - intersectionPoint);
-}
-
 //Based on glm::intersectTriangle, based on barypos check
-bool RayTriangleIntersectionCheck(vec3 ray_origin,vec3 ray_direction, vec3 triangle_v0, vec3 triangle_v1, inout vec3 baryPosition)
+bool RayTriangleIntersectionCheck(vec3 ray_origin,vec3 ray_direction, vec3 v0, vec3 v1, vec3 v2, inout vec3 baryPosition)
 {
     vec3 e1 = v1 - v0;
     vec3 e2 = v2 - v0;
@@ -38,7 +27,7 @@ bool RayTriangleIntersectionCheck(vec3 ray_origin,vec3 ray_direction, vec3 trian
         return false;
 
     vec3 q = cross(s, e1);
-    baryPosition.y = f * dot(dir, q);
+    baryPosition.y = f * dot(ray_direction, q);
     if (baryPosition.y < 0.0f)
         return false;
     if (baryPosition.y + baryPosition.x > 1.0f)
@@ -49,6 +38,30 @@ bool RayTriangleIntersectionCheck(vec3 ray_origin,vec3 ray_direction, vec3 trian
     return baryPosition.z >= 0.0f;
 }
 
+bool HitBoundingBox(Ray r, vec3 boxMin, vec3 boxMax)
+{
+    // world space intersection test
+    vec3 tMin = (boxMin - r.origin) / r.direction;
+    vec3 tMax = (boxMax - r.origin) / r.direction;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+    if (tNear >= tFar) return false;
+    else return true;
+}
+
+
+float TriangleIntersectionTest(Triangle triangle, Ray r, inout Intersection intersection)
+{
+    vec3 baryPos=vec3(0,0,0);
+    bool hasIntersect = RayTriangleIntersectionCheck(r.origin, r.direction, triangle.v0, triangle.v1, triangle.v2, baryPos);
+    if (!hasIntersect) return -1.f;
+
+    intersection.position = (1.f - baryPos.x - baryPos.y) * triangle.v0 + baryPos.x * triangle.v1 + baryPos.y * triangle.v2;
+
+    return length(r.origin - intersection.position);
+}
 
 
 vec3 Reflect(vec3 v, vec3 n) {
