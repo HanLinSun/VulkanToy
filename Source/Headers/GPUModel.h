@@ -53,6 +53,16 @@ struct PBRMaterialData
 	alignas(4) int emissonMapTextureID;
 };
 
+struct Mesh
+{
+	alignas(4) uint32_t startTriangleIdx;
+	alignas(4) uint32_t triangleNums;
+	alignas(16) glm::mat4 transformMatrix;
+	alignas(16) glm::mat4 inverseTransform;
+	alignas(16) glm::mat4 inverseTranspose;
+	alignas(4) uint32_t material_ID;
+};
+
 struct Triangle
 {
 	alignas(16) glm::vec3 position_0;
@@ -63,10 +73,7 @@ struct Triangle
 	alignas(16) glm::vec3 normal_1;
 	alignas(16) glm::vec3 normal_2;
 
-	alignas(16) glm::mat4 transformMatrix;
-	alignas(16) glm::mat4 inverseTransform;
-	alignas(16) glm::mat4 inverseTranspose;
-	alignas(4) uint32_t material_ID;
+	alignas(4)uint32_t mesh_ID;
 };
 
 

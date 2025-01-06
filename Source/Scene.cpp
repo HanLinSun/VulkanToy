@@ -3,7 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include "Headers/modelFileLoader.h"
-
+#include <glm/gtc/matrix_inverse.hpp>
 namespace Renderer
 {
 	Scene::Scene(){}
@@ -17,7 +17,6 @@ namespace Renderer
 	{
 		return m_modelGroups[idx].get();
 	}
-
 
 	void Scene::DestroyVKResources()
 	{
@@ -203,10 +202,42 @@ namespace Renderer
 		AddSphere(test_sphere2);
 	}
 	// =====================================
+	void Scene::GenerateMeshArray()
+	{
+		int startTriangleIdx = 0;
+		for (auto& modelgroup : m_modelGroups)
+		{
+			for (int i = 0; i < modelgroup->GetModelSize(); i++)
+			{
+				auto model = modelgroup->GetModelAt(i);
+				Mesh mesh;
+				mesh.material_ID = model->material_ID;
+				mesh.transformMatrix = model->GetTransformMatrix();
+				mesh.inverseTransform = glm::inverse(mesh.transformMatrix);
+				mesh.inverseTranspose = glm::inverseTranspose(mesh.transformMatrix);
+				mesh.startTriangleIdx = startTriangleIdx;
+				mesh.triangleNums = model->GetTriangleSize();
+				startTriangleIdx += model->GetTriangleSize();
+				m_meshes.push_back(mesh);
+			}
+		}
+	}
 
+	std::vector<Mesh> Scene::GetMeshArray()
+	{
+		if (m_meshes.size() == 0)
+		{
+			GenerateMeshArray();
+		}
+		return m_meshes;
+	}
 	
 	std::vector<BVHObject> Scene::GetBVHObjectArray()
 	{
+		if (m_bvhObjects.size() == 0)
+		{
+			GenerateBVHObjectArray();
+		}
 		return m_bvhObjects;
 	}
 

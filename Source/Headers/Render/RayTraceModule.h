@@ -55,20 +55,23 @@ namespace Renderer
 		ComputeResource m_rayTraceResources;
 		RayTraceUniformData m_rayTraceUniform;
 
-		//buffers that contains 
-		bool isTriangleGPUBufferAlloc;
+		//buffers that contains data
+		bool isMeshGPUBufferAlloc=false;
+		Buffer m_meshGPUBuffer;
+
+		bool isTriangleGPUBufferAlloc=false;
 		Buffer m_trianglesGPUBuffer;
 
-		bool isMaterialGPUBufferAlloc;
+		bool isMaterialGPUBufferAlloc=false;
 		Buffer m_materialGPUBuffer;
 
-		bool isSphereGPUBufferAlloc;
+		bool isSphereGPUBufferAlloc=false;
 		Buffer m_sphereGPUBuffer;
 
-		bool isLightGPUBufferAlloc;
+		bool isLightGPUBufferAlloc=false;
 		Buffer m_lightGPUBuffer;
 
-		bool isBVHNodeBufferAlloc;
+		bool isBVHNodeBufferAlloc=false;
 		Buffer m_BVHNodeGPUBuffer;
 
 

@@ -163,6 +163,7 @@ namespace Renderer
 			size_t index_offset = 0;
 			MeshData mesh;
 			uniqueVertices.clear();
+			mesh.meshID = s;
 			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
 			{
 				size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
@@ -215,17 +216,13 @@ namespace Renderer
 				triangle.position_2 = triVert[2].position;
 
 				triangle.normal_0 = triVert[0].normal;
-				triangle.normal_1= triVert[1].normal;
+				triangle.normal_1=  triVert[1].normal;
 				triangle.normal_2 = triVert[2].normal;
 				//shapes[s].mesh.material_ids[f];
-				triangle.material_ID = shapes[s].mesh.material_ids[f];
-				triangle.transformMatrix = defaultTransformMat;
-				triangle.inverseTransform = defaultInverseTransformMat;
-				triangle.inverseTranspose = defaultInverseTransposeMat;
+				triangle.mesh_ID = s;
 				mesh.m_triangles.push_back(triangle);
 
 				//scene->AddTriangle(triangle);
-
 				mesh.m_materialID = shapes[s].mesh.material_ids[f];
 			}
 			m_meshes.push_back(mesh);

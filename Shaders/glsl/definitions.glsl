@@ -9,7 +9,7 @@
 #define PiOver4  0.78539816339744830961;
 
 #define EPSILON 0.0003
-#define INFINITY  1000000.0
+#define INFINITY  100000.0
 #define MINIMUM   0.00001
 
 struct Intersection
@@ -79,6 +79,16 @@ struct BVHNode
 	int sphereIndex;
 };
 
+struct Mesh
+{
+	uint triangleStartIdx;
+	uint triangleNums;
+	mat4 transformMatrix;
+	mat4 inverseTransform;
+	mat4 inverseTranspose;
+	uint32_t material_ID;
+};
+
 struct Triangle
 {
 	vec3 v0;
@@ -89,10 +99,7 @@ struct Triangle
 	vec3 n1;
 	vec3 n2;
 
-	mat4 transformMatrix;
-	mat4 inverseTransformMatrix;
-	mat4 inverseTranspose;
-	uint materialIdx;
+	uint meshID;
 };
 
 struct Sphere

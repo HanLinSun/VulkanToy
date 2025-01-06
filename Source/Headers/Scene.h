@@ -59,6 +59,9 @@ namespace Renderer
 		void GenerateBVHObjectArray();
 		std::vector<BVHObject> GetBVHObjectArray();
 
+		void GenerateMeshArray();
+		std::vector<Mesh> GetMeshArray();
+
 		std::ifstream fp_in;
 
 	private:
@@ -71,6 +74,7 @@ namespace Renderer
 		std::vector<std::shared_ptr<TestMaterial>> m_testMaterials;
 		
 		std::vector<Sphere> m_spheres;
+		std::vector<Mesh> m_meshes;
 		std::vector<Triangle> m_triangles;
 		std::vector<Light> m_lights;
 

@@ -150,7 +150,7 @@
   <ItemGroup>
     <None Include="Shaders\compile.bat" />
     <None Include="Shaders\denoiser.glsl" />
-    <None Include="Shaders\glsl\BSDF.glsl" />
+    <None Include="Shaders\glsl\DisneyBSDF.glsl" />
     <None Include="Shaders\glsl\definitions.glsl" />
     <None Include="Shaders\glsl\fragShader.glsl" />
     <None Include="Shaders\glsl\intersections.glsl" />

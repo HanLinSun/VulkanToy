@@ -42,7 +42,6 @@ namespace Renderer
 
 	void ModelGroup::buildTransformationMatrix(glm::vec3& trans, glm::vec3& rot, glm::vec3& scale)
 	{
-		
 		glm::mat4 translationMat = glm::translate(glm::mat4(1.0f), trans);
 		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), rot.x * (float)PI / 180, glm::vec3(1, 0, 0));
 		rotationMat = rotationMat * glm::rotate(glm::mat4(1.0f), rot.y * (float)PI / 180, glm::vec3(0, 1, 0));
@@ -64,8 +63,7 @@ namespace Renderer
 	}
 
 	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,std::shared_ptr<Material> mat, const std::vector<Triangle>& m_triangles)
-		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(mat),m_triangles(m_triangles)
-	{
+		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(mat),m_triangles(m_triangles){
 		if (m_vertices.size() > 0)
 		{
 			BufferUtils::CreateBufferFromData(device, commandPool, this->m_vertices.data(), m_vertices.size() * sizeof(Vertex),
@@ -96,18 +94,6 @@ namespace Renderer
 		}
 	}
 
-	void Model::UpdateTriangleTransformMatrix(glm::mat4& transformMat)
-	{
-		glm::mat4 inverseTransform =glm::inverse(transformMat);
-		glm::mat4 inverseTranspose = glm::inverseTranspose(transformMat);
-		for (auto triangle : m_triangles)
-		{
-			triangle.transformMatrix = transformMat;
-			triangle.inverseTransform = inverseTransform;
-			triangle.inverseTranspose = inverseTranspose;
-		}
-	}
-
 	std::vector<Triangle> ModelGroup::GetAllModelTriangles()
 	{
 		std::vector<Triangle> triangleVector(0);
@@ -129,12 +115,26 @@ namespace Renderer
 		return triangleSize;
 	}
 
+	glm::mat4 Model::GetTransformMatrix()
+	{
+		return m_transformMatrix;
+	}
+
+	int Model::GetTriangleSize()
+	{
+		return m_triangles.size();
+	}
+
+	glm::mat4 Model::GetInverseTransposeMatrix()
+	{
+		return m_inverseTransposeMatrix;
+	}
+
 	void Model::SetTransformMatrix(glm::mat4 transformMat)
 	{
 		m_transformMatrix = transformMat;
 		m_modelBufferObject.transformMatrix=transformMat;
 
-		UpdateTriangleTransformMatrix(m_transformMatrix);
 		//Update uniform buffer
 		memcpy(m_mappedData, &m_modelBufferObject, sizeof(ModelBufferObject));
 	}

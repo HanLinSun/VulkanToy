@@ -60,7 +60,7 @@ namespace Renderer
 	{
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
-
+		uint32_t meshID;
 		std::vector<Triangle> m_triangles;
 		uint32_t m_materialID;
 	};

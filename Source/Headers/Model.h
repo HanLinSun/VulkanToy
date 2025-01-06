@@ -32,16 +32,20 @@ namespace Renderer
 		const ModelBufferObject& GetModelBufferObject() const;
 
 		void SetTransformMatrix(glm::mat4 transformMat);
-
+		glm::mat4 GetTransformMatrix();
+		glm::mat4 GetInverseTransposeMatrix();
 	
 		VkBuffer GetModelUniformBuffer() const;
 		Material* GetMaterial() const;
 		void SetMaterial(Material* mat);
 
 		std::vector<Triangle> GetTriangles();
+		int GetTriangleSize();
+
+		int meshID;
+		int material_ID;
 
 	protected:
-		void UpdateTriangleTransformMatrix(glm::mat4& transformMat);
 
 		Device* m_device;
 		std::vector<Vertex> m_vertices; 
@@ -63,6 +67,7 @@ namespace Renderer
 
 		glm::mat4 m_transformMatrix; //Translate*Rotation*Scale
 		glm::mat4 m_inverseTransposeMatrix; 
+	
 		
 	};
 	class ModelGroup
