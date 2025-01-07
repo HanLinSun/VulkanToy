@@ -204,14 +204,14 @@ namespace Renderer
 	{
 		SphereCPU test_sphere1;
 		test_sphere1.position = glm::vec3(0, 1, -1);
-		test_sphere1.radius = 0.4;
+		test_sphere1.radius = 0.8;
 		test_sphere1.translate = glm::vec3(0, 0, 0);
 		test_sphere1.rotate = glm::vec3(0, 0, 0);
 		test_sphere1.scale = glm::vec3(1.5, 1.5, 1.5);
 
 		SphereCPU test_sphere2;
-		test_sphere2.position = glm::vec3(0, -10, -1);
-		test_sphere2.radius = 10;
+		test_sphere2.position = glm::vec3(0, -100, -1);
+		test_sphere2.radius = 100;
 		test_sphere2.translate = glm::vec3(0, 0, 0);
 		test_sphere2.rotate = glm::vec3(0, 0, 0);
 		test_sphere2.scale = glm::vec3(1, 1, 1);
