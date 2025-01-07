@@ -89,8 +89,8 @@ struct Triangle
 	vec3 n1;
 	vec3 n2;
 
-	mat4 transformMatrix;
-	mat4 inverseTransformMatrix;
+	mat4 transform;
+	mat4 inverseTransform;
 	mat4 inverseTranspose;
 	uint materialIdx;
 };
