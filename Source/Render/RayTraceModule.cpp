@@ -252,24 +252,24 @@ namespace Renderer
             //VulkanInitializer::WriteDescriptorSet(m_rayTraceResources.descriptorSet, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 7  ,&m_BVHNodeGPUBuffer.descriptor),
         };
 
+        if (imageInfos.size() != 0)
+        {
+            VkWriteDescriptorSet descriptorWriteSet{};
+            descriptorWriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWriteSet.dstSet = m_rayTraceResources.descriptorSet;
+            descriptorWriteSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWriteSet.dstBinding = 6;
+            descriptorWriteSet.pImageInfo = imageInfos.data();
+            descriptorWriteSet.descriptorCount = static_cast<uint32_t>(imageInfos.size());
+            computeWriteDescriptorSets.push_back(descriptorWriteSet);
+        }
+
         AddGPUWriteDescriptorSet(isMeshGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_meshGPUBuffer.descriptor, 2);
         AddGPUWriteDescriptorSet(isTriangleGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_trianglesGPUBuffer.descriptor, 3);
         AddGPUWriteDescriptorSet(isMaterialGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_materialGPUBuffer.descriptor, 4);
         AddGPUWriteDescriptorSet(isSphereGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_sphereGPUBuffer.descriptor,5);
         AddGPUWriteDescriptorSet(isLightGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_lightGPUBuffer.descriptor, 7);
         AddGPUWriteDescriptorSet(isBVHNodeBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_BVHNodeGPUBuffer.descriptor, 8);
-
-        if (imageInfos.size()!= 0)
-        {
-                VkWriteDescriptorSet descriptorWriteSet{};
-                descriptorWriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWriteSet.dstSet = m_rayTraceResources.descriptorSet;
-                descriptorWriteSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                descriptorWriteSet.dstBinding = 6;
-                descriptorWriteSet.pImageInfo = imageInfos.data();
-                descriptorWriteSet.descriptorCount = static_cast<uint32_t>(imageInfos.size());
-                computeWriteDescriptorSets.push_back(descriptorWriteSet);
-        }
 
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(computeWriteDescriptorSets.size()), computeWriteDescriptorSets.data(), 0, nullptr);
     }
@@ -392,6 +392,7 @@ namespace Renderer
         m_rayTraceResources.uniformBuffer.Destroy();
 
         if (isTriangleGPUBufferAlloc) m_trianglesGPUBuffer.Destroy();
+        if (isMeshGPUBufferAlloc) m_meshGPUBuffer.Destroy();
         if (isSphereGPUBufferAlloc) m_sphereGPUBuffer.Destroy();
         if (isLightGPUBufferAlloc) m_lightGPUBuffer.Destroy();
         if (isMaterialGPUBufferAlloc) m_materialGPUBuffer.Destroy();
