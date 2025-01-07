@@ -5,7 +5,7 @@
 
 namespace BVHBuildTool
 {
-	Boundbox CreateBoundingBox(Sphere sphere);
+	Boundbox CreateBoundingBox(SphereGPU sphere);
 	Boundbox CreateBoundingBox(Triangle triangle);
 	Boundbox CreateBoundingBox(std::vector<BVHObject>& objects);
 

@@ -118,7 +118,7 @@ namespace Renderer
 		return m_pbrMats;
 	}
 
-	std::vector<Sphere> Scene::GetSpheres()
+	std::vector<SphereCPU> Scene::GetCPUSpheres()
 	{
 		return m_spheres;
 	}
@@ -172,7 +172,7 @@ namespace Renderer
 		}
 	}
 
-	void Scene::AddSphere(Sphere sphere)
+	void Scene::AddSphere(SphereCPU sphere)
 	{
 		m_spheres.push_back(sphere);
 	}
@@ -188,15 +188,33 @@ namespace Renderer
 		m_triangles.push_back(triangle);
 	}
 
+	std::vector<SphereGPU>  Scene::GetGPUSpheres()
+	{
+		std::vector<SphereGPU> sphereGPU;
+		for (auto& sphere : m_spheres)
+		{
+			sphereGPU.push_back(sphere.GetGPUSphere());
+		}
+		return sphereGPU;
+	}
+
 	// =========== For Debug Only ===============
 	
 	void Scene::InitTestSpheresScene_1()
 	{
-		Sphere test_sphere1;
-		test_sphere1.s = glm::vec4(0, 0, -1, 0.4);
+		SphereCPU test_sphere1;
+		test_sphere1.position = glm::vec3(0, 1, -1);
+		test_sphere1.radius = 0.4;
+		test_sphere1.translate = glm::vec3(0, 0, 0);
+		test_sphere1.rotate = glm::vec3(0, 0, 0);
+		test_sphere1.scale = glm::vec3(1.5, 1.5, 1.5);
 
-		Sphere test_sphere2;
-		test_sphere2.s = glm::vec4(0, -100.5, -1, 100);
+		SphereCPU test_sphere2;
+		test_sphere2.position = glm::vec3(0, -10, -1);
+		test_sphere2.radius = 10;
+		test_sphere2.translate = glm::vec3(0, 0, 0);
+		test_sphere2.rotate = glm::vec3(0, 0, 0);
+		test_sphere2.scale = glm::vec3(1, 1, 1);
 
 		AddSphere(test_sphere1);
 		AddSphere(test_sphere2);
@@ -226,21 +244,7 @@ namespace Renderer
 
 		for (int i=0;i<m_spheres.size();i++)
 		{
-			glm::vec3 translation = glm::vec3(m_spheres[i].s.x, m_spheres[i].s.y, m_spheres[i].s.z);
-			glm::vec3 rotation = glm::vec3(0, 0, 0);
-			glm::vec3 scale = glm::vec3(m_spheres[i].s.w, m_spheres[i].s.w,m_spheres[i].s.w);
-
-			glm::mat4 transformMatrix = Tools::BuildTransformMatrix(translation, rotation, scale);
-			Mesh mesh;
-			mesh.meshType = SPHERE;
-			mesh.sphereIdx = i;
-			mesh.material_ID = m_spheres[i].material_ID;
-			mesh.transformMatrix = transformMatrix;
-			mesh.inverseTransform = glm::inverse(mesh.transformMatrix);
-			mesh.inverseTranspose = glm::inverseTranspose(mesh.transformMatrix);
-			mesh.startTriangleIdx = -1;
-			mesh.triangleNums = -1;
-			m_meshes.push_back(mesh);
+			m_meshes.push_back(m_spheres[i].BuildMesh());
 		}
 	}
 
@@ -282,7 +286,7 @@ namespace Renderer
 			BVHObject object;
 			object.sphere_index = sphereIdx;
 			object.triangle_index = -1;
-			object.boundbox = BVHBuildTool::CreateBoundingBox(sphere);
+			object.boundbox = BVHBuildTool::CreateBoundingBox(sphere.GetGPUSphere());
 			object.ComputeCentroid();
 			sphereIdx++;
 			m_bvhObjects.push_back(object);

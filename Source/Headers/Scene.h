@@ -52,8 +52,9 @@ namespace Renderer
 
 		void GetTriangleFromModelGroups();
 
-		void AddSphere(Sphere sphere);
-		std::vector<Sphere> GetSpheres();
+		void AddSphere(SphereCPU sphere);
+		std::vector<SphereCPU> GetCPUSpheres();
+		std::vector<SphereGPU> GetGPUSpheres();
 		int GetSphereSize() const;
 
 		void AddLight(Light light);
@@ -72,6 +73,7 @@ namespace Renderer
 
 		std::ifstream fp_in;
 
+	
 	private:
 
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
@@ -81,7 +83,7 @@ namespace Renderer
 
 		std::vector<std::shared_ptr<TestMaterial>> m_testMaterials;
 		
-		std::vector<Sphere> m_spheres;
+		std::vector<SphereCPU> m_spheres;
 		std::vector<Mesh> m_meshes;
 		std::vector<Triangle> m_triangles;
 		std::vector<Light> m_lights;

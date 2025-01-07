@@ -1,7 +1,12 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 #include <memory>
 #include <vector>
+#include <Tools.h>
+
+static int globalSphereNum=0;
+
 struct RayTraceUniformData
 {
 	// Compute shader uniform block object
@@ -79,11 +84,56 @@ struct Triangle
 	alignas(4)uint32_t mesh_ID;
 };
 
-
-struct Sphere
+struct SphereGPU
 {
 	alignas(16) glm::vec4 s; // x,y,z is position, w is radius
 	alignas(4) uint32_t material_ID;
+};
+
+class SphereCPU
+{
+
+public:
+
+	SphereCPU()
+	{
+		id = globalSphereNum;
+		globalSphereNum++;
+	}
+
+	Mesh BuildMesh()
+	{
+		Mesh mesh;
+		mesh.sphereIdx = id;
+		mesh.startTriangleIdx = -1;
+		mesh.triangleNums = -1;
+		mesh.meshType = 1;
+		mesh.material_ID = material_ID;
+		mesh.transformMatrix = Tools::BuildTransformMatrix(translate, rotate, scale);
+		mesh.inverseTransform = glm::inverse(mesh.transformMatrix);
+		mesh.inverseTranspose = glm::inverseTranspose(mesh.transformMatrix);
+
+		return mesh;
+	}
+
+	SphereGPU GetGPUSphere()
+	{
+		SphereGPU gpuSphere;
+		gpuSphere.s = glm::vec4(position.x, position.y, position.z, radius);
+		gpuSphere.material_ID = material_ID;
+		return gpuSphere;
+	}
+
+	glm::vec3 position;
+	float radius;
+	glm::vec3 translate;
+	glm::vec3 rotate;
+	glm::vec3 scale;
+	int id;
+	int material_ID;
+
+private:
+
 };
 
 struct Light

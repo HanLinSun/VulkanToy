@@ -162,10 +162,10 @@ namespace Renderer
         }
       
         //Binding =5, Spheres
-        std::vector<Sphere> scene_spheres = m_scene->GetSpheres();
+        std::vector<SphereGPU> scene_spheres = m_scene->GetGPUSpheres();
         if (scene_spheres.size() != 0)
         {
-            BufferUtils::CreateGPUBuffer<Sphere>(m_device.get(), scene_spheres.data(), scene_spheres.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_sphereGPUBuffer);
+            BufferUtils::CreateGPUBuffer<SphereGPU>(m_device.get(), scene_spheres.data(), scene_spheres.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_sphereGPUBuffer);
             isSphereGPUBufferAlloc = true;
         }
 
@@ -362,7 +362,7 @@ namespace Renderer
         m_rayTraceUniform.samplePerPixel = 1;
         m_rayTraceUniform.maxRecursiveDepth =5;
         m_rayTraceUniform.triangleNums = m_scene->GetTriangles().size();
-        m_rayTraceUniform.sphereNums = m_scene->GetSpheres().size();
+        m_rayTraceUniform.sphereNums = m_scene->GetCPUSpheres().size();
         m_rayTraceUniform.meshNums = m_scene->GetMeshArray().size();
         m_rayTraceUniform.focalDistance = 1.0f;
                 

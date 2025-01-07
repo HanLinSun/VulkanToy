@@ -5,7 +5,7 @@
 
 const glm::vec3 eps(0.0001);
 
-Boundbox BVHBuildTool::CreateBoundingBox(Sphere sphere)
+Boundbox BVHBuildTool::CreateBoundingBox(SphereGPU sphere)
 {
 	Boundbox box;
 	glm::vec3 radiusRange = glm::vec3(sphere.s.w, sphere.s.w, sphere.s.w);

@@ -65,6 +65,11 @@ namespace Renderer
 			glm::vec3 position;
 			float radius;
 			std::string line;
+
+			glm::vec3 translation = glm::vec3(0, 0, 0);
+			glm::vec3 rotation = glm::vec3(0, 0, 0);
+			glm::vec3 scale = glm::vec3(0, 0, 0);
+
 			SafeGetline(scene->fp_in, line);
 			while (!line.empty() && scene->fp_in.good())
 			{
@@ -76,11 +81,25 @@ namespace Renderer
 				{
 					radius = atof(tokens[1].c_str());
 				}
-				Sphere sphere;
-				sphere.s = glm::vec4(position.x, position.y, position.z, radius);
-				scene->AddSphere(sphere);
-				SafeGetline(scene->fp_in, line);
+				else if (strcmp(tokens[0].c_str(), "Translate") == 0) {
+					translation = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+				}
+				else if (strcmp(tokens[0].c_str(), "Rotation") == 0) {
+					rotation = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+				}
+				else if (strcmp(tokens[0].c_str(), "Scale") == 0) {
+					scale = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+				}
+
 			}
+			SphereCPU sphere;
+			sphere.position = position;
+			sphere.radius = radius;
+			sphere.translate = translation;
+			sphere.rotate = rotation;
+			sphere.scale = scale;
+			scene->AddSphere(sphere);
+			SafeGetline(scene->fp_in, line);
 		}
 	}
 

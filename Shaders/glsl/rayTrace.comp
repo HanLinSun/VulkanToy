@@ -119,8 +119,8 @@ float sphereIntersection(Mesh mesh, Ray r, inout Intersection intersection, bool
     vec3 ray_direction = normalize(multiplyMV(mesh.inverseTransform,vec4(r.direction, 0.0f)));
 
     Ray rt;
-    rt.origin = ray_origin;
-    rt.direction = ray_direction;
+    rt.origin =r.origin;
+    rt.direction = r.direction;
 
     float vDotDirection = dot(rt.origin, rt.direction);
     float radicand = vDotDirection * vDotDirection - (dot(rt.origin, rt.origin) - pow(sphere.s.w, 2));
@@ -162,8 +162,8 @@ float meshIntersection(Mesh mesh, Ray r, inout Intersection intersection, inout 
     vec3 ray_origin = multiplyMV(mesh.inverseTransform,vec4(r.origin, 1.0f));
     vec3 ray_direction = normalize(multiplyMV(mesh.inverseTransform, vec4(r.direction, 0.0f)));
     Ray rt;
-    rt.origin = ray_origin;
-    rt.direction =  ray_direction;
+    rt.origin = r.origin;
+    rt.direction =  r.direction;
     vec3 normal;
     float closestDist = INFINITY;
 
@@ -182,7 +182,6 @@ float meshIntersection(Mesh mesh, Ray r, inout Intersection intersection, inout 
         {
             closestDist = t;
             intersection = temp_intersect;
-            
             closestTriangle_Idx = triangleStartIdx + i;
         }
     }
@@ -207,9 +206,9 @@ float meshIntersection(Mesh mesh, Ray r, inout Intersection intersection, inout 
         }
 
         // Turn intersection point and normal into world space
-        intersection.position= multiplyMV(mesh.transformMatrix, vec4(  intersection.position, 1.f));
-        intersection.normal = normalize(multiplyMV(mesh.inverseTranspose, vec4(normal, 0.f)));
-
+       // intersection.position= multiplyMV(mesh.transformMatrix, vec4(  intersection.position, 1.f));
+      //  intersection.normal = normalize(multiplyMV(mesh.inverseTranspose, vec4(normal, 0.f)));
+        intersection.normal =normal;
         closestDist =length(r.origin - intersection.position);
         return closestDist;
     }
@@ -227,15 +226,16 @@ bool HitScene(Ray r, inout Intersection intersection)
 
         for(int i=0;i<ubo.numMeshes;i++)
         {
-            if(meshes[i].meshType ==0)
-            {
-                t=meshIntersection(meshes[i], r,  temp_insec, outside);
-            }
-//           else if(meshes[i].meshType ==1)
+            Mesh mesh =meshes[i];
+//           if(mesh.meshType ==0)
 //           {
-//              t=sphereIntersection(meshes[i], r,  temp_insec, outside);
+//               t=meshIntersection(mesh, r,  temp_insec, outside);
 //           }
-
+//            else if(mesh[i].meshType ==1)
+            if(mesh.meshType ==1)
+            {
+               t=sphereIntersection(mesh, r, temp_insec, outside);
+            }
             //Find nearest intersection point
             if(t>0.0f  && t_min >t )
             {
@@ -319,8 +319,8 @@ void main()
     {
        //size varient from pixel size[x: 0-1 y: 0-1]
         vec2 jitter = vec2(Random(),Random())/ image_size;
-        float x_offset = float(gl_GlobalInvocationID.x+jitter.x) - float(image_size.x * 0.5f);
-        float y_offset = float(gl_GlobalInvocationID.y+jitter.y) - float(image_size.y * 0.5f);
+        float x_offset = float(gl_GlobalInvocationID.x)+jitter.x - float(image_size.x * 0.5f);
+        float y_offset = float(gl_GlobalInvocationID.y)+jitter.y - float(image_size.y * 0.5f);
 
         vec3 deltaX =  cameraRight * pixelLength.x * x_offset;
         vec3 deltaY =  ubo.camera_Up * pixelLength.y * y_offset;
