@@ -41,6 +41,13 @@ namespace Renderer
 		LeftHanded,
 	};
 
+	struct RayTraceCameraResource
+	{
+		float zoom;
+		float yaw;
+		float pitch;
+	};
+
 	class Camera
 	{
 	public:
@@ -72,11 +79,15 @@ namespace Renderer
 		glm::vec4 GetForwardVector() const;
 		glm::vec4 GetPosition() const;
 
+		RayTraceCameraResource m_rayTraceCamRes;
+
 	private:
 		Device* m_device;
 		CameraUniformBuffer m_cameraBufferObject;
 		VkBuffer m_buffer;
 		VkDeviceMemory m_bufferMemory;
+
+
 
 		void* m_mappedData;
 		float m_aspectRatio;

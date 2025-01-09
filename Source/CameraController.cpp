@@ -135,6 +135,7 @@ namespace Renderer
 
 				if (m_CameraInputStatus.isLeftMouseButtonDown)
 				{
+
 					glm::vec3 sideVector = glm::cross(viewDir, Get3DVectorComponent(camUp));
 					float sensitivity = 0.5f;
 					glm::vec2 mouseRotation = m_CameraInputStatus.isLeftMouseButtonDown ? m_CameraInputStatus.mouseDelta * sensitivity * Timestep::GetInstance()->GetSeconds() : glm::vec2(0.f);
@@ -142,6 +143,12 @@ namespace Renderer
 
 					float x_angle = glm::clamp(rotation.x, rotationLimit_X.x, rotationLimit_Y.y);
 					float y_angle = glm::clamp(rotation.y, rotationLimit_Y.x, rotationLimit_Y.y);
+
+					float yaw_delta = x_angle;
+					float pitch_delta = y_angle;
+
+					m_Camera->m_rayTraceCamRes.yaw -= yaw_delta;
+					m_Camera->m_rayTraceCamRes.pitch -= pitch_delta;
 
 					// Rotate around x-axis
 					glm::quat qy = glm::angleAxis(y_angle, sideVector);
@@ -163,6 +170,7 @@ namespace Renderer
 					glm::vec4 right_4 = Set3DVectorComponent(right);
 
 					camTarget = camPos + Set3DVectorComponent(viewDir);
+
 					m_Camera->SetLookTarget(camTarget);
 					m_Camera->SetForwardVector(viewDir_4);
 					m_Camera->SetUpVector(upVec_4);

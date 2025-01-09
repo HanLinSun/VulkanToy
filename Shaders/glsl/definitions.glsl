@@ -124,11 +124,12 @@ struct Light
 
 struct RayTraceUniformBuffer
 {
-	mat4 viewMatrix;
-	mat4 projMatrix;
 	vec3 cameraPos;
 	vec3 cameraLookAt;
-	vec3 camera_Up;
+	vec3 cameraUp;
+	float cameraYaw;
+	float cameraPitch;
+
 	uint lightNums;
 	uint numTriangles;
 	uint numSpheres;
