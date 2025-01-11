@@ -144,12 +144,6 @@ namespace Renderer
 					float x_angle = glm::clamp(rotation.x, rotationLimit_X.x, rotationLimit_Y.y);
 					float y_angle = glm::clamp(rotation.y, rotationLimit_Y.x, rotationLimit_Y.y);
 
-					float yaw_delta = x_angle;
-					float pitch_delta = y_angle;
-
-					m_Camera->m_rayTraceCamRes.yaw -= yaw_delta;
-					m_Camera->m_rayTraceCamRes.pitch -= pitch_delta;
-
 					// Rotate around x-axis
 					glm::quat qy = glm::angleAxis(y_angle, sideVector);
 					glm::mat4 rotY = glm::mat4_cast(qy);

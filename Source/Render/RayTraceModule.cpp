@@ -119,7 +119,7 @@ namespace Renderer
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
-              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_scene->GetTextures().size()),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_scene->GetTextures().size()!=0? m_scene->GetTextures().size():1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
         };
         //maxSet can be changed 
@@ -200,7 +200,7 @@ namespace Renderer
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 2),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 3),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 4),
-            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT, 5, m_scene->GetTextures().size()),
+            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT, 5, m_scene->GetTextures().size()!=0? m_scene->GetTextures().size():1),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 6),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 7),
         };
@@ -337,22 +337,20 @@ namespace Renderer
     void RayTraceModule::UpdateUniformBuffer(Camera* cam)
     {
         glm::vec4 camPos = cam->GetPosition();
-        glm::vec4 camForward = cam->GetForwardVector();
+        glm::vec4 camForward = cam->GetLookTarget();
         glm::vec4 camLookAt = cam->GetLookTarget();
-        glm::vec3 cameraUp=glm::vec3(0,1,0);
+        glm::vec3 cameraUp = cam->GetUpVector();;
 
-        m_rayTraceUniform.camPos = glm::vec3(camPos.x, camPos.y, camPos.z);
-        m_rayTraceUniform.camLookAt = glm::vec3(camLookAt.x, camLookAt.y, camLookAt.z);
-        m_rayTraceUniform.cameraFOV = cam->GetFOV();
-        m_rayTraceUniform.cameraPitch = cam->m_rayTraceCamRes.pitch;
-        m_rayTraceUniform.cameraYaw = cam->m_rayTraceCamRes.yaw;
-        m_rayTraceUniform.aspectRatio = cam->GetAspectRatio();
+        m_rayTraceUniform.camProjectionMatrix = cam->GetProjectionMatrix();
+        m_rayTraceUniform.camViewMatrix = cam->GetViewmatrix();
+        m_rayTraceUniform.aperture = cam->GetAperture();
+        m_rayTraceUniform.focalDistance = cam->GetFocalDistance();
+        m_rayTraceUniform.aperture = cam->GetAspectRatio();
         m_rayTraceUniform.lightNums = 2;
-        m_rayTraceUniform.samplePerPixel = 15;
-        m_rayTraceUniform.maxRecursiveDepth =30;
+        m_rayTraceUniform.samplePerPixel = 5;
+        m_rayTraceUniform.maxRecursiveDepth =15;
         m_rayTraceUniform.triangleNums = m_scene->GetTriangles().size();
         m_rayTraceUniform.sphereNums = m_scene->GetSpheres().size();
-        m_rayTraceUniform.focalDistance = 1.0f;
                 
         check_vk_result(m_rayTraceResources.uniformBuffer.Map());
         memcpy(m_rayTraceResources.uniformBuffer.mapped, &m_rayTraceUniform, sizeof(RayTraceUniformData));

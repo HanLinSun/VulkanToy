@@ -1,6 +1,10 @@
+#ifndef SHARED_SAMPLE
+#define SHARED_SAMPLE
+
 #include "random.glsl"
 #include "definitions.glsl"
-
+#define PIOver2  1.57079632679489661923f
+#define PIOver4  0.78539816339744830961f
 //Based on pbr-book.org Sampling Algorithms
 vec3 SampleUniformHemisphere(float r1, float r2)
 {
@@ -33,16 +37,19 @@ vec2 SampleUniformDiskConcentric(float r1,float r2)
 	{
 		return vec2(0, 0);
 	}
-	float theta, r;
-	if (abs(uOffset.x) > abs(uOffset.y)
+	float theta;
+	float r;
+	if (abs(uOffset.x) > abs(uOffset.y))
 	{
-		r =uOffset.x;
-	    theta = PiOver4 *(uOffset.y / uOffset.x);
+		r = uOffset.x;
+		float divide = uOffset.y / uOffset.x;
+		theta = PIOver4 * divide;
 	}
 	else
 	{
 		r = uOffset.y;
-	    theta=PiOver2 -PiOver4 *(uOffset.x /uOffset.y);
+		float divide = uOffset.y / uOffset.x;
+	    theta=PIOver2 -PIOver4 *divide;
 	}
 	return vec2(r*cos(theta), r*sin(theta));
 }
@@ -51,7 +58,7 @@ vec3 CosineSampleHemisphere(float r1, float r2)
 {
 	vec2 d = SampleUniformDiskConcentric(r1, r2);
 	float z = sqrt(max(0.0, 1 - d.x * d.x - d.y * d.y));
-	return (d.x, d.y, z);
+	return vec3(d.x, d.y, z);
 }
 
 float UniformHemispherePDF()
@@ -68,8 +75,8 @@ void Onb(in vec3 N, inout vec3 T, inout vec3 B)
 
 vec3 SampleLambert(vec3 albedo,vec3 V, vec3 N, inout vec3 L, inout float pdf)
 {
-	float r1 = rand();
-	float r2 = rand();
+	float r1 = Random();
+	float r2 = Random();
 
 	vec3 T, B;
 	Onb(N, T, B);
@@ -81,3 +88,4 @@ vec3 SampleLambert(vec3 albedo,vec3 V, vec3 N, inout vec3 L, inout float pdf)
 
 	return (1.0 / PI) * albedo * dot(N, L);
 }
+#endif

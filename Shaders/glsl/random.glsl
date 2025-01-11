@@ -1,3 +1,6 @@
+#ifndef SHARED_RANDOM
+#define SHARED_RANDOM
+
 #include "definitions.glsl"
 //In Compute Shader cannot use std::srand, so must implement random number generation method
 //based on pcg_setseq_32_step_r in pcg-c, using inc = 17
@@ -46,3 +49,5 @@ vec3 RandomInHemisphere(vec3 normal)
 double degrees_to_radians(double degrees) {
 	return degrees * PI / 180.0;
 }
+
+#endif

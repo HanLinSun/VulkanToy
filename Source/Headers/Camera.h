@@ -41,13 +41,6 @@ namespace Renderer
 		LeftHanded,
 	};
 
-	struct RayTraceCameraResource
-	{
-		float zoom;
-		float yaw;
-		float pitch;
-	};
-
 	class Camera
 	{
 	public:
@@ -79,7 +72,10 @@ namespace Renderer
 		glm::vec4 GetForwardVector() const;
 		glm::vec4 GetPosition() const;
 
-		RayTraceCameraResource m_rayTraceCamRes;
+		glm::float32_t GetAperture() const;
+		void SetAperture(glm::float32_t& aperture);
+		glm::float32_t GetFocalDistance()const;
+		void SetFocalDistance(glm::float32_t& focalDistance);
 
 	private:
 		Device* m_device;
@@ -108,6 +104,10 @@ namespace Renderer
 
 		glm::vec4 m_position_W;
 		glm::vec4 m_lookTarget_W;
+
+
+		glm::float32_t m_aperture;
+		glm::float32_t m_focalDistance;
 
 		void UpdateProjectionMatrix();
 	};

@@ -3,10 +3,9 @@
 
 #define PI 3.1415926535897932385
 #define INV_PI 0.3183098861837906
-#define INV_2PI 0.15915494309189533577;
+#define INV_2PI 0.15915494309189533577
 
-#define PiOver2  1.57079632679489661923;
-#define PiOver4  0.78539816339744830961;
+
 
 #define EPSILON 0.0003
 #define INFINITY  1000000.0
@@ -124,11 +123,8 @@ struct Light
 
 struct RayTraceUniformBuffer
 {
-	vec3 cameraPos;
-	vec3 cameraLookAt;
-	vec3 cameraUp;
-	float cameraYaw;
-	float cameraPitch;
+	mat4 projMatrix;
+	mat4 viewMatrix;
 
 	uint lightNums;
 	uint numTriangles;
@@ -136,6 +132,6 @@ struct RayTraceUniformBuffer
 	uint spp;
 	uint maxDepth;
 	float focalDistance;
-	float cameraFOV;
+	float aperture;
 };
 #endif

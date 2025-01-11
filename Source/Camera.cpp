@@ -18,13 +18,8 @@ namespace Renderer
 		m_forwardVector_W = glm::normalize(m_lookTarget_W -m_position_W);
 
 		//m_forwardVector_W = glm::vec4(0.0f, 0.0f, -1.0f,0.0f);
-
-		glm::vec3 viewXZ = glm::vec3(m_forwardVector_W.x, 0.0f, m_forwardVector_W.z);
-		glm::vec3 viewZY = glm::vec3(0.0f, m_forwardVector_W.y, m_forwardVector_W.z);
-		m_rayTraceCamRes.yaw = glm::acos(glm::dot(glm::normalize(viewXZ), glm::vec3(0, 0, -1)));
-		m_rayTraceCamRes.pitch = glm::acos(glm::dot(glm::normalize(viewZY), glm::vec3(0, 1, 0)));
-
-		m_rayTraceCamRes.zoom = glm::length(m_position_W - m_lookTarget_W);
+		m_aperture = 0.2f;
+		m_focalDistance = 1.0f;
 
 		glm::vec3 m_rightVec_3 = glm::cross(Get3DVectorComponent(m_forwardVector_W), Get3DVectorComponent(m_upVector_W));
 		m_rightVector_W = Set3DVectorComponent(m_rightVec_3);
@@ -182,6 +177,25 @@ namespace Renderer
 	{
 		return m_fov;
 	}
+
+	glm::float32_t Camera::GetAperture() const
+	{
+		return m_aperture;
+	}
+
+	void Camera::SetAperture(glm::float32_t& aperture)
+	{
+		m_aperture = aperture;
+	}
+	glm::float32_t Camera::GetFocalDistance() const
+	{
+		return m_focalDistance;
+	}
+	void Camera::SetFocalDistance(glm::float32_t& focalDistance)
+	{
+		m_focalDistance = focalDistance;
+	}
+
 
 	
 }
