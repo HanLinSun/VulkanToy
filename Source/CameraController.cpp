@@ -137,7 +137,7 @@ namespace Renderer
 				{
 
 					glm::vec3 sideVector = glm::cross(viewDir, Get3DVectorComponent(camUp));
-					float sensitivity = 0.5f;
+					float sensitivity = 0.1f;
 					glm::vec2 mouseRotation = m_CameraInputStatus.isLeftMouseButtonDown ? m_CameraInputStatus.mouseDelta * sensitivity * Timestep::GetInstance()->GetSeconds() : glm::vec2(0.f);
 					glm::vec2 rotation = mouseRotation;
 

@@ -40,12 +40,12 @@ namespace Renderer
 		m_textures.push_back(texture);
 	}
 
-	void Scene::AddLight(Light light)
+	void Scene::AddLight(LightGPU light)
 	{
 		m_lights.push_back(light);
 	}
 
-	std::vector<Light> Scene::GetLights()
+	std::vector<LightGPU> Scene::GetLights()
 	{
 		return m_lights;
 	}

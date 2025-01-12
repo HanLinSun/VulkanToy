@@ -1,6 +1,5 @@
 #ifndef SHARED_RANDOM
 #define SHARED_RANDOM
-
 #include "definitions.glsl"
 //In Compute Shader cannot use std::srand, so must implement random number generation method
 //based on pcg_setseq_32_step_r in pcg-c, using inc = 17

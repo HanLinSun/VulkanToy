@@ -162,10 +162,10 @@ namespace Renderer
         //Binding =5, Textures, already have texture arrays. 
 
         //Binding =6, Lights
-        std::vector<Light> scene_lights = m_scene->GetLights();
+        std::vector<LightGPU> scene_lights = m_scene->GetLights();
         if (scene_lights.size() != 0)
         {
-            BufferUtils::CreateGPUBuffer<Light>(m_device.get(), scene_lights.data(), scene_lights.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_lightGPUBuffer);
+            BufferUtils::CreateGPUBuffer<LightGPU>(m_device.get(), scene_lights.data(), scene_lights.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_lightGPUBuffer);
             isLightGPUBufferAlloc = true;
         }
 

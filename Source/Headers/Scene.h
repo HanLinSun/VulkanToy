@@ -48,8 +48,8 @@ namespace Renderer
 		std::vector<Sphere> GetSpheres();
 		int GetSphereSize() const;
 
-		void AddLight(Light light);
-		std::vector<Light> GetLights();
+		void AddLight(LightGPU light);
+		std::vector<LightGPU> GetLights();
 		int GetLightSize() const;
 
 		std::vector<PBRMaterialData> GeneratePBRMaterialData();
@@ -72,7 +72,7 @@ namespace Renderer
 		
 		std::vector<Sphere> m_spheres;
 		std::vector<Triangle> m_triangles;
-		std::vector<Light> m_lights;
+		std::vector<LightGPU> m_lights;
 
 		std::shared_ptr<Camera> m_Camera;
 		std::unique_ptr<TextureCubeMap> m_skyboxTexture;

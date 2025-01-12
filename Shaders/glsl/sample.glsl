@@ -66,6 +66,8 @@ float UniformHemispherePDF()
 	return INV_2PI;
 }
 
+//Compute tangent space tangent and bitangent
+//Orthonormal Basis
 void Onb(in vec3 N, inout vec3 T, inout vec3 B)
 {
 	vec3 up = abs(N.z) < 0.9999999 ? vec3(0, 0, 1) : vec3(1, 0, 0);
@@ -88,4 +90,68 @@ vec3 SampleLambert(vec3 albedo,vec3 V, vec3 N, inout vec3 L, inout float pdf)
 
 	return (1.0 / PI) * albedo * dot(N, L);
 }
+
+void SampleDistantLight(in Light light, in vec3 scatterPos, inout LightSampleRec lightSample)
+{
+	lightSample.direction = normalize(light.position - vec3(0,0,0));
+	lightSample.normal = normalize(scatterPos - light.position);
+	lightSample.emission = light.emission; //light.emission*float(ubo.numofLights)
+	lightSample.distance = INFINITY;
+	lightSample.pdf = 1.0;
+}
+
+//Shape sample
+void SampleRectLight(in Light light, in vec3 scatterPos, inout LightSample lightSample)
+{
+	float r1 = Random();
+	float r2 = Random();
+	//point on rect surface
+	vec3 lightSurfacePos = light.position + light.u * r1 + light.v * r2;
+	lightSample.direction = normalize(lightSurfacePos - scatterPos);
+	lightSample.distance = length(lightSample.direction);
+	float distanceSquare = lightSample.distance * lightSample.distance;
+	lightSample.normal = normalize(cross(light.u, light.v));
+	lightSample.emission = light.emission; //light.emission * float(ubo.numOfLights);
+	lightSample.pdf = distanceSquare / (light.area * abs(dot(lightSample.normal, lightSample.direction)));
+}
+
+void SampleSphereLight(in Light light, in vec3 scatterPos, inout LightSample lightSample)
+{
+	float r1 = Random();
+	float r2 = Random();
+	vec3 sphereCentertoSurface = scatterPos - light.position;
+	float distToSphereCenter = length(sphereCentertoSurface);
+	vec3 sampledDir;
+
+	// TODO: Fix this. Currently assumes the light will be hit only from the outside
+	sphereCentertoSurface /= distToSphereCenter;
+	sampledDir = SampleUniformHemisphere(r1, r2);
+	vec3 T, B;
+	Onb(sphereCentertoSurface, T, B);
+	sampledDir = T * sampledDir.x + B * sampledDir.y + sphereCentertoSurface * sampledDir.z;
+
+	vec3 lightSurfacePos = light.position + sampledDir * light.radius;
+
+	lightSample.direction = normalize(lightSurfacePos - scatterPos);
+	lightSample.distance = length(lightSample.direction);
+	float distSquare = lightSample.distance * lightSample.distance;
+
+//	lightSample.direction /= lightSample.dist;
+	lightSample.normal = normalize(lightSurfacePos - light.position);
+	lightSample.emission = light.emission; //light.emission *float(numOfLights);
+	lightSample.pdf = distSquare / (light.area * 0.5 * abs(dot(lightSample.normal, lightSample.direction)));
+}
+
+void SampleOneLight(in Light light, in vec3 scatterPos, inout LightSample lightSample)
+{
+	int type = int(light.type);
+
+	if (type == RECT_LIGHT)
+		SampleRectLight(light, scatterPos, lightSample);
+	else if (type == SPHERE_LIGHT)
+		SampleSphereLight(light, scatterPos, lightSample);
+	else
+		SampleDistantLight(light, scatterPos, lightSample);
+}
+
 #endif

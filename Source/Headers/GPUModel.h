@@ -76,15 +76,12 @@ struct Sphere
 	alignas(4) uint32_t material_ID;
 };
 
-struct Light
+struct LightGPU
 {
 	alignas(16) glm::vec3 position;
+	alignas(16) glm::vec3 normal;
 	alignas(16) glm::vec3 emission;
-	alignas(16) glm::vec3 u;
-	alignas(16) glm::vec3 v;
-	alignas(4) float area;
 	alignas(4) int type;
-	alignas(4) float radius;
 };
 
 

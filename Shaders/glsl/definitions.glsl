@@ -5,7 +5,9 @@
 #define INV_PI 0.3183098861837906
 #define INV_2PI 0.15915494309189533577
 
-
+#define RECT_LIGHT 0
+#define SPHERE_LIGHT 1
+#define DIRECTIONAL_LIGHT 2
 
 #define EPSILON 0.0003
 #define INFINITY  1000000.0
@@ -115,11 +117,10 @@ struct Light
 	vec3 emission;
 	vec3 u;
 	vec3 v;
-	float area;
-	int type;
 	float radius;
+	float area;
+	float type;
 };
-
 
 struct RayTraceUniformBuffer
 {
@@ -133,5 +134,21 @@ struct RayTraceUniformBuffer
 	uint maxDepth;
 	float focalDistance;
 	float aperture;
+};
+
+struct LightSample
+{
+	vec3 normal;
+	vec3 emission;
+	vec3 direction;
+	float distance;
+	float pdf;
+};
+
+struct BSDFSample
+{
+	vec3 f; // BSDF value of material
+	vec3 L; //output direction
+	float pdf;
 };
 #endif
