@@ -18,7 +18,7 @@ namespace Renderer
 		m_forwardVector_W = glm::normalize(m_lookTarget_W -m_position_W);
 
 		//m_forwardVector_W = glm::vec4(0.0f, 0.0f, -1.0f,0.0f);
-		m_aperture = 0.2f;
+		m_aperture = 0.02f;
 		m_focalDistance = 1.0f;
 
 		glm::vec3 m_rightVec_3 = glm::cross(Get3DVectorComponent(m_forwardVector_W), Get3DVectorComponent(m_upVector_W));

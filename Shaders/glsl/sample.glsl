@@ -154,4 +154,56 @@ void SampleOneLight(in Light light, in vec3 scatterPos, inout LightSample lightS
 		SampleDistantLight(light, scatterPos, lightSample);
 }
 
+float PowerHeuristic(float a, float b)
+{
+	float t = a * a;
+	return t / (b * b + t);
+}
+
+//Disney BRDF sample algorithm
+//Reference: [https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf] 
+//Reference 2: [https://schuttejoe.github.io/post/disneybsdf/] and related paper help me to implement disney PBR sample
+
+// pow(m,5)
+float SchlickFresnel(float u)
+{
+	float m = clamp(1 - u, 0, 1);
+	float m2 = m * m;
+	return m2 * m2 * m; // pow(m,5)
+}
+
+//GTR: Generalized-Trowbridge-Reitz,used to estimate specular
+float GTR1(float NdotH, float a)
+{
+	if (a >= 1) return 1 / PI;
+	float a2 = a * a;
+	float t = 1 + (a2 - 1) * NdotH * NdotH;
+	return (a2 - 1) / (PI * log(a2) * t);
+}
+
+float SmithGGXG1(float NdotV, float alphaG)
+{
+	float a = alphaG * alphaG;
+	float b = NdotV * NdotV;
+
+	return (2.0 * NdotV) / (NdotV + sqrt(a + b - a * b));;
+}
+
+float GTR2(float NdotH, float a)
+{
+	float a2 = a * a;
+	float t = 1 + (a2 - 1) * NdotH * NdotH;
+	return a2 / (PI * t * t);
+}
+
+float SmithG_GGX_aniso(float NdotV, float VdotX, float VdotY, float ax, float ay)
+{
+	return 1 / (NdotV + sqrt(sqr(VdotX * ax) + sqr(VdotY * ay) + sqr(NdotV)));
+}
+
+vec3 mon2lin(vec3 x)
+{
+	return vec3(pow(x[0], 2.2), pow(x[1], 2.2), pow(x[2], 2.2));
+}
+
 #endif

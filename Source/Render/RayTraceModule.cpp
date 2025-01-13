@@ -121,6 +121,7 @@ namespace Renderer
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, m_scene->GetTextures().size()!=0? m_scene->GetTextures().size():1),
               VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
+              VulkanInitializer::DescriptorPoolSize(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1),
         };
         //maxSet can be changed 
         VkDescriptorPoolCreateInfo descriptorPoolInfo = VulkanInitializer::DescriptorPoolCreateInfo(poolSizes, m_scene->GetTextures().size() + 7);
@@ -200,7 +201,7 @@ namespace Renderer
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 2),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 3),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 4),
-            VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT, 5, m_scene->GetTextures().size()!=0? m_scene->GetTextures().size():1),
+           // VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_COMPUTE_BIT, 5, m_scene->GetTextures().size()!=0? m_scene->GetTextures().size():1),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 6),
             VulkanInitializer::DescriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT, 7),
         };
@@ -244,19 +245,21 @@ namespace Renderer
         AddGPUWriteDescriptorSet(isMaterialGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_materialGPUBuffer.descriptor, 3);
         AddGPUWriteDescriptorSet(isSphereGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_sphereGPUBuffer.descriptor, 4);
         AddGPUWriteDescriptorSet(isLightGPUBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_lightGPUBuffer.descriptor, 6);
+        if (imageInfos.size() != 0)
+        {
+            VkWriteDescriptorSet descriptorWriteSet{};
+            descriptorWriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWriteSet.dstSet = m_rayTraceResources.descriptorSet;
+            descriptorWriteSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWriteSet.dstBinding = 5;
+            descriptorWriteSet.pImageInfo = imageInfos.data();
+            descriptorWriteSet.descriptorCount = static_cast<uint32_t>(imageInfos.size());
+            computeWriteDescriptorSets.push_back(descriptorWriteSet);
+        }
+
+
         AddGPUWriteDescriptorSet(isBVHNodeBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_BVHNodeGPUBuffer.descriptor, 7);
 
-        if (imageInfos.size()!= 0)
-        {
-                VkWriteDescriptorSet descriptorWriteSet{};
-                descriptorWriteSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                descriptorWriteSet.dstSet = m_rayTraceResources.descriptorSet;
-                descriptorWriteSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                descriptorWriteSet.dstBinding = 5;
-                descriptorWriteSet.pImageInfo = imageInfos.data();
-                descriptorWriteSet.descriptorCount = static_cast<uint32_t>(imageInfos.size());
-                computeWriteDescriptorSets.push_back(descriptorWriteSet);
-        }
 
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(computeWriteDescriptorSets.size()), computeWriteDescriptorSets.data(), 0, nullptr);
     }
@@ -347,8 +350,8 @@ namespace Renderer
         m_rayTraceUniform.focalDistance = cam->GetFocalDistance();
         m_rayTraceUniform.aperture = cam->GetAspectRatio();
         m_rayTraceUniform.lightNums = 2;
-        m_rayTraceUniform.samplePerPixel = 5;
-        m_rayTraceUniform.maxRecursiveDepth =15;
+        m_rayTraceUniform.samplePerPixel = 10;
+        m_rayTraceUniform.maxRecursiveDepth =10;
         m_rayTraceUniform.triangleNums = m_scene->GetTriangles().size();
         m_rayTraceUniform.sphereNums = m_scene->GetSpheres().size();
                 
