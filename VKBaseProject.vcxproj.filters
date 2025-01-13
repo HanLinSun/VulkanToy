@@ -93,7 +93,7 @@
     <None Include="Shaders\glsl\vertShader.glsl">
       <Filter>Source\Shader</Filter>
     </None>
-    <None Include="Shaders\glsl\BSDF.glsl">
+    <None Include="Shaders\glsl\DisneyBSDF.glsl">
       <Filter>Source\Shader</Filter>
     </None>
     <None Include="Shaders\glsl\rayTrace.comp">

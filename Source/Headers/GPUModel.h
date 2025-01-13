@@ -33,8 +33,8 @@ struct PBRMaterialData
 	alignas(4) glm::float32_t sheen;
 	alignas(4) glm::float32_t sheenTint;
 
-	alignas(4) glm::float32_t clearcoatThickness;
-	alignas(4) glm::float32_t clearcoatRoughness;
+	alignas(4) glm::float32_t clearcoat;
+	alignas(4) glm::float32_t clearcoatGloss;
 
 	alignas(4) glm::float32_t specTrans;
 	alignas(4) glm::float32_t ior;

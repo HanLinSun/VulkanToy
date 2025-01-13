@@ -181,12 +181,12 @@ float GTR1(float NdotH, float a)
 	return (a2 - 1) / (PI * log(a2) * t);
 }
 
-float SmithGGXG1(float NdotV, float alphaG)
+//This is the original version in disney bsdf
+float SmithGGX(float NdotV, float alphaG)
 {
 	float a = alphaG * alphaG;
 	float b = NdotV * NdotV;
-
-	return (2.0 * NdotV) / (NdotV + sqrt(a + b - a * b));;
+	return 1 / (NdotV + sqrt(a + b - a * b));
 }
 
 float GTR2(float NdotH, float a)

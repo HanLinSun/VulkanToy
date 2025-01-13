@@ -44,7 +44,7 @@ struct PBRMaterial
 	float sheen;
 	float sheenTint;
 	float clearcoat;
-	float clearcoatRoughness;
+	float clearcoatGloss;
 
 	float specTrans;
 	float ior;
