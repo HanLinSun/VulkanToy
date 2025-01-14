@@ -91,7 +91,7 @@ vec3 SampleLambert(vec3 albedo,vec3 V, vec3 N, inout vec3 L, inout float pdf)
 	return (1.0 / PI) * albedo * dot(N, L);
 }
 
-void SampleDistantLight(in Light light, in vec3 scatterPos, inout LightSampleRec lightSample)
+void SampleDistantLight(in Light light, in vec3 scatterPos, inout LightSample lightSample)
 {
 	lightSample.direction = normalize(light.position - vec3(0,0,0));
 	lightSample.normal = normalize(scatterPos - light.position);
@@ -196,9 +196,23 @@ float GTR2(float NdotH, float a)
 	return a2 / (PI * t * t);
 }
 
-float SmithG_GGX_aniso(float NdotV, float VdotX, float VdotY, float ax, float ay)
+float GTR2Aniso(float NdotH, float HdotX, float HdotY, float ax, float ay)
 {
-	return 1 / (NdotV + sqrt(sqr(VdotX * ax) + sqr(VdotY * ay) + sqr(NdotV)));
+	float a = HdotX / ax;
+	float b = HdotY / ay;
+	float c = a * a + b * b + NdotH * NdotH;
+	return 1.0 / (PI * ax * ay * c * c);
+	//return 1 / (PI * ax * ay * sqr(sqr(HdotX / ax) + sqr(HdotY / ay) + NdotH * NdotH));
+}
+
+float SmithG_GGX_Aniso(float NdotV, float VdotX, float VdotY, float ax, float ay)
+{
+	float a = VdotX * ax;
+	float b = VdotY * ay;
+	float c = NdotV;
+	return 1 / (c + sqrt(a * a + b * b + c * c));
+
+	//return 1 / (NdotV + sqrt(sqr(VdotX * ax) + sqr(VdotY * ay) + sqr(NdotV)));
 }
 
 vec3 mon2lin(vec3 x)

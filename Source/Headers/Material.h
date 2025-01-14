@@ -30,8 +30,8 @@ struct MaterialProperties
         const float transmission =1.0f,
         const float roughness = 1.0f,
         const float sheen = 1.0f,
-        const float clearcoatRoughness = 1.0f,
-        const float clearcoatThickness = 1.0f,
+        const float clearcoat = 1.0f,
+        const float clearcoatGloss = 1.0f,
         const float metallic = 1.0f,
         const float subsurface =1.0f,
         const float anisotropic = 1.0f
@@ -49,8 +49,8 @@ struct MaterialProperties
         , AlphaThreshold(alphaThreshold)
         , Transmission(transmission)
         , Roughness(roughness)
-        , ClearCoatRoughness(clearcoatRoughness)
-        , ClearCoatThickness(clearcoatThickness)
+        , ClearCoat(clearcoat)
+        , ClearCoatGloss(clearcoatGloss)
         , Sheen(sheen)
         , Metallic(metallic)
         , Anisotropic(anisotropic)
@@ -92,8 +92,8 @@ struct MaterialProperties
        glm::int32_t OpacityTextureIdx;
 
        glm::float32_t Roughness;
-       glm::float32_t ClearCoatRoughness;
-       glm::float32_t ClearCoatThickness;
+       glm::float32_t ClearCoat;
+       glm::float32_t ClearCoatGloss;
        glm::float32_t Metallic;
        glm::float32_t Transmission;
      
@@ -165,11 +165,11 @@ public:
     glm::float32_t GetMetallic() const;
     void SetMetallic(glm::float32_t metallic);
 
-    glm::float32_t GetClearCoatRoughness() const;
-    void SetClearCoatRoughness(glm::float32_t clearCoarRoughness);
+    glm::float32_t GetClearCoat() const;
+    void SetClearCoat(glm::float32_t clearCoat);
 
-    glm::float32_t GetClearCoatThickness() const;
-    void SetClearCoatThickness(glm::float32_t ClearCoatThickness);
+    glm::float32_t GetClearCoatGloss() const;
+    void SetClearCoatGloss(glm::float32_t ClearCoatGloss);
 
     glm::float32_t GetBumpIntensity() const;
     void SetBumpIntensity(glm::float32_t bumpIntensity);

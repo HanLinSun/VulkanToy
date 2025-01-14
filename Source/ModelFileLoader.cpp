@@ -89,8 +89,8 @@ namespace Renderer
 			load_mat->SetMetallic(material.metallic);
 			load_mat->SetSheen(material.sheen);
 	
-			load_mat->SetClearCoatRoughness(material.clearcoat_roughness);
-			load_mat->SetClearCoatThickness(material.clearcoat_thickness);
+			load_mat->SetClearCoatGloss(material.clearcoat_roughness);
+			load_mat->SetClearCoat(material.clearcoat_thickness);
 
 			load_mat->m_name = material.name;
 			//This is ugly and may need to  use MACRO instead in the future

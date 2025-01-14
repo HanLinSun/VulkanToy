@@ -136,13 +136,13 @@ void Material::SetIndexOfRefraction(glm::float32_t indexOfRefraction)
 	m_MaterialProperties->IndexOfRefraction = indexOfRefraction;
 }
 
-glm::float32_t Material::GetClearCoatThickness() const
+glm::float32_t Material::GetClearCoat() const
 {
-    return m_MaterialProperties->ClearCoatThickness;
+    return m_MaterialProperties->ClearCoat;
 }
-void Material::SetClearCoatThickness(glm::float32_t clearCoatThickness)
+void Material::SetClearCoat(glm::float32_t clearCoatThickness)
 {
-    m_MaterialProperties->ClearCoatThickness = clearCoatThickness;
+    m_MaterialProperties->ClearCoat = clearCoatThickness;
 }
 
 glm::float32_t Material::GetSubSurface() const
@@ -173,13 +173,13 @@ void Material::SetMetallic(glm::float32_t metallic)
     m_MaterialProperties->Metallic = metallic;
 }
 
-glm::float32_t Material::GetClearCoatRoughness() const
+glm::float32_t Material::GetClearCoatGloss() const
 {
-    return m_MaterialProperties->ClearCoatRoughness;
+    return m_MaterialProperties->ClearCoatGloss;
 }
-void Material::SetClearCoatRoughness(glm::float32_t clearCoatRoughness)
+void Material::SetClearCoatGloss(glm::float32_t clearCoatGloss)
 {
-    m_MaterialProperties->ClearCoatRoughness = clearCoatRoughness;
+    m_MaterialProperties->ClearCoatGloss = clearCoatGloss;
 }
 
 glm::float32_t Material::GetBumpIntensity() const

@@ -101,8 +101,8 @@ namespace Renderer
 			pbrMat.sheenTint = mat->GetSheenTint();
 			pbrMat.anisotropic = mat->GetAnisotropic();
 
-			pbrMat.clearcoatThickness = mat->GetClearCoatThickness();
-			pbrMat.clearcoatRoughness = mat->GetClearCoatRoughness();
+			pbrMat.clearcoat = mat->GetClearCoat();
+			pbrMat.clearcoatGloss = mat->GetClearCoatGloss();
 			pbrMat.transmission = mat->GetTransmission();
 
 			pbrMat.specTrans = mat->GetSpecTrans();

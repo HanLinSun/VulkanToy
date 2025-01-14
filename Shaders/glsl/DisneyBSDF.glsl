@@ -6,7 +6,9 @@
 3: [https://blog.selfshadow.com/publications/s2015-shading-course/] SIGGRAPH 2015 Course: Physically Based Shading in Theory and Practice
 4. [https://github.com/mmacklin/tinsel/blob/master/src/disney.h] mmacklin's implements on Disney PBR
 5. [https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf] Disney BRDF paper
-6. 
+6. [http://simon-kallweit.me/rendercompo2015/report/] Simon Kallweit's project report
+7. [https://github.com/mitsuba-renderer/mitsuba3] mitsuba3
+8. [https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf] Microfacet Models for Refraction through Rough Surfaces
 **/
 
 #include "sample.glsl"
@@ -70,7 +72,7 @@ vec3 EvalDisneyClearcoat(in PBRMaterial material, vec3 V, vec3 N, vec3 L ,vec3 H
     float F = mix(0.04, 1.0, FH);
     float G = SmithGGX(dot(N, L), 0.25) * SmithGGX(dot(N, V), 0.25);
 
-    //For importance sampling, it is convenient to choose pdfh = D(¦Èh) * cos ¦Èh given that it is already normalized.
+    //For importance sampling, it is convenient to choose pdfh = D(ï¿½ï¿½h) * cos ï¿½ï¿½h given that it is already normalized.
     pdf = D * NdotH / (4.0 * dot(V, H)); 
 
     return vec3(0.25 * material.clearcoat * F * D * G);
@@ -102,9 +104,48 @@ vec3 EvalDisneyDiffuse(in PBRMaterial material, in vec3 Csheen, vec3 V, vec3 N, 
     return ((1.0 / PI) * mix(Fd, ss, material.subsurface) * material.albedo.xyz + Fsheen) * (1.0 - material.metallic);
 }
 
-vec3 EvalDisneySpecular()
+//Abstract of disney specular(it is divided into reflection and refraction)
+vec3 EvalMicrofacetReflection(in PBRMaterial mat, vec3 V, vec3 L, vec3 H, vec3 F, out float pdf)
 {
+    float aspect = sqrt(1 - mat.anisotropic * 0.9);
+    float ax = max(.001, sqr(mat.roughness) / aspect);
+    float ay = max(.001, sqr(mat.roughness) * aspect);
 
+    pdf = 0.0;
+    if (L.z <= 0.0)
+        return vec3(0.0);
+
+    //Disney specular
+    float D = GTR2Aniso(H.z, H.x, H.y, ax, ay);
+    float G1 = SmithGAniso(abs(V.z), V.x, V.y, ax, ay);
+    float G2 = G1 * SmithGAniso(abs(L.z), L.x, L.y, ax, ay);
+
+    pdf = G1 * D / (4.0 * V.z); 
+    return F * D * G2 / (4.0 * L.z * V.z);
 }
+
+//Microfacet Models for Refraction through Rough Surfaces from cornell
+vec3 EvalMicrofacetRefraction(in PBRMaterial mat, float eta, vec3 V, vec3 L, vec3 H, vec3 F, out float pdf)
+{
+    pdf = 0.0;
+    if (L.z >= 0.0)
+        return vec3(0.0);
+
+    float LDotH = dot(L, H);
+    float VDotH = dot(V, H);
+
+    float D = GTR2Aniso(H.z, H.x, H.y, mat.ax, mat.ay);
+    float G1 = SmithGAniso(abs(V.z), V.x, V.y, mat.ax, mat.ay);
+    float G2 = G1 * SmithGAniso(abs(L.z), L.x, L.y, mat.ax, mat.ay);
+    float denom = LDotH + VDotH * eta;
+    denom *= denom;
+    float eta2 = eta * eta;
+    float jacobian = abs(LDotH) / denom;
+
+    pdf = G1 * max(0.0, VDotH) * D * jacobian / V.z;
+    return pow(mat.baseColor, vec3(0.5)) * (1.0 - F) * D * G2 * abs(VDotH) * jacobian * eta2 / abs(L.z * V.z);
+}
+
+
 
 
