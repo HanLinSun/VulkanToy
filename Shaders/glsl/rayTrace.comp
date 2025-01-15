@@ -20,7 +20,7 @@ layout(binding = 2) readonly buffer TriangleBufferObject
 
 layout(binding = 3) readonly buffer PBRMaterialBufferObject
 {
-    PBRMaterial[] PBRaterials;
+    PBRMaterial[] Materials;
 };
 
 layout(binding = 4) readonly buffer SpheresBufferObject {
@@ -61,6 +61,7 @@ bool HitTriangle(int triangle_index, Ray r,float tMin, float tMax,  inout Inters
         intersection.normal *= 1 - 2 * intersection.backFaceFlag;
         intersection.position += intersection.normal * 0.0001;
 
+        //back to world space
         intersection.position =multiplyMV(triangles[triangle_index].transform , vec4( intersection.position,1.0));
         intersection.normal =multiplyMV(triangles[triangle_index].inverseTranspose, vec4(intersection.normal,0.0));
 

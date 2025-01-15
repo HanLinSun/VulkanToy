@@ -215,6 +215,27 @@ float SmithG_GGX_Aniso(float NdotV, float VdotX, float VdotY, float ax, float ay
 	//return 1 / (NdotV + sqrt(sqr(VdotX * ax) + sqr(VdotY * ay) + sqr(NdotV)));
 }
 
+// Samples a microfacet normal for the GGX distribution using VNDF method.
+// Source: "Sampling the GGX Distribution of Visible Normals" by Heitz
+
+vec3 sampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 u)
+{
+	vec3 Vh = normalize(vec3(alpha2D.x * Ve.x, alpha2D.y * Ve.y, Ve.z));
+	float lensq = Vh.x * Vh.x + Vh.y * Vh.y;
+	vec3 T1 = lensq > 0.0f ? vec3(-Vh.y, Vh.x, 0.0f) * inversesqrt(lensq) : vec3(1, 0, 0);
+	vec3 T2 = cross(Vh, T1);
+	float r = sqrt(r1);
+	float phi = 2.0 * PI * r2;
+	float t1 = r * cos(phi);
+	float t2 = r * sin(phi);
+	float s = 0.5 * (1.0 + Vh.z);
+	t2 = (1.0 - s) * sqrt(1.0 - t1 * t1) + s * t2;
+
+	vec3 Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * Vh;
+
+	return normalize(vec3(ax * Nh.x, ay * Nh.y, max(0.0, Nh.z)));
+}
+
 vec3 mon2lin(vec3 x)
 {
 	return vec3(pow(x[0], 2.2), pow(x[1], 2.2), pow(x[2], 2.2));

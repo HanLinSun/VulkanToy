@@ -9,6 +9,7 @@
 6. [http://simon-kallweit.me/rendercompo2015/report/] Simon Kallweit's project report
 7. [https://github.com/mitsuba-renderer/mitsuba3] mitsuba3
 8. [https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf] Microfacet Models for Refraction through Rough Surfaces
+9. [https://boksajak.github.io/files/CrashCourseBRDF.pdf] Sample Disney BRDF
 **/
 
 #include "sample.glsl"
@@ -40,7 +41,7 @@ vec3 CalculateTint(vec3 baseColor)
 //L: incoming light. in BRDF, wi
 //H: half vector
 //V: outcome direction
-vec3 EvalSheen(in PBRMaterial material, vec3 V, vec3 H,vec3 L)
+vec3 EvalSheen(in PBRMaterial material, vec3 H,vec3 L)
 {
     float LdotH = dot(H, L);
     vec3 tint = CalculateTint(material.baseColor);
@@ -144,6 +145,55 @@ vec3 EvalMicrofacetRefraction(in PBRMaterial mat, float eta, vec3 V, vec3 L, vec
 
     pdf = G1 * max(0.0, VDotH) * D * jacobian / V.z;
     return pow(mat.baseColor, vec3(0.5)) * (1.0 - F) * D * G2 * abs(VDotH) * jacobian * eta2 / abs(L.z * V.z);
+}
+
+vec3 SampleDisney(Intersection intersection, PBRMaterial material,vec3 V, vec3 N, out vec3 L, out float pdf)
+{
+    pdf = 0.0f;
+    float r1 = Random();
+    float r2 = Random();
+
+    vec3 T, B;
+    Onb(N, T, B);
+
+    //Transform to local space
+    V = ToLocal(T, B, N, V);
+
+    vec3 Csheen, Cspec0;
+    float F0;
+    Csheen = EvalSheen(material, H, L);
+    Cspec0 = EvalSpecularTint(material, intersection.eta);
+
+    // Model weights
+    float dielectricBRDF = (1.0 - material.metallic) * (1.0 - material.specTrans);
+    float metalBRDF = material.metallic;
+    float glassBRDF = (1.0 - material.metallic) * material.specTrans;
+
+    //Lobe probabilities
+    float schlickWt = SchlickFresnel(V.z);
+    float diffusePr = dielectricBRDF * Luminance(material.baseColor);
+    float dielectricPr = dielectricBRDF * Luminance(mix(Cspec0, vec3(1.0), schlickWt));
+    float metalPr = metalBRDF * Luminance(mix(material.baseColor, vec3(1.0), schlickWt));
+    float glassPr = glassBRDF;
+    float clearCtPr = 0.25 * material.clearcoat;
+
+    // Normalize probabilities
+    float invTotalWt = 1.0 / (diffusePr + dielectricPr + metalPr + glassPr + clearCtPr);
+
+    diffusePr *= invTotalWt;
+    dielectricPr *= invTotalWt;
+    metalPr *= invTotalWt;
+    glassPr *= invTotalWt;
+    clearCtPr *= invTotalWt;
+
+    float cdf[5];
+    cdf[0] = diffusePr;
+    cdf[1] = cdf[0] + dielectricPr;
+    cdf[2] = cdf[1] + metalPr;
+    cdf[3] = cdf[2] + glassPr;
+    cdf[4] = cdf[3] + clearCtPr;
+
+
 }
 
 

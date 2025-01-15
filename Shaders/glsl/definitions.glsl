@@ -18,7 +18,8 @@ struct Intersection
 	vec3 position;
 	vec3 normal;
 	int backFaceFlag;
-	uint materialIndex;
+	uint material_ID;
+	float eta;
 	float t;
 };
 
