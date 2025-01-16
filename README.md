@@ -2,7 +2,15 @@
 
 Vulkan-based 3D Renderer(WIP)
 
+
+- Now it is an visual studio project only(I use github templates)
+- build on vs2022, you will need to install Vulkan SDK to make it operable.
+- CMAKE WIP, Once all feature finished will post images.
 In the future may add DirectX Support
+
+## Build
+This project use submodules so need to use 'git clone --recursive <project address>'
+or if you have already used git clone to clone this project, need to use 'git submodule update'
 
 ## References/Credits
 

@@ -259,7 +259,7 @@ float SmithG_GGX_Aniso(float NdotV, float VdotX, float VdotY, float ax, float ay
 vec2 CalculateAnisotropicParams(float roughness, float anisotropic)
 {
 	vec2 a_xy = vec2(0.0);
-	float aspect = Sqrtf(1.0f - 0.9f * anisotropic);
+	float aspect =sqrt(1.0f - 0.9f * anisotropic);
 
 	float roughness_square = roughness * roughness;
 
