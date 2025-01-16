@@ -66,7 +66,7 @@ bool HitTriangle(int triangle_index, Ray r,float tMin, float tMax,  inout Inters
         intersection.normal =multiplyMV(triangles[triangle_index].inverseTranspose, vec4(intersection.normal,0.0));
 
         intersection.t = hit.x;
-        intersection.materialIndex = t.materialIdx;
+        intersection.material_ID = t.materialIdx;
         return hit.x > tMin && hit.x < tMax;
     }
     return false;

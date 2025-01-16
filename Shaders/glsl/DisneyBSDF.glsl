@@ -147,7 +147,10 @@ vec3 EvalMicrofacetRefraction(in PBRMaterial mat, float eta, vec3 V, vec3 L, vec
     return pow(mat.baseColor, vec3(0.5)) * (1.0 - F) * D * G2 * abs(VDotH) * jacobian * eta2 / abs(L.z * V.z);
 }
 
-vec3 SampleDisney(Intersection intersection, PBRMaterial material,vec3 V, vec3 N, out vec3 L, out float pdf)
+//Implements from https://schuttejoe.github.io/post/disneybsdf/
+//I have tried to search why this is correct but I failed, including papers or textbooks
+//Extending Disney BRDF to BSDF does not mention how to sample different lobes
+vec3 SampleDisney(Intersection intersection, PBRMaterial material ,vec3 V, vec3 N, out vec3 L, out float pdf)
 {
     pdf = 0.0f;
     float r1 = Random();
@@ -164,6 +167,11 @@ vec3 SampleDisney(Intersection intersection, PBRMaterial material,vec3 V, vec3 N
     Csheen = EvalSheen(material, H, L);
     Cspec0 = EvalSpecularTint(material, intersection.eta);
 
+    //AnisotropicParams ax,ay
+    vec2 a_xy = CalculateAnisotropicParams(material.roughness, material.anisotropic);
+
+    //it ensures that the sampling process is proportional to the likelihood of each reflection type contributing to the final color.\
+    // Importance Sampling
     // Model weights
     float dielectricBRDF = (1.0 - material.metallic) * (1.0 - material.specTrans);
     float metalBRDF = material.metallic;
@@ -193,9 +201,149 @@ vec3 SampleDisney(Intersection intersection, PBRMaterial material,vec3 V, vec3 N
     cdf[3] = cdf[2] + glassPr;
     cdf[4] = cdf[3] + clearCtPr;
 
+    float r3 = Random();
+    if (r3 < cdf[0]) //Diffuse
+    {
+        L = CosineSampleHemisphere(r1, r2);
+    }
+    else if (r3 < cdf[2])
+    {
+        vec3 H = SampleGGXVNDF(V, a_xy, vec2(r1, r2));
+        float F = DielectricFresnel(abs(dot(V, H)), intersection.eta);
 
+        if (H.z < 0.0)
+            H = -H;
+
+        // Rescale random number for reuse
+        //Need to know the math behind it
+        r3 = (r3 - cdf[2]) / (cdf[3] - cdf[2]);
+
+        if (r3 < F)
+        {
+            L = normalize(reflect(-V, H));
+        }
+        else
+        {
+            L = normalize(refract(-V, H, intersection.eta));
+        }
+    }
+    else //clearcoat
+    {
+        vec3 H = SampleGTR1(material.clearcoatGloss, r1, r2);
+        if (H.z < 0.0)
+            H = -H;
+
+        L = normalize(reflect(-V, H));
+    }
+
+    L = ToWorld(T, B, N, L);
+    V = ToWorld(T, B, N, V);
+
+    return EvalDisney(intersection, V, N, L, pdf);
 }
 
+vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N, vec3 L, out float pdf)
+{
+    pdf = 0.0;
+    vec3 f = vec3(0.0);
 
+    vec3 T, B;
+    Onb(N, T, B);
+
+   // (NDotL = L.z; NDotV = V.z; NDotH = H.z)
+    V = ToLocal(T, B, N, V);
+    L = ToLocal(T, B, N, L);
+
+    vec3 H;
+    if (L.z > 0.0)
+        H = normalize(L + V);
+    else
+        H = normalize(L + V * intersection.eta);
+
+    if (H.z < 0.0)
+        H = -H;
+
+    //Tint colors
+    vec3 Csheen, Cspec0;
+    float F0;
+    Csheen = EvalSheen(material, H, L);
+    Cspec0 = EvalSpecularTint(material, intersection.eta);
+
+    //Model Weights
+    float dielectricWt = (1.0 - material.metallic) * (1.0 - material.specTrans);
+    float metalWt = material.metallic;
+    float glassWt = (1.0 - material.metallic) * material.specTrans;
+
+    // Lobe probabilities
+    float schlickWt = SchlickFresnel(V.z);
+
+    float diffusePr = dielectricWt * Luminance(material.baseColor);
+    float dielectricPr = dielectricWt * Luminance(mix(Cspec0, vec3(1.0), schlickWt));
+    float metalPr = metalWt * Luminance(mix(material.baseColor, vec3(1.0), schlickWt));
+    float glassPr = glassWt;
+    float clearCtPr = 0.25 * material.clearcoat;
+
+    //Normalize 
+    float invTotalWt = 1.0 / (diffusePr + dielectricPr + metalPr + glassPr + clearCtPr);
+
+    diffusePr *= invTotalWt;
+    dielectricPr *= invTotalWt;
+    metalPr *= invTotalWt;
+    glassPr *= invTotalWt;
+    clearCtPr *= invTotalWt;
+
+    bool reflect = L.z * V.z > 0;
+
+    float tmpPdf = 0.0;
+    float VDotH = abs(dot(V, H));
+
+    // Diffuse
+    if (diffusePr > 0.0 && reflect)
+    {
+        f += EvalDisneyDiffuse(material, Csheen, V, L, H, tmpPdf) * dielectricWt;
+        pdf += tmpPdf * diffPr;
+    }
+
+    //Dielectric Reflection
+    if (dielectricPr > 0.0 && reflect)
+    {
+        float F = (DielectricFresnel(VDotH, 1.0 / material.ior) - F0) / (1.0 - F0);
+        f += EvalMicrofacetReflection(material, V, L, H, mix(Cspec0, vec3(1.0), F), tmpPdf) * dielectricWt;
+        pdf += tmpPdf * dielectricPr;
+    }
+    //Metallic
+    if (metalPr > 0.0 && reflect)
+    {
+        vec3 F = mix(material.baseColor, vec3(1.0), SchlickFresnel(VDotH));
+        f += EvalMicrofacetReflection(material, V,L,H,F,tmpPdf)*metalWt;
+        pdf += tmpPdf * metalPr;
+    }
+
+    //Glass Specular
+    if (glassPr > 0.0)
+    {
+        // Dielectric fresnel (achromatic)
+        float F = DielectricFresnel(VDotH, intersection.eta);
+
+        if (reflect)
+        {
+            f += EvalMicrofacetReflection(material, V, L, H, vec3(F), tmpPdf) * glassWt;
+            pdf += tmpPdf * glassPr * F;
+        }
+        else
+        {
+            f += EvalMicrofacetRefraction(material, intersection.eta, V, L, H, vec3(F), tmpPdf) * glassWt;
+            pdf += tmpPdf * glassPr * (1.0 - F);
+        }
+    }
+
+    // Clearcoat
+    if (clearCtPr > 0.0 && reflect)
+    {
+        f += EvalClearcoat(state.mat, V, L, H, tmpPdf) * 0.25 * state.mat.clearcoat;
+        pdf += tmpPdf * clearCtPr;
+    }
+    return f * abs(L.z);
+}
 
 

@@ -181,6 +181,21 @@ float GTR1(float NdotH, float a)
 	return (a2 - 1) / (PI * log(a2) * t);
 }
 
+vec3 ImportanceSampleGTR1(float rgh, float r1, float r2)
+{
+	float a = max(0.001, rgh);
+	float a2 = a * a;
+
+	float phi = r1 * TWO_PI;
+
+	float cosTheta = sqrt((1.0 - pow(a2, 1.0 - r1)) / (1.0 - a2));
+	float sinTheta = clamp(sqrt(1.0 - (cosTheta * cosTheta)), 0.0, 1.0);
+	float sinPhi = sin(phi);
+	float cosPhi = cos(phi);
+
+	return vec3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+}
+
 //This is the original version in disney bsdf
 float SmithGGX(float NdotV, float alphaG)
 {
@@ -196,6 +211,20 @@ float GTR2(float NdotH, float a)
 	return a2 / (PI * t * t);
 }
 
+vec3 ImportanceSampleGTR2(float rgh, float r1, float r2)
+{
+	float a = max(0.001, rgh);
+
+	float phi = r1 * TWO_PI;
+
+	float cosTheta = sqrt((1.0 - r2) / (1.0 + (a * a - 1.0) * r2));
+	float sinTheta = clamp(sqrt(1.0 - (cosTheta * cosTheta)), 0.0, 1.0);
+	float sinPhi = sin(phi);
+	float cosPhi = cos(phi);
+
+	return vec3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+}
+
 float GTR2Aniso(float NdotH, float HdotX, float HdotY, float ax, float ay)
 {
 	float a = HdotX / ax;
@@ -204,6 +233,18 @@ float GTR2Aniso(float NdotH, float HdotX, float HdotY, float ax, float ay)
 	return 1.0 / (PI * ax * ay * c * c);
 	//return 1 / (PI * ax * ay * sqr(sqr(HdotX / ax) + sqr(HdotY / ay) + NdotH * NdotH));
 }
+
+vec3 ImportanceSampleGTR2_Aniso(float ax, float ay, float r1, float r2)
+{
+	float phi = r1 * TWO_PI;
+
+	float sinPhi = ay * sin(phi);
+	float cosPhi = ax * cos(phi);
+	float tanTheta = sqrt(r2 / (1 - r2));
+
+	return vec3(tanTheta * cosPhi, tanTheta * sinPhi, 1.0);
+}
+
 
 float SmithG_GGX_Aniso(float NdotV, float VdotX, float VdotY, float ax, float ay)
 {
@@ -215,17 +256,30 @@ float SmithG_GGX_Aniso(float NdotV, float VdotX, float VdotY, float ax, float ay
 	//return 1 / (NdotV + sqrt(sqr(VdotX * ax) + sqr(VdotY * ay) + sqr(NdotV)));
 }
 
+vec2 CalculateAnisotropicParams(float roughness, float anisotropic)
+{
+	vec2 a_xy = vec2(0.0);
+	float aspect = Sqrtf(1.0f - 0.9f * anisotropic);
+
+	float roughness_square = roughness * roughness;
+
+	a_xy.x = max(0.001f, roughness_square / aspect);
+	a_xy.y = max(0.001f, roughness_square * aspect);
+	return a_xy;
+}
+
 // Samples a microfacet normal for the GGX distribution using VNDF method.
 // Source: "Sampling the GGX Distribution of Visible Normals" by Heitz
 
-vec3 sampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 u)
+vec3 SampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 u)
 {
 	vec3 Vh = normalize(vec3(alpha2D.x * Ve.x, alpha2D.y * Ve.y, Ve.z));
 	float lensq = Vh.x * Vh.x + Vh.y * Vh.y;
 	vec3 T1 = lensq > 0.0f ? vec3(-Vh.y, Vh.x, 0.0f) * inversesqrt(lensq) : vec3(1, 0, 0);
 	vec3 T2 = cross(Vh, T1);
-	float r = sqrt(r1);
-	float phi = 2.0 * PI * r2;
+
+	float r = sqrt(u.x);
+	float phi = 2.0 * PI * u.y;
 	float t1 = r * cos(phi);
 	float t2 = r * sin(phi);
 	float s = 0.5 * (1.0 + Vh.z);
@@ -233,7 +287,7 @@ vec3 sampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 u)
 
 	vec3 Nh = t1 * T1 + t2 * T2 + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * Vh;
 
-	return normalize(vec3(ax * Nh.x, ay * Nh.y, max(0.0, Nh.z)));
+	return normalize(vec3(alpha2D.x * Nh.x, alpha2D.y * Nh.y, max(0.0, Nh.z)));
 }
 
 vec3 mon2lin(vec3 x)
