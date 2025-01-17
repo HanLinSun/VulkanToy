@@ -170,9 +170,6 @@ struct BVHNodeCPU
 		}
 
 		node.axis = splitAxis;
-
-
-
 		return node;
 	}
 

@@ -11,11 +11,10 @@
 8. [https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf] Microfacet Models for Refraction through Rough Surfaces
 9. [https://boksajak.github.io/files/CrashCourseBRDF.pdf] Sample Disney BRDF
 **/
-
+ 
 #include "sample.glsl"
 #include "definitions.glsl"
 
-vec3 DisneyEval(Intersection intersection, vec3 V, vec3 N, vec3 L, out float pdf);
 
 vec3 ToWorld(vec3 X, vec3 Y, vec3 Z, vec3 V)
 {
@@ -340,7 +339,7 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     // Clearcoat
     if (clearCtPr > 0.0 && reflect)
     {
-        f += EvalClearcoat(state.mat, V, L, H, tmpPdf) * 0.25 * state.mat.clearcoat;
+        f += EvalDisneyClearcoat(material, V, L, H, tmpPdf) * 0.25 * material.clearcoat;
         pdf += tmpPdf * clearCtPr;
     }
     return f * abs(L.z);

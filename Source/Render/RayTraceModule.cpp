@@ -350,8 +350,8 @@ namespace Renderer
         m_rayTraceUniform.focalDistance = cam->GetFocalDistance();
         m_rayTraceUniform.aperture = cam->GetAspectRatio();
         m_rayTraceUniform.lightNums = 2;
-        m_rayTraceUniform.samplePerPixel = 10;
-        m_rayTraceUniform.maxRecursiveDepth =10;
+        m_rayTraceUniform.samplePerPixel = 5;
+        m_rayTraceUniform.maxRecursiveDepth =5;
         m_rayTraceUniform.triangleNums = m_scene->GetTriangles().size();
         m_rayTraceUniform.sphereNums = m_scene->GetSpheres().size();
                 

@@ -1,11 +1,12 @@
 # VulkanToy
 
-Vulkan-based 3D Renderer(WIP)
+Vulkan-based 3D Renderer
 
 
 - Now it is an visual studio project only(I use github templates)
 - build on vs2022, you will need to install Vulkan SDK to make it operable.
 - CMAKE WIP, Once all feature finished will post images.
+- Right now have a synchronizition error.（validation error）
 In the future may add DirectX Support
 
 ## Build

@@ -177,13 +177,14 @@ namespace Renderer
         ImGui::SetWindowPos(ImVec2(20.f , 20.f ), ImGuiCond_FirstUseEver);
         ImGui::SetWindowSize(ImVec2(300.f , 300.f), ImGuiCond_Always);
 
-        ImGui::Begin("Debug Window");
-        ImGui::TextUnformatted("Debug Window");
+        ImGui::Begin("Debug Panal");
+        float fps = 1.0f / ImGui::GetIO().DeltaTime;
+        ImGui::Text("Current FPS: %.1f",fps);
 
         ImGui::End();
         
         // Debug window
-      //  ImGui::ShowDemoWindow();
+       // ImGui::ShowDemoWindow();
         // Render to generate draw buffers
         ImGui::Render();
         if (Update() || m_updated)
