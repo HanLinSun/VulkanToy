@@ -2,6 +2,9 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
+
+
+
 struct RayTraceUniformData
 {
 	// Compute shader uniform block object
@@ -84,16 +87,122 @@ struct LightGPU
 	alignas(4) int type;
 };
 
-
-struct Boundbox
+struct Primitive
 {
-	glm::vec3 min;
-	glm::vec3 max;
+	Triangle triangle;
+	Sphere sphere;
+	int type; //0 is triangle, 1 is sphere
+};
 
-	glm::vec3 Centroid()
-	{
-		return 0.5f * min + 0.5f * max;
+
+
+class Boundbox
+{
+public:
+
+	Boundbox() {
+		float minNum = std::numeric_limits<float>::lowest();
+		float maxNum = std::numeric_limits<float>::max();
+		pMin = glm::vec3(maxNum, maxNum, maxNum);
+		pMax = glm::vec3(minNum, minNum, minNum);
 	}
+
+	Boundbox(const glm::vec3& p1, const glm::vec3& p2)
+		: pMin(std::min(p1.x, p2.x), std::min(p1.y, p2.y),
+			std::min(p1.z, p2.z)),
+		pMax(std::max(p1.x, p2.x), std::max(p1.y, p2.y),
+			std::max(p1.z, p2.z)) {
+	}
+
+	// Copy constructor
+	Boundbox(const Boundbox& other) = default;
+
+	// Move constructor
+	Boundbox(Boundbox&& other) noexcept = default;
+
+	// Copy assignment
+	Boundbox& operator=(Boundbox&& other) noexcept {
+		if (this != &other) {
+			this->pMin = std::move(other.pMin);
+			this->pMax = std::move(other.pMax);
+		}
+		return *this;
+	}
+
+	glm::vec3 Diagonal() const
+	{
+		return pMax - pMin;
+	}
+	glm::vec3 Offset(const glm::vec3& point) const
+	{
+		glm::vec3 o = point - pMin;
+		if (pMax.x > pMin.x) o.x /= pMax.x - pMin.x;
+		if (pMax.y > pMin.y) o.y /= pMax.y - pMin.y;
+		if (pMax.z > pMin.z) o.z /= pMax.z - pMin.z;
+		return o;
+	}
+
+
+	float SurfaceArea() const
+	{
+		glm::vec3 d = Diagonal();
+		return 2 * (d.x * d.y + d.x * d.z + d.y * d.z);
+	}
+
+	//X,y,z get the longest
+	int MaxExtent()
+	{
+		glm::vec3 d = Diagonal();
+		if (d.x > d.y && d.x > d.z) return 0;
+		else if (d.y > d.z) return 1;
+		else return 2;
+	}
+
+	// Copy assignment operator
+	Boundbox& operator=(const Boundbox& other) {
+		if (this != &other) {
+			this->pMin = other.pMin;
+			this->pMax = other.pMax;
+		}
+		return *this;
+	}
+
+	bool operator==(const Boundbox& b) const {
+		return b.pMin == pMin && b.pMax == pMax;
+	}
+	bool operator!=(const Boundbox& b) const {
+		return b.pMin != pMin || b.pMax != pMax;
+	}
+
+	glm::vec3 pMin;
+	glm::vec3 pMax;
+};
+
+struct BVHObject
+{
+	Boundbox boundbox;
+	glm::vec3 centroid;
+	uint32_t triangle_index = -1;
+	uint32_t sphere_index = -1;
+	void ComputeCentroid()
+	{
+	   centroid = 0.5f * (boundbox.pMin + boundbox.pMax);
+	}
+};
+
+
+struct LBVHTreelet {
+	int startIndex, nPrimitives;
+	BVHBuildNode* buildNodes;
+};
+
+struct LinearBVHNode {
+	Boundbox bounds;
+	int primitivesOffset;   // leaf
+	int secondChildOffset;  // interior
+	uint16_t nPrimitives;  // 0 -> interior node
+	uint8_t axis;          // interior node: xyz
+	uint8_t pad[1];        // ensure 32 byte total size
 };
 
 // Node in a non recursive BVH for use on GPU.
@@ -113,65 +222,5 @@ struct BVHNodeGPU
 
 };
 
-// Utility structure to keep track of the initial triangle and sphere index in the triangles array while sorting.
-struct BVHObject
-{
-	Boundbox boundbox;
-	glm::vec3 centroid;
-	uint32_t triangle_index=-1;
-	uint32_t sphere_index = -1;
 
-	void ComputeCentroid()
-	{
-		centroid = 0.5f * (boundbox.min + boundbox.max);
-	}
-};
-
-struct BVHNodeCPU
-{
-	Boundbox boundingBox;
-
-	// index refers to the index in the array of bvh nodes. Used for sorting a flattened Bvh.
-	int index = -1;
-
-	int leftNodeIndex=-2;
-	int rightNodeIndex=-2;
-
-	int splitAxis=0;
-
-	int triangleIndex;
-	int sphereIndex;
-
-	std::vector<BVHObject> objects;
-
-	
-
-	BVHNodeGPU GetBVHGPUModel()
-	{
-		//bool leaf = leftNodeIndex == -1 && rightNodeIndex == -1;
-		BVHNodeGPU node;
-		node.min = boundingBox.min;
-		node.max =boundingBox.max;
-
-		node.leftNodeIndex = leftNodeIndex;
-		node.rightNodeIndex = rightNodeIndex;
-
-		if (leftNodeIndex == -1 && rightNodeIndex == -1)
-		{
-			node.isLeaf = 1;
-			node.triangleIndex = objects[0].triangle_index;
-			node.sphereIndex = objects[0].sphere_index;
-		}
-		else
-		{
-			node.isLeaf = 0;
-			node.triangleIndex = -1;
-			node.sphereIndex = -1;
-		}
-
-		node.axis = splitAxis;
-		return node;
-	}
-
-};
 

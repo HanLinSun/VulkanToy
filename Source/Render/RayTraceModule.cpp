@@ -172,13 +172,13 @@ namespace Renderer
 
         m_scene->GenerateBVHObjectArray();
         std::vector<BVHObject> bvhObjects = m_scene->GetBVHObjectArray();
-        std::vector<BVHNodeGPU> bvhNodes = BVHBuildTool::BuildBVHGPUNode(bvhObjects);
-        //Binding =7,BVHNodes
-        if (bvhNodes.size() != 0)
-        {
-            BufferUtils::CreateGPUBuffer<BVHNodeGPU>(m_device.get(), bvhNodes.data(), bvhNodes.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_BVHNodeGPUBuffer);
-            isBVHNodeBufferAlloc = true;
-        }
+        //std::vector<BVHNodeGPU> bvhNodes = BVHBuildTool::BuildBVHGPUNode(bvhObjects);
+        ////Binding =7,BVHNodes
+        //if (bvhNodes.size() != 0)
+        //{
+        //    BufferUtils::CreateGPUBuffer<BVHNodeGPU>(m_device.get(), bvhNodes.data(), bvhNodes.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_BVHNodeGPUBuffer);
+        //    isBVHNodeBufferAlloc = true;
+        //}
             
     }
 

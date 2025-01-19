@@ -7,7 +7,9 @@
 #include <BVH.h>
 #include <GPUModel.h>
 #include <ModelFileLoader.h>
+#include <BVH.h>
 #include <fstream>
+using namespace BVHBuildTool;
 
 namespace Renderer
 {
@@ -56,8 +58,8 @@ namespace Renderer
 
 		void InitTestSpheresScene_1();
 
-		void GenerateBVHObjectArray();
-		std::vector<BVHObject> GetBVHObjectArray();
+		std::vector<BVHPrimitiveInfo> GenerateBVHObjectArray();
+		std::vector<BVHPrimitiveInfo> GetBVHPrimitiveArray();
 
 		std::ifstream fp_in;
 
