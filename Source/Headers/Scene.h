@@ -41,14 +41,10 @@ namespace Renderer
 		std::vector<std::shared_ptr<Material>> GetMaterials();
 		int GetMaterialSize() const;
 
-		std::vector<Triangle> GetTriangles();
-		void AddTriangle(Triangle& triangle);
+		std::vector<Primitive> GetPrimitives();
+		void AddPrimitive(Primitive& primitive);
+		void GetPrimitivesFromModelGroups();
 
-		void GetTriangleFromModelGroups();
-
-		void AddSphere(Sphere sphere);
-		std::vector<Sphere> GetSpheres();
-		int GetSphereSize() const;
 
 		void AddLight(LightGPU light);
 		std::vector<LightGPU> GetLights();
@@ -71,9 +67,7 @@ namespace Renderer
 		std::vector<BVHObject> m_bvhObjects;
 
 		std::vector<std::shared_ptr<TestMaterial>> m_testMaterials;
-		
-		std::vector<Sphere> m_spheres;
-		std::vector<Triangle> m_triangles;
+		std::vector<Primitive> m_primitives;
 		std::vector<LightGPU> m_lights;
 
 		std::shared_ptr<Camera> m_Camera;

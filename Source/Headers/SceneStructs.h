@@ -61,7 +61,7 @@ namespace Renderer
 		std::vector<Vertex> m_vertices;
 		std::vector<uint32_t> m_indices;
 
-		std::vector<Triangle> m_triangles;
+		std::vector<Primitive> m_primitives;
 		uint32_t m_materialID;
 	};
 

@@ -13,8 +13,7 @@ struct RayTraceUniformData
 
 	//For tracing scene
 	alignas(4) int lightNums;
-	alignas(4) int triangleNums;
-	alignas(4) int sphereNums;
+	alignas(4) int primNums;
 	alignas(4) int samplePerPixel;
 	alignas(4) int maxRecursiveDepth;
 	alignas(4) glm::float32_t focalDistance;
@@ -62,21 +61,12 @@ struct Triangle
 	alignas(16) glm::vec3 normal_0;
 	alignas(16) glm::vec3 normal_1;
 	alignas(16) glm::vec3 normal_2;
-
-	alignas(16) glm::mat4 transformMatrix;
-	alignas(16) glm::mat4 inverseTransform;
-	alignas(16) glm::mat4 inverseTranspose;
-	alignas(4) uint32_t material_ID;
 };
 
 
 struct Sphere
 {
 	alignas(16) glm::vec4 s; // x,y,z is position, w is radius
-	alignas(16) glm::mat4 transformMatrix;
-	alignas(16) glm::mat4 inverseTransform;
-	alignas(16) glm::mat4 inverseTranspose;
-	alignas(4) uint32_t material_ID;
 };
 
 struct LightGPU
@@ -91,7 +81,11 @@ struct Primitive
 {
 	Triangle triangle;
 	Sphere sphere;
-	int type; //0 is triangle, 1 is sphere
+	alignas(16) glm::mat4 transformMatrix;
+	alignas(16) glm::mat4 inverseTransform;
+	alignas(16) glm::mat4 inverseTranspose;
+	alignas(4) uint32_t material_ID;
+	alignas(4) int type; //0 is triangle, 1 is sphere
 };
 
 

@@ -13,9 +13,9 @@ layout(binding = 1) uniform UniformBufferObject{
     RayTraceUniformBuffer ubo;
 };
 
-layout(binding = 2) readonly buffer TriangleBufferObject
+layout(binding = 2) readonly buffer PrimitiveBufferObject
 {
-    Triangle[] triangles;
+    Primitive[] primitives;
 };
 
 layout(binding = 3) readonly buffer PBRMaterialBufferObject
@@ -23,18 +23,14 @@ layout(binding = 3) readonly buffer PBRMaterialBufferObject
     PBRMaterial[] Materials;
 };
 
-layout(binding = 4) readonly buffer SpheresBufferObject {
-    Sphere[] spheres;
-};
+layout(binding = 4) uniform sampler2D[] materialTextures;
 
-layout(binding = 5) uniform sampler2D[] materialTextures;
-
-layout(binding = 6) readonly buffer LightBufferObject
+layout(binding = 5) readonly buffer LightBufferObject
 {
     Light[] lights;
 };
 
-layout(std430, binding = 7) readonly buffer BVHBufferObject {
+layout(std430, binding = 6) readonly buffer BVHBufferObject {
     BVHNode[] bvhNodes;
  };
 
@@ -45,12 +41,12 @@ vec3 RayAt(Ray r, double t)
 }
 
 
-bool HitTriangle(int triangle_index, Ray r,float tMin, float tMax,  inout Intersection intersection)
+bool HitTriangle(Primitive prim, Ray r,float tMin, float tMax,  inout Intersection intersection)
 {
-    vec3 ray_origin = multiplyMV( triangles[triangle_index].inverseTransform, vec4(r.origin,1.0f));
-    vec3 ray_direction = multiplyMV( triangles[triangle_index].inverseTransform, vec4(r.direction ,0.0f));
+    vec3 ray_origin = multiplyMV(prim.inverseTransform, vec4(r.origin,1.0f));
+    vec3 ray_direction = multiplyMV(prim.inverseTransform, vec4(r.direction ,0.0f));
 
-    Triangle t = triangles[triangle_index];
+    Triangle t = prim.triangle;
     vec3 n = vec3(0, 0, 0);
     vec3 hit = TriangleIntersection(ray_origin, ray_direction, t, n);
     if (!(hit.y < 0.0 || hit.y>1.0 || hit.z < 0.0 || (hit.y + hit.z)>1.0))
@@ -62,8 +58,8 @@ bool HitTriangle(int triangle_index, Ray r,float tMin, float tMax,  inout Inters
         intersection.position += intersection.normal * 0.0001;
 
         //back to world space
-        intersection.position =multiplyMV(triangles[triangle_index].transform , vec4( intersection.position,1.0));
-        intersection.normal =multiplyMV(triangles[triangle_index].inverseTranspose, vec4(intersection.normal,0.0));
+        intersection.position =multiplyMV( prim.transform , vec4( intersection.position,1.0));
+        intersection.normal =multiplyMV( prim.inverseTranspose, vec4(intersection.normal,0.0));
 
         intersection.t = hit.x;
         intersection.material_ID = t.materialIdx;
@@ -82,10 +78,10 @@ bool HitBoundingBox(Ray r, vec3 boxMin, vec3 boxMax)
     return (t2.x>=t1.x) &&(t2.y>=t1.y) &&(t2.z>=t1.z);
 }
 
-bool HitSphere(int sphere_index, Ray r, float tMin, float tMax, inout Intersection intersection)
+bool HitSphere(Primitive prim, Ray r, float tMin, float tMax, inout Intersection intersection)
 {
-    vec3 center = spheres[sphere_index].sphere.xyz;
-    float radius = spheres[sphere_index].sphere.w;
+    vec3 center = prim.sphere.xyz;
+    float radius = prim.sphere.w;
     vec3 oc = center - r.origin;
     float a = dot(r.direction, r.direction);
     float half_b = dot(r.direction, oc);
@@ -116,11 +112,10 @@ bool HitSphere(int sphere_index, Ray r, float tMin, float tMax, inout Intersecti
 }
 
 
-//Based on PBRT - BVH intersect
 bool HitBVHNode(Ray r , inout Intersection intersection)
 {
     float tMin = 0.001;
-    float tMax = 10000;
+    float tMax = 1000;
     int toVisitOffset = 0;
     int currentNodeIndex = 0;
     int nodesToVisit[64];
@@ -190,8 +185,8 @@ bool HitScene(Ray r, inout Intersection intersection) {
     bool hitAnything = false;
     float closestIntersection = tMax;
 
-        for (int i = 0; i<ubo.numTriangles; i++) {
-        if (HitTriangle(i, r, tMin, closestIntersection, temp_intersection)) {
+        for (int i = 0; i<ubo.numPrimitives; i++) {
+        if (HitTriangle(primitives[i], r, tMin, closestIntersection, temp_intersection)) {
             hitAnything = true;
             closestIntersection = temp_intersection.t;
             intersection =  temp_intersection;
@@ -223,8 +218,8 @@ vec3 TraceRay(Ray r)
 
     for (int i = 0; i < ubo.maxDepth; i++)
     {
-     //  if (HitScene(currentRay, intersection))
-       if(HitBVHNode(currentRay,intersection))
+      if (HitScene(currentRay, intersection))
+     //  if(HitBVHNode(currentRay,intersection))
         {
             vec3 direction = intersection.normal + RandomInUnitSphere();
             currentRay.origin = intersection.position;

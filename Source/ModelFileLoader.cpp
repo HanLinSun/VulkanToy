@@ -209,20 +209,20 @@ namespace Renderer
 				}
 				index_offset += fv;
 				// per-face material
-				Triangle triangle;
-				triangle.position_0 = triVert[0].position;
-				triangle.position_1 = triVert[1].position;
-				triangle.position_2 = triVert[2].position;
+				Primitive primitive;
+				primitive.triangle.position_0 = triVert[0].position;
+				primitive.triangle.position_1 = triVert[1].position;
+				primitive.triangle.position_2 = triVert[2].position;
 
-				triangle.normal_0 = triVert[0].normal;
-				triangle.normal_1= triVert[1].normal;
-				triangle.normal_2 = triVert[2].normal;
+				primitive.triangle.normal_0 = triVert[0].normal;
+				primitive.triangle.normal_1= triVert[1].normal;
+				primitive.triangle.normal_2 = triVert[2].normal;
 				//shapes[s].mesh.material_ids[f];
-				triangle.material_ID = shapes[s].mesh.material_ids[f];
-				triangle.transformMatrix = defaultTransformMat;
-				triangle.inverseTransform = defaultInverseTransformMat;
-				triangle.inverseTranspose = defaultInverseTransposeMat;
-				mesh.m_triangles.push_back(triangle);
+				primitive.material_ID = shapes[s].mesh.material_ids[f];
+				primitive.transformMatrix = defaultTransformMat;
+				primitive.inverseTransform = defaultInverseTransformMat;
+				primitive.inverseTranspose = defaultInverseTransposeMat;
+				mesh.m_primitives.push_back(primitive);
 
 				//scene->AddTriangle(triangle);
 

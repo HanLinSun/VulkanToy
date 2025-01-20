@@ -63,8 +63,8 @@ namespace Renderer
 		SetModelTransformMatrix();
 	}
 
-	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,std::shared_ptr<Material> mat, const std::vector<Triangle>& m_triangles)
-		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(mat),m_triangles(m_triangles)
+	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,std::shared_ptr<Material> mat, const std::vector<Primitive>& m_primitives)
+		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(mat),m_primitives(m_primitives)
 	{
 		if (m_vertices.size() > 0)
 		{
@@ -96,35 +96,35 @@ namespace Renderer
 		}
 	}
 
-	void Model::UpdateTriangleTransformMatrix(glm::mat4& transformMat)
+	void Model::UpdatePrimitiveTransformMatrix(glm::mat4& transformMat)
 	{
 		glm::mat4 inverseTransform =glm::inverse(transformMat);
 		glm::mat4 inverseTranspose = glm::inverseTranspose(transformMat);
-		for (auto triangle : m_triangles)
+		for (auto primitive : m_primitives)
 		{
-			triangle.transformMatrix = transformMat;
-			triangle.inverseTransform = inverseTransform;
-			triangle.inverseTranspose = inverseTranspose;
+			primitive.transformMatrix = transformMat;
+			primitive.inverseTransform = inverseTransform;
+			primitive.inverseTranspose = inverseTranspose;
 		}
 	}
 
-	std::vector<Triangle> ModelGroup::GetAllModelTriangles()
+	std::vector<Primitive> ModelGroup::GetAllModelPrimitives()
 	{
-		std::vector<Triangle> triangleVector(0);
+		std::vector<Primitive> primitiveVector(0);
 		for (auto& model : m_models)
 		{
-			const auto& triangles = model->GetTriangles(); // Get the vector of triangles
-			triangleVector.insert(triangleVector.end(), triangles.begin(), triangles.end());
+			const auto& primitives = model->GetPrimitives(); // Get the vector of triangles
+			primitiveVector.insert(primitiveVector.end(), primitives.begin(), primitives.end());
 		}
-		return triangleVector;
+		return primitiveVector;
 	}
 
-	int ModelGroup::GetAllTriangleSize()
+	int ModelGroup::GetAllPrimitivesSize()
 	{
 		int triangleSize = 0;
 		for (auto& model : m_models)
 		{
-			triangleSize += model->GetTriangles().size();
+			triangleSize += model->GetPrimitives().size();
 		}
 		return triangleSize;
 	}
@@ -134,7 +134,7 @@ namespace Renderer
 		m_transformMatrix = transformMat;
 		m_modelBufferObject.transformMatrix=transformMat;
 
-		UpdateTriangleTransformMatrix(m_transformMatrix);
+		UpdatePrimitiveTransformMatrix(m_transformMatrix);
 		//Update uniform buffer
 		memcpy(m_mappedData, &m_modelBufferObject, sizeof(ModelBufferObject));
 	}
@@ -169,9 +169,9 @@ namespace Renderer
 		return m_vertexBuffer;
 	}
 
-	std::vector<Triangle> Model::GetTriangles()
+	std::vector<Primitive> Model::GetPrimitives()
 	{
-		return m_triangles;
+		return m_primitives;
 	}
 
 	const std::vector<uint32_t>& Model::GetIndices() const {

@@ -58,7 +58,7 @@ namespace Renderer
 			}
 			scene->GetSceneModelGroupsRaw().back()->buildTransformationMatrix(translation, rotation, scale);
 			scene->GetSceneModelGroupsRaw().back()->SetModelTransformMatrix();
-			scene->GetTriangleFromModelGroups();
+			scene->GetPrimitivesFromModelGroups();
 		}
 		else if (strcmp(type.c_str(), "Sphere") == 0)
 		{
@@ -76,9 +76,9 @@ namespace Renderer
 				{
 					radius = atof(tokens[1].c_str());
 				}
-				Sphere sphere;
-				sphere.s = glm::vec4(position.x, position.y, position.z, radius);
-				scene->AddSphere(sphere);
+				Primitive primitive;
+				primitive.sphere.s = glm::vec4(position.x, position.y, position.z, radius);
+				scene->AddPrimitive(primitive);
 				SafeGetline(scene->fp_in, line);
 			}
 		}
@@ -180,7 +180,7 @@ namespace Renderer
 				std::unique_ptr<ModelGroup> modelGroup = std::make_unique<ModelGroup>();
 				for (auto& mesh : objFileloader->GetMeshes())
 				{
-					Model* model=new Model(m_device.get(), m_commandPool, mesh.m_vertices, mesh.m_indices, mats[mesh.m_materialID],mesh.m_triangles);
+					Model* model=new Model(m_device.get(), m_commandPool, mesh.m_vertices, mesh.m_indices, mats[mesh.m_materialID],mesh.m_primitives);
 					modelGroup->AddModel(model);
 				}
 				scene->AddModelGroup(std::move(modelGroup));

@@ -136,11 +136,11 @@ namespace Renderer
 
     void RayTraceModule::CreateRenderStorageBuffer()
     {
-        //Binding =2, triangles
-        std::vector<Triangle> scene_triangles = m_scene->GetTriangles();
+        //Binding =2, Primitives
+        std::vector<Primitive> scene_triangles = m_scene->GetPrimitives();
         if (scene_triangles.size() != 0)
         {
-            BufferUtils::CreateGPUBuffer<Triangle>(m_device.get(), scene_triangles.data(), scene_triangles.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_trianglesGPUBuffer);
+            BufferUtils::CreateGPUBuffer<Primitive>(m_device.get(), scene_triangles.data(), scene_triangles.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_trianglesGPUBuffer);
             isTriangleGPUBufferAlloc = true;
         }
     
@@ -151,18 +151,10 @@ namespace Renderer
             BufferUtils::CreateGPUBuffer<PBRMaterialData>(m_device.get(), scene_material.data(), scene_material.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_materialGPUBuffer);
             isMaterialGPUBufferAlloc = true;
         }
-      
-        //Binding =4, Spheres
-        std::vector<Sphere> scene_spheres = m_scene->GetSpheres();
-        if (scene_spheres.size() != 0)
-        {
-            BufferUtils::CreateGPUBuffer<Sphere>(m_device.get(), scene_spheres.data(), scene_spheres.size(), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, &m_sphereGPUBuffer);
-            isSphereGPUBufferAlloc = true;
-        }
 
-        //Binding =5, Textures, already have texture arrays. 
+        //Binding =4, Textures, already have texture arrays. 
 
-        //Binding =6, Lights
+        //Binding =5, Lights
         std::vector<LightGPU> scene_lights = m_scene->GetLights();
         if (scene_lights.size() != 0)
         {
@@ -170,8 +162,8 @@ namespace Renderer
             isLightGPUBufferAlloc = true;
         }
 
-        m_scene->GenerateBVHObjectArray();
-        std::vector<BVHObject> bvhObjects = m_scene->GetBVHObjectArray();
+        //m_scene->GenerateBVHObjectArray();
+        //std::vector<BVHObject> bvhObjects = m_scene->GetBVHObjectArray();
         //std::vector<BVHNodeGPU> bvhNodes = BVHBuildTool::BuildBVHGPUNode(bvhObjects);
         ////Binding =7,BVHNodes
         //if (bvhNodes.size() != 0)
@@ -352,8 +344,7 @@ namespace Renderer
         m_rayTraceUniform.lightNums = 2;
         m_rayTraceUniform.samplePerPixel = 5;
         m_rayTraceUniform.maxRecursiveDepth =5;
-        m_rayTraceUniform.triangleNums = m_scene->GetTriangles().size();
-        m_rayTraceUniform.sphereNums = m_scene->GetSpheres().size();
+        m_rayTraceUniform.primNums = m_scene->GetPrimitives().size();
                 
         check_vk_result(m_rayTraceResources.uniformBuffer.Map());
         memcpy(m_rayTraceResources.uniformBuffer.mapped, &m_rayTraceUniform, sizeof(RayTraceUniformData));

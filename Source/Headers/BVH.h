@@ -69,13 +69,8 @@ namespace BVHBuildTool
 			++interiorNodes;
 		}
 
-
 	};
 
-	struct LBVHTreelet {
-		int startIndex, nPrimitives;
-		BVHBuildNode* buildNodes;
-	};
 
 	struct LinearBVHNode {
 		Boundbox bounds;
@@ -83,8 +78,19 @@ namespace BVHBuildTool
 		int secondChildOffset;  // interior
 		uint16_t nPrimitives;  // 0 -> interior node
 		uint8_t axis;          // interior node: xyz
-		uint8_t pad[1];        // ensure 32 byte total size
+		//uint8_t pad[1];        // ensure 32 byte total size
 	};
+
+	struct LinearBVHNodeGPU
+	{
+		glm::vec3 pMin;
+		glm::vec3 pMax;
+		int primitivesOffset;
+		int secondChildOffset;
+		uint16_t nPrimitives;
+		uint8_t axis;
+	};
+
 	
 	class BVHAccel
 	{
@@ -99,7 +105,5 @@ namespace BVHBuildTool
 		std::vector<std::shared_ptr<Primitive>> primitives;
 		std::vector<std::shared_ptr<LinearBVHNode>> LBVHNodes;
 	};
-
-
 
 }

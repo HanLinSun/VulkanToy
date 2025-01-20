@@ -63,13 +63,6 @@ struct PBRMaterial
 
 };
 
-struct NormalMaterial
-{
-	uint materialType;
-	vec3 albedo;
-	double refraction_index;
-};
-
 struct BVHNode
 {
 	vec3 min;
@@ -92,19 +85,22 @@ struct Triangle
 	vec3 n1;
 	vec3 n2;
 
-	mat4 transform;
-	mat4 inverseTransform;
-	mat4 inverseTranspose;
-	uint materialIdx;
 };
 
 struct Sphere
 {
 	vec4 sphere; //x,y,z is center, w is radius
-	mat4 transformMatrix;
-	mat4 inverseTransformMatrix;
+};
+
+struct Primitive
+{
+	Triangle triangle;
+	Sphere sphere;
+	mat4 transform;
+	mat4 inverseTransform;
 	mat4 inverseTranspose;
 	uint materialIdx;
+	uint type;
 };
 
 struct Ray
@@ -130,8 +126,7 @@ struct RayTraceUniformBuffer
 	mat4 viewMatrix;
 
 	uint lightNums;
-	uint numTriangles;
-	uint numSpheres;
+	uint numPrimitives;
 	uint spp;
 	uint maxDepth;
 	float focalDistance;

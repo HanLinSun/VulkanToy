@@ -119,11 +119,6 @@ namespace Renderer
 		return m_pbrMats;
 	}
 
-	std::vector<Sphere> Scene::GetSpheres()
-	{
-		return m_spheres;
-	}
-
 	std::vector<std::shared_ptr<Material>> Scene::GetMaterials()
 	{
 		return m_materials;
@@ -158,49 +153,41 @@ namespace Renderer
 		m_modelGroups.push_back(std::move(modelgroup));
 	}
 
-	std::vector<Triangle> Scene::GetTriangles()
+	std::vector<Primitive> Scene::GetPrimitives()
 	{
-		return m_triangles;
+		return m_primitives;
 	}
 
-	void Scene::GetTriangleFromModelGroups()
+	void Scene::GetPrimitivesFromModelGroups()
 	{
-		m_triangles.resize(0);
+		m_primitives.resize(0);
 		for (auto& modelgroup : m_modelGroups)
 		{
-			auto modelGroupTriangles = modelgroup->GetAllModelTriangles();
-			m_triangles.insert(m_triangles.end(), modelGroupTriangles.begin(), modelGroupTriangles.end());
+			auto modelGroupTriangles = modelgroup->GetAllModelPrimitives();
+			m_primitives.insert(m_primitives.end(), modelGroupTriangles.begin(), modelGroupTriangles.end());
 		}
 	}
 
-	void Scene::AddSphere(Sphere sphere)
+	void Scene::AddPrimitive(Primitive& primitive)
 	{
-		m_spheres.push_back(sphere);
-	}
-
-	int Scene::GetSphereSize() const
-	{
-		return m_spheres.size();
-	}
-	
-
-	void Scene::AddTriangle(Triangle& triangle)
-	{
-		m_triangles.push_back(triangle);
+		m_primitives.push_back(primitive);
 	}
 
 	// =========== For Debug Only ===============
 	
 	void Scene::InitTestSpheresScene_1()
 	{
-		Sphere test_sphere1;
-		test_sphere1.s = glm::vec4(0, 0, -1, 0.4);
+		Primitive test_sphere1;
+		test_sphere1.sphere.s = glm::vec4(0, 0, -1, 0.4);
+		test_sphere1.type = 1;
 
-		Sphere test_sphere2;
-		test_sphere2.s = glm::vec4(0, -100.5, -1, 100);
+		Primitive test_sphere2;
+		test_sphere2.sphere.s = glm::vec4(0, -100.5, -1, 100);
+		test_sphere2.type = 1;
 
-		AddSphere(test_sphere1);
-		AddSphere(test_sphere2);
+
+		AddPrimitive(test_sphere1);
+		AddPrimitive(test_sphere2);
 	}
 	// =====================================
 

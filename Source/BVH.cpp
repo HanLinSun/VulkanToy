@@ -242,8 +242,23 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>>& p)
 	FlattenBVH(root.get(), &offset);
 }
 
-int BVHAccel::FlattenBVH(BVHBuildNode* root, int* offset)
+int BVHAccel::FlattenBVH(BVHBuildNode* node, int* offset)
 {
+	std::shared_ptr<LinearBVHNode> linearNode = LBVHNodes[*offset];
+	linearNode->bounds = node->bounds;
+	int myOffset = (*offset)++;
+	if (node->nPrimitives > 0)
+	{
+		linearNode->primitivesOffset = node->firstPrimOffset;
+		linearNode->nPrimitives = node->nPrimitives;
+	}
+	else {
+		// Create interior flattened BVH node
+		linearNode->axis = node->splitAxis;
+		linearNode->nPrimitives = 0;
+		FlattenBVH(node->children[0], offset);
+		linearNode->secondChildOffset =	FlattenBVH(node->children[1], offset);
+	}
 
 }
 
