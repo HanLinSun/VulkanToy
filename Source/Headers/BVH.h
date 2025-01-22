@@ -79,6 +79,14 @@ namespace BVHBuildTool
 		uint16_t nPrimitives;  // 0 -> interior node
 		uint8_t axis;          // interior node: xyz
 		//uint8_t pad[1];        // ensure 32 byte total size
+		LinearBVHNode()
+		{
+			bounds = Boundbox();
+			primitivesOffset = -1;
+			secondChildOffset = -1;
+			nPrimitives = 0;
+			axis = 0;
+		}
 	};
 
 	class BVHAccel

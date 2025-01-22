@@ -243,6 +243,10 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>>& p)
 
 	primitives.swap(orderedPrims);
 	LBVHNodes.resize(totalNodes);
+	std::generate(LBVHNodes.begin(),LBVHNodes.end(),
+		[]() { return std::make_shared<LinearBVHNode>(); }
+	);
+
 	int offset = 0;
 	FlattenBVH(root.get(), &offset);
 }

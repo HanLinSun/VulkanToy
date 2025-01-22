@@ -177,33 +177,6 @@ bool HitBVHNode(Ray r , inout Intersection intersection)
     return hit;
 }
 
-bool HitScene(Ray r, inout Intersection intersection) {
-    float tMin = 0.0001;
-    float tMax = INFINITY;
-
-    Intersection temp_intersection;
-    bool hitAnything = false;
-    float closestIntersection = tMax;
-
-        for (int i = 0; i<ubo.numPrimitives; i++) {
-        if (HitTriangle(primitives[i], r, tMin, closestIntersection, temp_intersection)) {
-            hitAnything = true;
-            closestIntersection = temp_intersection.t;
-            intersection =  temp_intersection;
-        }
-    }
-    closestIntersection = tMax;
-    
-//    for (int j = 0; j < ubo.numSpheres; j++) {
-//        if (HitSphere(j, r, tMin, closestIntersection, temp_intersection)) {
-//           hitAnything = true;
-//           closestIntersection = temp_intersection.t; 
-//           intersection = temp_intersection;
-//       }
-//     }
-    return hitAnything;
- }
-
 
 vec3 TraceRay(Ray r)
 {
