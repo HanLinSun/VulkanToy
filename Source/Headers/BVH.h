@@ -81,26 +81,17 @@ namespace BVHBuildTool
 		//uint8_t pad[1];        // ensure 32 byte total size
 	};
 
-	struct LinearBVHNodeGPU
-	{
-		glm::vec3 pMin;
-		glm::vec3 pMax;
-		int primitivesOffset;
-		int secondChildOffset;
-		uint16_t nPrimitives;
-		uint8_t axis;
-	};
-
-	
 	class BVHAccel
 	{
 	public:
 		BVHAccel(std::vector<std::shared_ptr<Primitive>>& objects);
-		~BVHAccel();
+		~BVHAccel()=default;
 		//Better way is to write a memory pool to handle memory allocate, which is more efficient
 		//I use shared pointer instead so I do not need to release every treenode manually
 		std::shared_ptr<BVHBuildNode> RecursiveBuild(std::vector<BVHPrimitiveInfo>& objects, int start, int end, int* totalNodes, std::vector<std::shared_ptr<Primitive>>& orderedPrims);
 		int FlattenBVH(BVHBuildNode* root, int* offset);
+
+		std::vector<LinearBVHNodeGPU> GetLinearBVHGPUNode();
 	private:
 		std::vector<std::shared_ptr<Primitive>> primitives;
 		std::vector<std::shared_ptr<LinearBVHNode>> LBVHNodes;

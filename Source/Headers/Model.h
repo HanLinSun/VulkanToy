@@ -17,7 +17,7 @@ namespace Renderer
 	{
 	public:
 		Model() = delete;
-		Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, std::shared_ptr<Material> mat,const std::vector<Primitive>& m_primitives);
+		Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices, std::shared_ptr<Material> mat, const std::vector<Primitive>& m_primitives);
 		Model(Model& model);
 
 		~Model();
@@ -38,7 +38,7 @@ namespace Renderer
 		Material* GetMaterial() const;
 		void SetMaterial(Material* mat);
 
-		std::vector<Primitive> GetPrimitives();
+		std::vector<std::shared_ptr<Primitive>> GetPrimitives();
 
 	protected:
 		void UpdatePrimitiveTransformMatrix(glm::mat4& transformMat);
@@ -59,7 +59,7 @@ namespace Renderer
 		ModelBufferObject m_modelBufferObject;
 		std::shared_ptr<Material> m_material;
 
-		std::vector<Primitive> m_primitives;
+		std::vector<std::shared_ptr<Primitive>> m_primitives;
 
 		glm::mat4 m_transformMatrix; //Translate*Rotation*Scale
 		glm::mat4 m_inverseTransposeMatrix; 
@@ -82,7 +82,7 @@ namespace Renderer
 		void SetTransformMatrix(glm::mat4& transformMatrix);
 		void SetModelTransformMatrix();
 		 
-		std::vector<Primitive> GetAllModelPrimitives();
+		std::vector<std::shared_ptr<Primitive>> GetAllModelPrimitives();
 		int GetAllPrimitivesSize();
 
 	protected:

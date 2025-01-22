@@ -153,7 +153,7 @@ namespace Renderer
 		m_modelGroups.push_back(std::move(modelgroup));
 	}
 
-	std::vector<Primitive> Scene::GetPrimitives()
+	std::vector<std::shared_ptr<Primitive>> Scene::GetPrimitivePtrs()
 	{
 		return m_primitives;
 	}
@@ -168,7 +168,7 @@ namespace Renderer
 		}
 	}
 
-	void Scene::AddPrimitive(Primitive& primitive)
+	void Scene::AddPrimitive(std::shared_ptr<Primitive>& primitive)
 	{
 		m_primitives.push_back(primitive);
 	}
@@ -177,13 +177,13 @@ namespace Renderer
 	
 	void Scene::InitTestSpheresScene_1()
 	{
-		Primitive test_sphere1;
-		test_sphere1.sphere.s = glm::vec4(0, 0, -1, 0.4);
-		test_sphere1.type = 1;
+		std::shared_ptr<Primitive> test_sphere1=std::make_shared<Primitive>();
+		test_sphere1->sphere.s = glm::vec4(0, 0, -1, 0.4);
+		test_sphere1->type = 1;
 
-		Primitive test_sphere2;
-		test_sphere2.sphere.s = glm::vec4(0, -100.5, -1, 100);
-		test_sphere2.type = 1;
+		std::shared_ptr<Primitive> test_sphere2 = std::make_shared<Primitive>();
+		test_sphere2->sphere.s = glm::vec4(0, -100.5, -1, 100);
+		test_sphere2->type = 1;
 
 
 		AddPrimitive(test_sphere1);
@@ -191,37 +191,14 @@ namespace Renderer
 	}
 	// =====================================
 
-	
-	std::vector<BVHObject> Scene::GetBVHObjectArray()
+	std::vector<Primitive> Scene::GetPrimitives()
 	{
-		return m_bvhObjects;
+		std::vector<Primitive> primitives;
+		for (const auto& ptr : m_primitives) {
+			primitives.push_back(*ptr); // Dereference the shared_ptr to get the Primitive object
+		}
+		return primitives;
 	}
 
-    void Scene::GenerateBVHObjectArray()
-	{
-		int triangleIdx = 0;
-		int sphereIdx = 0;
-		for (auto triangle : m_triangles)
-		{
-			BVHObject object;
-			object.triangle_index = triangleIdx;
-			object.sphere_index = -1;
-			object.boundbox = BVHBuildTool::CreateBoundingBox(triangle);
-			object.ComputeCentroid();
-			triangleIdx++;
-			m_bvhObjects.push_back(object);
-		}
-
-		for(auto sphere:m_spheres)
-		{
-			BVHObject object;
-			object.sphere_index = sphereIdx;
-			object.triangle_index = -1;
-			object.boundbox = BVHBuildTool::CreateBoundingBox(sphere);
-			object.ComputeCentroid();
-			sphereIdx++;
-			m_bvhObjects.push_back(object);
-		}
-	}
 
 }

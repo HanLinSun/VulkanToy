@@ -7,7 +7,6 @@
 #include <BVH.h>
 #include <GPUModel.h>
 #include <ModelFileLoader.h>
-#include <BVH.h>
 #include <fstream>
 using namespace BVHBuildTool;
 
@@ -42,7 +41,7 @@ namespace Renderer
 		int GetMaterialSize() const;
 
 		std::vector<Primitive> GetPrimitives();
-		void AddPrimitive(Primitive& primitive);
+		void AddPrimitive(std::shared_ptr<Primitive>& primitive);
 		void GetPrimitivesFromModelGroups();
 
 
@@ -54,8 +53,7 @@ namespace Renderer
 
 		void InitTestSpheresScene_1();
 
-		std::vector<BVHPrimitiveInfo> GenerateBVHObjectArray();
-		std::vector<BVHPrimitiveInfo> GetBVHPrimitiveArray();
+		std::vector< std::shared_ptr<Primitive>> GetPrimitivePtrs();
 
 		std::ifstream fp_in;
 
@@ -64,10 +62,9 @@ namespace Renderer
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
 		std::vector<std::shared_ptr<Texture2D>> m_textures;
 		std::vector<std::shared_ptr<Material>> m_materials;
-		std::vector<BVHObject> m_bvhObjects;
 
 		std::vector<std::shared_ptr<TestMaterial>> m_testMaterials;
-		std::vector<Primitive> m_primitives;
+		std::vector< std::shared_ptr<Primitive>> m_primitives;
 		std::vector<LightGPU> m_lights;
 
 		std::shared_ptr<Camera> m_Camera;

@@ -76,8 +76,8 @@ namespace Renderer
 				{
 					radius = atof(tokens[1].c_str());
 				}
-				Primitive primitive;
-				primitive.sphere.s = glm::vec4(position.x, position.y, position.z, radius);
+				std::shared_ptr<Primitive> primitive =std::make_shared<Primitive>();
+				primitive->sphere.s = glm::vec4(position.x, position.y, position.z, radius);
 				scene->AddPrimitive(primitive);
 				SafeGetline(scene->fp_in, line);
 			}

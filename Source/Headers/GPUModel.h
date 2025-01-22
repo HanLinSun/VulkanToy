@@ -172,24 +172,6 @@ public:
 	glm::vec3 pMax;
 };
 
-struct BVHObject
-{
-	Boundbox boundbox;
-	glm::vec3 centroid;
-	uint32_t triangle_index = -1;
-	uint32_t sphere_index = -1;
-	void ComputeCentroid()
-	{
-	   centroid = 0.5f * (boundbox.pMin + boundbox.pMax);
-	}
-};
-
-
-struct LBVHTreelet {
-	int startIndex, nPrimitives;
-	BVHBuildNode* buildNodes;
-};
-
 struct LinearBVHNode {
 	Boundbox bounds;
 	int primitivesOffset;   // leaf
@@ -199,22 +181,16 @@ struct LinearBVHNode {
 	uint8_t pad[1];        // ensure 32 byte total size
 };
 
-// Node in a non recursive BVH for use on GPU.
-struct BVHNodeGPU
+struct  LinearBVHNodeGPU
 {
-	alignas(16) glm::vec3 min;
-	alignas(16) glm::vec3 max;
-
-	int leftNodeIndex;
-	int rightNodeIndex;
-
-	int isLeaf;
-	int axis;
-
-	int triangleIndex; //triangle buffer index
-	int sphereIndex; //sphere buffer index
-
+	alignas(16) glm::vec3 pMin;
+	alignas(16) glm::vec3 pMax;
+	alignas(4) int primitivesOffset;   // leaf
+	alignas(4) int secondChildOffset;  // interior
+	alignas(4) uint16_t nPrimitives;  // 0 -> interior node
+	uint8_t axis;          // interior node: xyz
 };
+
 
 
 

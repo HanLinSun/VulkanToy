@@ -217,14 +217,13 @@ namespace Renderer
 				primitive.triangle.normal_0 = triVert[0].normal;
 				primitive.triangle.normal_1= triVert[1].normal;
 				primitive.triangle.normal_2 = triVert[2].normal;
-				//shapes[s].mesh.material_ids[f];
+
 				primitive.material_ID = shapes[s].mesh.material_ids[f];
 				primitive.transformMatrix = defaultTransformMat;
 				primitive.inverseTransform = defaultInverseTransformMat;
 				primitive.inverseTranspose = defaultInverseTransposeMat;
+				primitive.type = 0;
 				mesh.m_primitives.push_back(primitive);
-
-				//scene->AddTriangle(triangle);
 
 				mesh.m_materialID = shapes[s].mesh.material_ids[f];
 			}

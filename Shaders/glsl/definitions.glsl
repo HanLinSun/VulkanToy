@@ -63,16 +63,14 @@ struct PBRMaterial
 
 };
 
-struct BVHNode
+struct LBVHNode
 {
-	vec3 min;
-	vec3 max;
-	int leftNodeIndex;
-	int rightNodeIndex;
-	int isLeaf;
-	int axis;
-	int triangleIndex;
-	int sphereIndex;
+	vec3 pMin;
+	vec3 pMax;
+	int primitivesOffset;
+	int secondChildOffset;
+	uint nPrimitives;
+	uint axis;
 };
 
 struct Triangle
@@ -89,7 +87,7 @@ struct Triangle
 
 struct Sphere
 {
-	vec4 sphere; //x,y,z is center, w is radius
+	vec4 s; //x,y,z is center, w is radius
 };
 
 struct Primitive

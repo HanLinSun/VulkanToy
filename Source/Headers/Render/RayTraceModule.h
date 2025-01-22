@@ -54,23 +54,20 @@ namespace Renderer
 		Scene* m_scene;
 		ComputeResource m_rayTraceResources;
 		RayTraceUniformData m_rayTraceUniform;
+		BVHAccel* m_accelMethod;
 
 		//buffers that contains 
-		bool isTriangleGPUBufferAlloc;
-		Buffer m_trianglesGPUBuffer;
+		bool isPrimitiveGPUBufferAlloc;
+		Buffer m_primitiveGPUBuffer;
 
 		bool isMaterialGPUBufferAlloc;
 		Buffer m_materialGPUBuffer;
-
-		bool isSphereGPUBufferAlloc;
-		Buffer m_sphereGPUBuffer;
 
 		bool isLightGPUBufferAlloc;
 		Buffer m_lightGPUBuffer;
 
 		bool isBVHNodeBufferAlloc;
 		Buffer m_BVHNodeGPUBuffer;
-
 
 		std::shared_ptr<Device> m_device;
 		VkDescriptorPool m_rayTraceComputeDescriptorPool;

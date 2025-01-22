@@ -63,9 +63,15 @@ namespace Renderer
 		SetModelTransformMatrix();
 	}
 
-	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,std::shared_ptr<Material> mat, const std::vector<Primitive>& m_primitives)
-		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(mat),m_primitives(m_primitives)
+	Model::Model(Device* device, VkCommandPool commandPool, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices,std::shared_ptr<Material> mat, const std::vector<Primitive>& primitives)
+		:m_device(device), m_vertices(vertices), m_indices(indices), m_material(mat)
 	{
+
+		for (auto& primitive : primitives)
+		{
+			m_primitives.push_back(std::make_shared<Primitive>(primitive));
+		}
+
 		if (m_vertices.size() > 0)
 		{
 			BufferUtils::CreateBufferFromData(device, commandPool, this->m_vertices.data(), m_vertices.size() * sizeof(Vertex),
@@ -102,15 +108,15 @@ namespace Renderer
 		glm::mat4 inverseTranspose = glm::inverseTranspose(transformMat);
 		for (auto primitive : m_primitives)
 		{
-			primitive.transformMatrix = transformMat;
-			primitive.inverseTransform = inverseTransform;
-			primitive.inverseTranspose = inverseTranspose;
+			primitive->transformMatrix = transformMat;
+			primitive->inverseTransform = inverseTransform;
+			primitive->inverseTranspose = inverseTranspose;
 		}
 	}
 
-	std::vector<Primitive> ModelGroup::GetAllModelPrimitives()
+	std::vector<std::shared_ptr<Primitive>> ModelGroup::GetAllModelPrimitives()
 	{
-		std::vector<Primitive> primitiveVector(0);
+		std::vector<std::shared_ptr<Primitive>> primitiveVector(0);
 		for (auto& model : m_models)
 		{
 			const auto& primitives = model->GetPrimitives(); // Get the vector of triangles
@@ -169,7 +175,7 @@ namespace Renderer
 		return m_vertexBuffer;
 	}
 
-	std::vector<Primitive> Model::GetPrimitives()
+	std::vector<std::shared_ptr<Primitive>> Model::GetPrimitives()
 	{
 		return m_primitives;
 	}
