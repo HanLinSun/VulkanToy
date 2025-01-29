@@ -127,6 +127,7 @@ public:
 	{
 		return pMax - pMin;
 	}
+
 	glm::vec3 Offset(const glm::vec3& point) const
 	{
 		glm::vec3 o = point - pMin;
@@ -148,8 +149,8 @@ public:
 	{
 		glm::vec3 d = Diagonal();
 		if (d.x > d.y && d.x > d.z) return 0;
-		else if (d.y > d.z) return 1;
-		else return 2;
+		else if (d.y > d.z  && d.y>d.x) return 1;
+		else if(d.z>d.x && d.z>d.y)return 2;
 	}
 
 	// Copy assignment operator
@@ -185,10 +186,9 @@ struct  LinearBVHNodeGPU
 {
 	alignas(16) glm::vec3 pMin;
 	alignas(16) glm::vec3 pMax;
-	alignas(4) int primitivesOffset;   // leaf
-	alignas(4) int secondChildOffset;  // interior
-	alignas(4) uint16_t nPrimitives;  // 0 -> interior node
-	uint8_t axis;          // interior node: xyz
+	alignas(4) int leftNodeIdx;
+	alignas(4) int rightNodeIdx;
+	alignas(4) int primitiveIdx;  // 0 -> interior node
 };
 
 

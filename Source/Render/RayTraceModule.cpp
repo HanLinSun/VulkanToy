@@ -333,7 +333,7 @@ namespace Renderer
         m_rayTraceUniform.focalDistance = cam->GetFocalDistance();
         m_rayTraceUniform.aperture = cam->GetAspectRatio();
         m_rayTraceUniform.lightNums = 2;
-        m_rayTraceUniform.samplePerPixel = 5;
+        m_rayTraceUniform.samplePerPixel = 2;
         m_rayTraceUniform.maxRecursiveDepth =5;
         m_rayTraceUniform.primNums = m_scene->GetPrimitives().size();
                 
@@ -367,7 +367,7 @@ namespace Renderer
         if (isMaterialGPUBufferAlloc) m_materialGPUBuffer.Destroy();
         if (isBVHNodeBufferAlloc)
         {
-            delete[] m_accelMethod;
+            delete m_accelMethod;
             m_BVHNodeGPUBuffer.Destroy();
         }
 

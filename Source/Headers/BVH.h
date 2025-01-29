@@ -24,15 +24,14 @@ namespace BVHBuildTool
 	Boundbox CreateSurroundAABB_Box(Boundbox& box_A, Boundbox& box_B);
 
 
-
 	// Utility structure to keep track of the initial triangle and sphere index in the triangles array while sorting.
 	struct BVHPrimitiveInfo
 	{
 		BVHPrimitiveInfo() {}
-		BVHPrimitiveInfo(size_t primitiveNumber, const Boundbox& bounds)
-			:primitiveNumber(primitiveNumber), centroid(0.5f * bounds.pMin + 0.5f * bounds.pMax) {
+		BVHPrimitiveInfo(int primitiveIdx, const Boundbox& bounds)
+			:primitiveIndex(primitiveIdx), centroid(0.5f * bounds.pMin + 0.5f * bounds.pMax) {
 		}
-		size_t primitiveNumber;
+		int primitiveIndex=-1;
 		Boundbox boundbox;
 		glm::vec3 centroid;
 	};
@@ -45,48 +44,39 @@ namespace BVHBuildTool
 	struct BVHBuildNode
 	{
 		Boundbox bounds;
-		BVHBuildNode* children[2];
-		int splitAxis, firstPrimOffset, nPrimitives;
+		BVHBuildNode* left;
+		BVHBuildNode* right;
+		int primitiveIdx=-1;
 
-		void InitLeaf(int first, int n, const Boundbox& b)
+		void InitLeaf(int idx, const Boundbox& b)
 		{
-			firstPrimOffset = first;
-			nPrimitives = n;
+			primitiveIdx = idx;
 			bounds = b;
-			children[0] = children[1] = nullptr;
-			++leafNodes;
-			++totalLeafNodes;
-			totalPrimitives += n;
+			left = right = nullptr;
 		}
-		void InitInterior(int axis, std::shared_ptr<BVHBuildNode> c0, std::shared_ptr<BVHBuildNode> c1) {
-			children[0] = c0.get();
-			children[1] = c1.get();
+		void InitInterior(int axis, BVHBuildNode* c0,BVHBuildNode* c1) {
+			left = c0;
+			right = c1;
 			Boundbox c0_box = c0->bounds;
 			Boundbox c1_box = c1->bounds;
 			bounds= UnionBox(c0_box, c1_box);
-			splitAxis = axis;
-			nPrimitives = 0;
-			++interiorNodes;
 		}
-
 	};
 
-
+	
 	struct LinearBVHNode {
-		Boundbox bounds;
-		int primitivesOffset;   // leaf
-		int secondChildOffset;  // interior
-		uint16_t nPrimitives;  // 0 -> interior node
-		uint8_t axis;          // interior node: xyz
-		//uint8_t pad[1];        // ensure 32 byte total size
+
 		LinearBVHNode()
 		{
-			bounds = Boundbox();
-			primitivesOffset = -1;
-			secondChildOffset = -1;
-			nPrimitives = 0;
-			axis = 0;
+			leftRootIdx = -1;
+			rightRootIdx = -1;
+			primitiveIndex = -1;
 		}
+
+		Boundbox bounds;
+		int leftRootIdx;
+		int rightRootIdx;
+		int primitiveIndex;
 	};
 
 	class BVHAccel
@@ -95,14 +85,14 @@ namespace BVHBuildTool
 		BVHAccel(std::vector<std::shared_ptr<Primitive>>& objects);
 		~BVHAccel()=default;
 		//Better way is to write a memory pool to handle memory allocate, which is more efficient
-		//I use shared pointer instead so I do not need to release every treenode manually
-		std::shared_ptr<BVHBuildNode> RecursiveBuild(std::vector<BVHPrimitiveInfo>& objects, int start, int end, int* totalNodes, std::vector<std::shared_ptr<Primitive>>& orderedPrims);
-		int FlattenBVH(BVHBuildNode* root, int* offset);
+		BVHBuildNode* RecursiveBuild(std::vector<BVHPrimitiveInfo>& objects);
+		void FlattenBVH(BVHBuildNode* root);
+		void ReleaseTreeMemory(BVHBuildNode* root);
 
 		std::vector<LinearBVHNodeGPU> GetLinearBVHGPUNode();
 	private:
 		std::vector<std::shared_ptr<Primitive>> primitives;
-		std::vector<std::shared_ptr<LinearBVHNode>> LBVHNodes;
+		std::vector<LinearBVHNode> LBVHNodes;
 	};
 
 }

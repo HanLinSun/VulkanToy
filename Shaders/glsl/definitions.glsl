@@ -67,10 +67,9 @@ struct LBVHNode
 {
 	vec3 pMin;
 	vec3 pMax;
-	int primitivesOffset;
-	int secondChildOffset;
-	uint nPrimitives;
-	uint axis;
+	int leftNodeIdx;
+	int rightNodeIdx;
+	int primitiveIdx;  // 0 -> interior node
 };
 
 struct Triangle
@@ -82,7 +81,6 @@ struct Triangle
 	vec3 n0;
 	vec3 n1;
 	vec3 n2;
-
 };
 
 struct Sphere

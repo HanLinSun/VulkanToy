@@ -80,11 +80,15 @@ bool HitBoundingBox(Ray r, vec3 boxMin, vec3 boxMax)
 
 bool HitSphere(Primitive prim, Ray r, float tMin, float tMax, inout Intersection intersection)
 {
+
+    vec3 ray_origin = multiplyMV(prim.inverseTransform, vec4(r.origin,1.0f));
+    vec3 ray_direction = multiplyMV(prim.inverseTransform, vec4(r.direction ,0.0f));
+
     vec3 center = prim.sphere.s.xyz;
     float radius = prim.sphere.s.w;
-    vec3 oc = center - r.origin;
-    float a = dot(r.direction, r.direction);
-    float half_b = dot(r.direction, oc);
+    vec3 oc = center - ray_origin;
+    float a = dot(ray_direction, ray_direction);
+    float half_b = dot(ray_direction, oc);
     float c = dot(oc, oc) - radius * radius;
     float discriminant = half_b * half_b - a * c;
 
@@ -106,8 +110,13 @@ bool HitSphere(Primitive prim, Ray r, float tMin, float tMax, inout Intersection
     }
 
     intersection.t = root;
-    intersection.position = RayAt(r, intersection.t);
+
+    intersection.position =  ray_origin + intersection.t * ray_direction;
     intersection.normal = (1 - 2 * intersection.backFaceFlag) * ((intersection.position - center) / radius);
+   
+    //back to world space
+    intersection.position =multiplyMV( prim.transform , vec4( intersection.position,1.0));
+    intersection.normal =multiplyMV( prim.inverseTranspose, vec4(intersection.normal,0.0));
     return true;
 }
 
@@ -128,51 +137,44 @@ bool HitPrimitive(Primitive prim, Ray r, inout Intersection intersection)
 
 bool HitBVHNode(Ray r , inout Intersection intersection)
 {
-   bool hit=false;
-   vec3 invDir =vec3(1/r.direction.x,1/r.direction.y, 1/r.direction.z);
-   bool dirIsNeg[3] = {invDir.x < 0, invDir.y < 0, invDir.z < 0};
-   // Follow ray through BVH nodes to find primitive intersections
-    int toVisitOffset = 0;
-    int currentNodeIndex = 0;
-    int nodesToVisit[64];
-    while(true)
+    float tMin =MINIMUM;
+    float tMax =INFINITY;
+
+    bool hit=false;
+    float closest =tMax;
+
+    int nodeStack[MAX_STACK_DEPTH];
+    int stackIndex=0;
+
+    //use stack to traverse BVH node
+    nodeStack[stackIndex]=0;
+    stackIndex++;
+    while(stackIndex>0 && stackIndex<MAX_STACK_DEPTH)
     {
-       LBVHNode node=bvhNodes[currentNodeIndex];
-       if(HitBoundingBox(r, node.pMin, node.pMax))
-       {
-          if(node.nPrimitives>0)
+       stackIndex--;
+       int currentNode = nodeStack[stackIndex];
+       if(currentNode == -1) continue;
+
+      bool hitAABB =HitBoundingBox(r, bvhNodes[currentNode].pMin, bvhNodes[currentNode].pMax);
+      if(!hitAABB) continue;
+
+      int ti = bvhNodes[currentNode].primitiveIdx;
+
+      if(ti!=-1)
+      {
+          Intersection temp_insec;
+          if(HitPrimitive(primitives[ti],r,temp_insec))
           {
-               // Intersect ray with primitives in leaf BVH node
-               for(int i=0;i<node.nPrimitives;i++)
-               {
-                  if(HitPrimitive(primitives[node.primitivesOffset +i],r, intersection))
-                  {
-                      hit =true;
-                  }
-               }
-                if (toVisitOffset == 0) break;
-                currentNodeIndex = nodesToVisit[--toVisitOffset];
+              hit =true;
+              intersection =temp_insec;
           }
-          else
-          {
-              // Put far BVH node on _nodesToVisit_ stack, advance to near node
-              if(dirIsNeg[node.axis])
-              {
-                    nodesToVisit[toVisitOffset++] = currentNodeIndex + 1;
-                    currentNodeIndex=node.secondChildOffset;
-              }
-              else
-              {
-                   nodesToVisit[toVisitOffset++]=node.secondChildOffset;
-                   currentNodeIndex = currentNodeIndex + 1;
-              }
-          }
-       }
-       else
-       {
-            if (toVisitOffset == 0) break;
-            currentNodeIndex = nodesToVisit[--toVisitOffset];
-       }
+      }
+      // Pushing both left unto the stack even if they are -1 to reduce branches. 
+        nodeStack[stackIndex] = bvhNodes[currentNode].leftNodeIdx;
+        stackIndex++;
+
+        nodeStack[stackIndex] = bvhNodes[currentNode].rightNodeIdx;
+        stackIndex++;
     }
     return hit;
 }

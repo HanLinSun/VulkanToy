@@ -378,5 +378,8 @@
     <ClInclude Include="Source\Headers\BVH.h">
       <Filter>Header\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Headers\BVHTranslator.h">
+      <Filter>Header\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,11 +1,13 @@
 #include <BVH.h>
-#include <stack>
+#include <queue>
 #include <algorithm>
 #include <log.h>
 
 using namespace BVHBuildTool;
 
 const glm::vec3 eps(0.0001);
+
+static int totalNodes = 0;
 
 Boundbox BVHBuildTool::CreateBoundingBox(Sphere sphere)
 {
@@ -79,143 +81,118 @@ bool BVHBuildTool::Overlaps(Boundbox& b1, Boundbox& b2)
 	return (x && y && z);
 }
 
-std::shared_ptr<BVHBuildNode> BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveInfo>& primitiveInfo, int start,int end,int* totalNodes ,std::vector<std::shared_ptr<Primitive>>& orderedPrims)
+BVHBuildNode* BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveInfo>& primitiveInfo)
 {
-	int maxPrimsInNode = 4;
-
-	std::shared_ptr<BVHBuildNode> node = std::make_shared<BVHBuildNode>();
-	(*totalNodes)++;
+	BVHBuildNode* node = new BVHBuildNode();
+	totalNodes++;
 	// Compute bounds of all primitives in BVH node
 	Boundbox bounds;
-	for (int i = start; i < end; ++i)
+	for (int i = 0; i < primitiveInfo.size(); ++i)
 		bounds = BVHBuildTool::UnionBox(bounds, primitiveInfo[i].boundbox);
 
-	int nPrimitives = end - start;
-	if (nPrimitives == 1)
+	int objectSize = primitiveInfo.size();
+	if (objectSize == 1)
 	{
 		// Create leaf _BVHBuildNode_
-		int firstPrimOffset = orderedPrims.size();
-		for (int i = start; i < end; ++i) {
-			int primNum = primitiveInfo[i].primitiveNumber;
-			orderedPrims.push_back(primitives[i]);
-		}
-		node->InitLeaf(firstPrimOffset, nPrimitives, bounds);
+		node->bounds = primitiveInfo[0].boundbox;
+		node->primitiveIdx =primitiveInfo[0].primitiveIndex;
+		node->left = nullptr;
+		node->right = nullptr;
+		return node;
+	}
+	else if(objectSize==2)
+	{
+		std::vector<BVHPrimitiveInfo> primLeft;
+		std::vector<BVHPrimitiveInfo> primRight;
+		primLeft.push_back(primitiveInfo[0]);
+		primRight.push_back(primitiveInfo[1]);
+		node->left = RecursiveBuild(primLeft);
+		node->right = RecursiveBuild(primRight);
+		node->bounds = UnionBox(node->left->bounds, node->right->bounds);
+
 		return node;
 	}
 	else
 	{
-		// Compute bound of primitive centroids, choose split dimension _dim_
 		Boundbox centroidBound;
-		for (int i = start; i < end; i++)
+		for (int i = 0; i < primitiveInfo.size(); i++)
+		{
 			centroidBound = UnionBox(centroidBound, primitiveInfo[i].centroid);
-
-		int dim = centroidBound.MaxExtent();
-		
-		int mid = (start + end) / 2;
-		if (centroidBound.pMin == centroidBound.pMax)
-		{
-			//create leaf
-			int firstPrimOffset = orderedPrims.size();
-			for (int i = start; i < end; ++i) {
-				int primNum = primitiveInfo[i].primitiveNumber;
-				orderedPrims.push_back(primitives[primNum]);
-			}
-			node->InitLeaf(firstPrimOffset, nPrimitives, bounds);
-			return node;
 		}
-		else
+
+		switch (centroidBound.MaxExtent())
 		{
-			//Begin building SAH
-			if (nPrimitives <= 2)
-			{   
-				// Partition primitives into equally-sized subsets
-				mid = (start + end) / 2;
-				std::nth_element(&primitiveInfo[start], &primitiveInfo[mid], &primitiveInfo[end - 1] + 1, 
-					[dim](const BVHPrimitiveInfo& a,const BVHPrimitiveInfo& b) {
-						return a.centroid[dim] <b.centroid[dim];});
-			}
-			else
+		case 0:
+			// X
+			std::sort(primitiveInfo.begin(), primitiveInfo.end(), [](auto f1, auto f2)
+				{
+					return f1.centroid.x < f2.centroid.x;
+				});
+			break;
+		case 1:
+			// Y
+			std::sort(primitiveInfo.begin(), primitiveInfo.end(), [](auto f1, auto f2)
+				{
+					return f1.centroid.y < f2.centroid.y;
+				});
+			break;
+		case 2:
+			// Z
+			std::sort(primitiveInfo.begin(), primitiveInfo.end(), [](auto f1, auto f2)
+				{
+					return f1.centroid.z < f2.centroid.z;
+				});
+			break;
+		}
+
+		const auto& begin = primitiveInfo.begin();
+		const auto& end = primitiveInfo.end();
+
+		constexpr uint8_t SlashCount = 12;
+		constexpr float SlashCountInv = 1.0f / static_cast<float>(SlashCount);
+		const float SC = centroidBound.SurfaceArea();
+
+		uint8_t minCostIndex = SlashCount / 2;
+		float minCost = std::numeric_limits<float>::infinity();
+
+		for (uint8_t index = 1; index < SlashCount; ++index)
+		{
+			const auto& target = primitiveInfo.begin() + (primitiveInfo.size() * index * SlashCountInv);
+			auto leftObjects = std::vector<BVHPrimitiveInfo>(begin, target);
+			auto rightObjects = std::vector<BVHPrimitiveInfo>(target, end);
+
+			// Surface area of the boundbox of two divided parts
+			Boundbox leftBounds, rightBounds;
+			for ( auto& obj : leftObjects)
 			{
-				// Allocate _BucketInfo_ for SAH partition buckets
-				constexpr int nBuckets = 12;
-				BucketInfo buckets[nBuckets];
-				for (int i = start; i < end; i++)
-				{
-					int b = nBuckets *centroidBound.Offset(primitiveInfo[i].centroid)[dim];
-					if (b == nBuckets) b = nBuckets - 1;
-					buckets[b].count++;
-					buckets[b].bounds =UnionBox(buckets[b].bounds, primitiveInfo[i].boundbox);
-				}
+				leftBounds = UnionBox(leftBounds, obj.centroid);
+			}
 
-				float cost[nBuckets - 1];
-				for (int i = 0; i < nBuckets - 1; i++)
-				{
-					Boundbox b0, b1;
-					int count0 = 0;
-					int count1 = 0;
-					for (int j = 0; j <= i; j++)
-					{
-						b0 = UnionBox(b0, buckets[j].bounds);
-						count0 += buckets[j].count;
-					}
+			for ( auto& obj : rightObjects)
+			{
+				rightBounds = UnionBox(rightBounds, obj.centroid);
+			}
 
-					for (int j = i + 1; j < nBuckets; j++)
-					{
-						b1 = UnionBox(b1, buckets[j].bounds);
-						count1 += buckets[j].count;
-					}
+			float SA = leftBounds.SurfaceArea();
+			float SB = rightBounds.SurfaceArea();
+			float a = leftObjects.size();
+			float b = rightObjects.size();
+			float cost = (SA * a + SB * b) / SC + 0.125f;
 
-					cost[i] = 1 +
-						(count0 * b0.SurfaceArea() +
-							count1 * b1.SurfaceArea()) /
-						bounds.SurfaceArea();
-				}
-
-				float minCost = cost[0];
-				int minCostSplitBucket = 0;
-				for (int i = 1; i < nBuckets - 1; ++i)
-				{
-					if (cost[i] < minCost)
-					{
-						minCost = cost[i];
-						minCostSplitBucket = i;
-					}
-				}
-
-				// Either create leaf or split primitives at selected SAH
-				// bucket
-				float leafCost = nPrimitives;
-				if (nPrimitives > maxPrimsInNode || minCost < leafCost)
-				{
-					BVHPrimitiveInfo* pmid = std::partition(
-						&primitiveInfo[start], &primitiveInfo[end - 1] + 1,
-						[=](const BVHPrimitiveInfo& pi) {
-							int b = nBuckets *
-								centroidBound.Offset(pi.centroid)[dim];
-							if (b == nBuckets) b = nBuckets - 1;
-							return b <= minCostSplitBucket;
-						});
-					mid = pmid - &primitiveInfo[0];
-				}
-				else
-				{
-					// Create leaf _BVHBuildNode_
-					int firstPrimOffset = orderedPrims.size();
-					for (int i = start; i < end; ++i) {
-						int primNum = primitiveInfo[i].primitiveNumber;
-						orderedPrims.push_back(primitives[primNum]);
-					}
-					node->InitLeaf(firstPrimOffset, nPrimitives, bounds);
-					return node;
-				}
-
-				node->InitInterior(dim,
-					RecursiveBuild(primitiveInfo, start, mid,
-						totalNodes, orderedPrims),
-					RecursiveBuild(primitiveInfo, mid, end,
-						totalNodes, orderedPrims));
+			if (cost < minCost)
+			{
+				minCost = cost;
+				minCostIndex = index;
 			}
 		}
+		const auto& target = primitiveInfo.begin() + (primitiveInfo.size() * minCostIndex * SlashCountInv);
+
+		auto leftObjects = std::vector<BVHPrimitiveInfo>(begin, target);
+		auto rightObjects = std::vector<BVHPrimitiveInfo>(target, end);
+
+		node->left = RecursiveBuild(leftObjects);
+		node->right = RecursiveBuild(rightObjects);
+		node->bounds = UnionBox(node->left->bounds, node->right->bounds);
 	}
 	return node;
 }
@@ -230,7 +207,7 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>>& p)
 	for (size_t i = 0; i < primitives.size(); i++)
 	{
 		//primitiveInfo[i] = { i, CreateBoundingBox(primitives[i].get()) };
-		primitiveInfo[i].primitiveNumber = i;
+		primitiveInfo[i].primitiveIndex = i;
 		primitiveInfo[i].boundbox = CreateBoundingBox(primitives[i].get());
 		primitiveInfo[i].centroid = 0.5f * primitiveInfo[i].boundbox.pMin + 0.5f * primitiveInfo[i].boundbox.pMax;
 	}
@@ -238,53 +215,67 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>>& p)
 	std::vector<std::shared_ptr<Primitive>> orderedPrims;
 	orderedPrims.reserve(primitives.size());
 
-	std::shared_ptr<BVHBuildNode> root;
-	root = RecursiveBuild(primitiveInfo, 0, primitiveInfo.size(),&totalNodes,orderedPrims); // SAH
+	BVHBuildNode* root;
+	root = RecursiveBuild(primitiveInfo); // SAH
 
-	primitives.swap(orderedPrims);
-	LBVHNodes.resize(totalNodes);
-	std::generate(LBVHNodes.begin(),LBVHNodes.end(),
-		[]() { return std::make_shared<LinearBVHNode>(); }
-	);
 
-	int offset = 0;
-	FlattenBVH(root.get(), &offset);
+	//int depth = glm::ceil(glm::log2((float)primitives.size())) + 1;
+	//LBVHNodes.resize(glm::pow(2, depth) - 1);
+
+	FlattenBVH(root);
+
+	ReleaseTreeMemory(root);
 }
 
-int BVHAccel::FlattenBVH(BVHBuildNode* node, int* offset)
+void DFS(BVHBuildNode* root)
 {
-	std::shared_ptr<LinearBVHNode> linearNode = LBVHNodes[*offset];
-	linearNode->bounds = node->bounds;
-	int myOffset = (*offset)++;
-	if (node->nPrimitives > 0)
+	if (root == nullptr) return;
+	if (root->left != nullptr) DFS(root->left);
+	if (root->right != nullptr) DFS(root->right);
+	delete root;
+}
+void BVHAccel::ReleaseTreeMemory(BVHBuildNode* root)
+{
+	DFS(root);
+	return;
+}
+
+
+void BVHAccel::FlattenBVH(BVHBuildNode* root)
+{
+	if (root == nullptr) return;
+	int currentIdx = LBVHNodes.size();
+
+	LinearBVHNode node;
+	node.bounds = root->bounds;
+	node.primitiveIndex = root->primitiveIdx;
+	if (root->left != nullptr)
 	{
-		linearNode->primitivesOffset = node->firstPrimOffset;
-		linearNode->nPrimitives = node->nPrimitives;
+		node.leftRootIdx = 2 * currentIdx + 1;
 	}
-	else {
-		// Create interior flattened BVH node
-		linearNode->axis = node->splitAxis;
-		linearNode->nPrimitives = 0;
-		FlattenBVH(node->children[0], offset);
-		linearNode->secondChildOffset =	FlattenBVH(node->children[1], offset);
+
+	if (root->right != nullptr)
+	{
+		node.rightRootIdx = 2 * currentIdx + 2;
 	}
-	return myOffset;
+	LBVHNodes.push_back(node);
+	if(root->left) FlattenBVH(root->left);
+	if (root->right) FlattenBVH(root->right);
 }
 
 
 std::vector<LinearBVHNodeGPU> BVHAccel::GetLinearBVHGPUNode()
 {
 	std::vector<LinearBVHNodeGPU> res;
-
-	for (auto& LBVHNode : LBVHNodes)
+	for (int i = 0; i < LBVHNodes.size(); i++)
 	{
-		LinearBVHNodeGPU linearGPU;
-		linearGPU.pMax = LBVHNode->bounds.pMax;
-		linearGPU.pMin = LBVHNode->bounds.pMin;
-		linearGPU.nPrimitives = LBVHNode->nPrimitives;
-		linearGPU.primitivesOffset = LBVHNode->primitivesOffset;
-		linearGPU.secondChildOffset = LBVHNode->secondChildOffset;
-		linearGPU.axis = LBVHNode->axis;
+		LinearBVHNodeGPU nodeGPU;
+		nodeGPU.leftNodeIdx = LBVHNodes[i].leftRootIdx;
+		nodeGPU.rightNodeIdx = LBVHNodes[i].rightRootIdx;
+		nodeGPU.pMax = LBVHNodes[i].bounds.pMax;
+		nodeGPU.pMin = LBVHNodes[i].bounds.pMin;
+		nodeGPU.primitiveIdx = LBVHNodes[i].primitiveIndex;
+		res.push_back(nodeGPU);
 	}
 	return res;
 }
