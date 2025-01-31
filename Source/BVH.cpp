@@ -1,13 +1,13 @@
 #include <BVH.h>
 #include <queue>
 #include <algorithm>
+#include <iostream>
 #include <log.h>
 
 using namespace BVHBuildTool;
 
-const glm::vec3 eps(0.0001);
+const glm::vec3 eps(0.00001);
 
-static int totalNodes = 0;
 
 Boundbox BVHBuildTool::CreateBoundingBox(Sphere sphere)
 {
@@ -46,8 +46,6 @@ Boundbox BVHBuildTool::CreateSurroundAABB_Box(Boundbox& box_A, Boundbox& box_B)
 	return { glm::min(box_A.pMin, box_B.pMin), glm::max(box_A.pMax, box_A.pMax) };
 }
 
-
-
 Boundbox BVHBuildTool::UnionBox(Boundbox& b1, Boundbox& b2)
 {
 	Boundbox ret;
@@ -81,7 +79,7 @@ bool BVHBuildTool::Overlaps(Boundbox& b1, Boundbox& b2)
 	return (x && y && z);
 }
 
-BVHBuildNode* BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveInfo>& primitiveInfo)
+BVHBuildNode* BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveInfo>& primitiveInfo, int& totalNodes)
 {
 	BVHBuildNode* node = new BVHBuildNode();
 	totalNodes++;
@@ -98,18 +96,32 @@ BVHBuildNode* BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveInfo>& primitiveI
 		node->primitiveIdx =primitiveInfo[0].primitiveIndex;
 		node->left = nullptr;
 		node->right = nullptr;
+		node->axis = -1;
 		return node;
 	}
 	else if(objectSize==2)
 	{
 		std::vector<BVHPrimitiveInfo> primLeft;
 		std::vector<BVHPrimitiveInfo> primRight;
+
+		Boundbox centroidBound;
+		for (int i = 0; i < primitiveInfo.size(); i++)
+		{
+			centroidBound = UnionBox(centroidBound, primitiveInfo[i].centroid);
+		}
+
 		primLeft.push_back(primitiveInfo[0]);
 		primRight.push_back(primitiveInfo[1]);
-		node->left = RecursiveBuild(primLeft);
-		node->right = RecursiveBuild(primRight);
+		node->left = RecursiveBuild(primLeft,totalNodes);
+		node->right = RecursiveBuild(primRight,totalNodes);
 		node->bounds = UnionBox(node->left->bounds, node->right->bounds);
-
+		if (centroidBound.pMax.x - centroidBound.pMin.x < eps.x 
+			&& centroidBound.pMax.y - centroidBound.pMin.y < eps.y
+			&& centroidBound.pMax.z - centroidBound.pMin.z < eps.z)
+		{
+			node->axis = 0;
+		}
+		else	node->axis = centroidBound.MaxExtent();
 		return node;
 	}
 	else
@@ -120,7 +132,17 @@ BVHBuildNode* BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveInfo>& primitiveI
 			centroidBound = UnionBox(centroidBound, primitiveInfo[i].centroid);
 		}
 
-		switch (centroidBound.MaxExtent())
+		int axis;
+		if (centroidBound.pMax.x - centroidBound.pMin.x < eps.x
+			&& centroidBound.pMax.y - centroidBound.pMin.y < eps.y
+			&& centroidBound.pMax.z - centroidBound.pMin.z < eps.z)
+		{
+			axis = 0;
+		}
+		else axis = centroidBound.MaxExtent();
+
+
+		switch (axis)
 		{
 		case 0:
 			// X
@@ -189,9 +211,9 @@ BVHBuildNode* BVHAccel::RecursiveBuild(std::vector<BVHPrimitiveInfo>& primitiveI
 
 		auto leftObjects = std::vector<BVHPrimitiveInfo>(begin, target);
 		auto rightObjects = std::vector<BVHPrimitiveInfo>(target, end);
-
-		node->left = RecursiveBuild(leftObjects);
-		node->right = RecursiveBuild(rightObjects);
+		node->axis = axis;
+		node->left = RecursiveBuild(leftObjects,totalNodes);
+		node->right = RecursiveBuild(rightObjects,totalNodes);
 		node->bounds = UnionBox(node->left->bounds, node->right->bounds);
 	}
 	return node;
@@ -201,7 +223,6 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>>& p)
 {
 	primitives = std::move(p);
 	if (primitives.empty()) return;
-	int totalNodes = 0;
 
 	std::vector<BVHPrimitiveInfo> primitiveInfo(primitives.size());
 	for (size_t i = 0; i < primitives.size(); i++)
@@ -216,13 +237,15 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>>& p)
 	orderedPrims.reserve(primitives.size());
 
 	BVHBuildNode* root;
-	root = RecursiveBuild(primitiveInfo); // SAH
+	int totalNodes = 0;
+	root = RecursiveBuild(primitiveInfo,totalNodes); // SAH
 
-
+	LBVHNodes.resize(totalNodes);
 	//int depth = glm::ceil(glm::log2((float)primitives.size())) + 1;
 	//LBVHNodes.resize(glm::pow(2, depth) - 1);
+	int offset = 0;
 
-	FlattenBVH(root);
+	FlattenBVH(root,offset);
 
 	ReleaseTreeMemory(root);
 }
@@ -241,26 +264,25 @@ void BVHAccel::ReleaseTreeMemory(BVHBuildNode* root)
 }
 
 
-void BVHAccel::FlattenBVH(BVHBuildNode* root)
+int BVHAccel::FlattenBVH(BVHBuildNode* root, int& offset)
 {
-	if (root == nullptr) return;
-	int currentIdx = LBVHNodes.size();
-
-	LinearBVHNode node;
-	node.bounds = root->bounds;
-	node.primitiveIndex = root->primitiveIdx;
-	if (root->left != nullptr)
+	LinearBVHNode* LBVHNode = &LBVHNodes[offset];
+	LBVHNode->bounds = root->bounds;
+	int myOffset = offset++;
+	if (root->primitiveIdx != -1)
 	{
-		node.leftRootIdx = 2 * currentIdx + 1;
+		LBVHNode->axis = -1;
+		LBVHNode->secondChildIdx = -1;
+		LBVHNode->primitiveIndex = root->primitiveIdx;
 	}
-
-	if (root->right != nullptr)
+	else
 	{
-		node.rightRootIdx = 2 * currentIdx + 2;
+		LBVHNode->axis = root->axis;
+		LBVHNode->primitiveIndex = -1;
+		FlattenBVH(root->left, offset);
+		LBVHNode->secondChildIdx = FlattenBVH(root->right, offset);
 	}
-	LBVHNodes.push_back(node);
-	if(root->left) FlattenBVH(root->left);
-	if (root->right) FlattenBVH(root->right);
+	return myOffset;
 }
 
 
@@ -270,11 +292,11 @@ std::vector<LinearBVHNodeGPU> BVHAccel::GetLinearBVHGPUNode()
 	for (int i = 0; i < LBVHNodes.size(); i++)
 	{
 		LinearBVHNodeGPU nodeGPU;
-		nodeGPU.leftNodeIdx = LBVHNodes[i].leftRootIdx;
-		nodeGPU.rightNodeIdx = LBVHNodes[i].rightRootIdx;
 		nodeGPU.pMax = LBVHNodes[i].bounds.pMax;
 		nodeGPU.pMin = LBVHNodes[i].bounds.pMin;
+		nodeGPU.splitAxis = LBVHNodes[i].axis;
 		nodeGPU.primitiveIdx = LBVHNodes[i].primitiveIndex;
+		nodeGPU.secondChildIdx = LBVHNodes[i].secondChildIdx;
 		res.push_back(nodeGPU);
 	}
 	return res;

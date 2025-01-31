@@ -47,7 +47,7 @@ namespace BVHBuildTool
 		BVHBuildNode* left;
 		BVHBuildNode* right;
 		int primitiveIdx=-1;
-
+		int axis =0;
 		void InitLeaf(int idx, const Boundbox& b)
 		{
 			primitiveIdx = idx;
@@ -68,14 +68,12 @@ namespace BVHBuildTool
 
 		LinearBVHNode()
 		{
-			leftRootIdx = -1;
-			rightRootIdx = -1;
 			primitiveIndex = -1;
 		}
 
 		Boundbox bounds;
-		int leftRootIdx;
-		int rightRootIdx;
+		int axis;
+		int secondChildIdx;
 		int primitiveIndex;
 	};
 
@@ -85,8 +83,8 @@ namespace BVHBuildTool
 		BVHAccel(std::vector<std::shared_ptr<Primitive>>& objects);
 		~BVHAccel()=default;
 		//Better way is to write a memory pool to handle memory allocate, which is more efficient
-		BVHBuildNode* RecursiveBuild(std::vector<BVHPrimitiveInfo>& objects);
-		void FlattenBVH(BVHBuildNode* root);
+		BVHBuildNode* RecursiveBuild(std::vector<BVHPrimitiveInfo>& objects,int& offset);
+		int FlattenBVH(BVHBuildNode* root, int& offset);
 		void ReleaseTreeMemory(BVHBuildNode* root);
 
 		std::vector<LinearBVHNodeGPU> GetLinearBVHGPUNode();

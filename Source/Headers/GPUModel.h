@@ -149,8 +149,8 @@ public:
 	{
 		glm::vec3 d = Diagonal();
 		if (d.x > d.y && d.x > d.z) return 0;
-		else if (d.y > d.z  && d.y>d.x) return 1;
-		else if(d.z>d.x && d.z>d.y)return 2;
+		else if (d.y > d.z) return 1;
+		else return 2;
 	}
 
 	// Copy assignment operator
@@ -173,21 +173,12 @@ public:
 	glm::vec3 pMax;
 };
 
-struct LinearBVHNode {
-	Boundbox bounds;
-	int primitivesOffset;   // leaf
-	int secondChildOffset;  // interior
-	uint16_t nPrimitives;  // 0 -> interior node
-	uint8_t axis;          // interior node: xyz
-	uint8_t pad[1];        // ensure 32 byte total size
-};
-
 struct  LinearBVHNodeGPU
 {
 	alignas(16) glm::vec3 pMin;
 	alignas(16) glm::vec3 pMax;
-	alignas(4) int leftNodeIdx;
-	alignas(4) int rightNodeIdx;
+	alignas(4) int splitAxis;
+	alignas(4) int secondChildIdx;
 	alignas(4) int primitiveIdx;  // 0 -> interior node
 };
 

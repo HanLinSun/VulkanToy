@@ -67,8 +67,8 @@ struct LBVHNode
 {
 	vec3 pMin;
 	vec3 pMax;
-	int leftNodeIdx;
-	int rightNodeIdx;
+	int splitAxis;
+	int secondChildOffset;
 	int primitiveIdx;  // 0 -> interior node
 };
 

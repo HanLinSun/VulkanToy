@@ -111,8 +111,6 @@
     <None Include="Shaders\glsl\sample.glsl">
       <Filter>Source\Shader</Filter>
     </None>
-    <None Include="Shaders\glsl\bvhDebug.frag.glsl" />
-    <None Include="Shaders\glsl\bvhDebug.vert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Engine.cpp">
