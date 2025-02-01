@@ -121,10 +121,8 @@ bool HitSphere(Primitive prim, Ray r, float tMin, float tMax, inout Intersection
 }
 
 
-bool HitPrimitive(Primitive prim, Ray r, inout Intersection intersection)
+bool HitPrimitive(Primitive prim, float tMin, float tMax, Ray r, inout Intersection intersection)
 {
-   float tMin =MINIMUM;
-   float tMax=INFINITY;
    if(prim.type==0)
    {
      return HitTriangle(prim,r,tMin,tMax,intersection);
@@ -133,6 +131,25 @@ bool HitPrimitive(Primitive prim, Ray r, inout Intersection intersection)
    {
     return HitSphere(prim,r,tMin,tMax,intersection);
    }
+}
+
+bool HitScene(Ray r, inout Intersection intersection)
+{
+  bool hit =false;
+  float tMin=MINIMUM;
+  float tMax =INFINITY;
+  Intersection temp_insec;
+  float closest =tMax;
+  for(int i=0;i<ubo.numPrimitives;i++)
+  {  
+      if(HitPrimitive(primitives[i],tMin,closest ,r,temp_insec))
+      {
+          hit=true;
+          intersection =temp_insec;
+          closest =temp_insec.t;
+      }
+  }
+  return hit;
 }
 
 bool HitBVHNode(Ray r , inout Intersection intersection)
@@ -157,8 +174,12 @@ bool HitBVHNode(Ray r , inout Intersection intersection)
              if(node.primitiveIdx !=-1)
              {
                  Intersection temp_insec;
-                 hit = HitPrimitive(primitives[node.primitiveIdx],r,temp_insec);
-                 intersection =temp_insec;
+                 if(HitPrimitive(primitives[node.primitiveIdx],tMin, closest,r,temp_insec))
+                 {
+                     hit =true;
+                     intersection =temp_insec;
+                     closest =temp_insec.t;
+                 }
 
                  if (toVisitOffset == 0) break;
                  currentNodeIndex = nodeStack[--toVisitOffset];
@@ -198,7 +219,7 @@ vec3 TraceRay(Ray r)
 
     for (int i = 0; i < ubo.maxDepth; i++)
     {
-  //    if (HitScene(currentRay, intersection))
+//       if (HitScene(currentRay, intersection))
        if(HitBVHNode(currentRay,intersection))
         {
             vec3 direction = intersection.normal + RandomInUnitSphere();
