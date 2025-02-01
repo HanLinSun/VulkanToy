@@ -138,6 +138,7 @@ struct LightSample
 	float pdf;
 };
 
+//Scatter
 struct BSDFSample
 {
 	vec3 f; // BSDF value of material

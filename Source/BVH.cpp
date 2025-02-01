@@ -241,12 +241,9 @@ BVHAccel::BVHAccel(std::vector<std::shared_ptr<Primitive>>& p)
 	root = RecursiveBuild(primitiveInfo,totalNodes); // SAH
 
 	LBVHNodes.resize(totalNodes);
-	//int depth = glm::ceil(glm::log2((float)primitives.size())) + 1;
-	//LBVHNodes.resize(glm::pow(2, depth) - 1);
 	int offset = 0;
 
 	FlattenBVH(root,offset);
-
 	ReleaseTreeMemory(root);
 }
 
