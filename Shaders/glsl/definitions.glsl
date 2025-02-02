@@ -10,16 +10,23 @@
 #define SPHERE_LIGHT 1
 #define DIRECTIONAL_LIGHT 2
 
-#define EPSILON 0.0003
+#define EPSILON 0.0001
 #define INFINITY  1000000.0
 #define MINIMUM   0.00001
 
 struct Intersection
 {
 	vec3 position;
-	vec3 normal;
+	vec3 normal; //Surface normal
+	vec3 ffnormal; //front-face normal
+	vec2 texCoords;
+
+	vec3 tangent;
+	vec3 bitangent;
+
 	int backFaceFlag;
 	uint material_ID;
+	bool isEmitter;
 	float eta;
 	float t;
 };
@@ -111,9 +118,9 @@ struct Light
 	vec3 emission;
 	vec3 u;
 	vec3 v;
+	int type;
 	float radius;
 	float area;
-	float type;
 };
 
 struct RayTraceUniformBuffer
@@ -121,7 +128,7 @@ struct RayTraceUniformBuffer
 	mat4 projMatrix;
 	mat4 viewMatrix;
 
-	uint lightNums;
+	uint numLights;
 	uint numPrimitives;
 	uint spp;
 	uint maxDepth;

@@ -178,7 +178,6 @@
     <ClInclude Include="include\imgui_internal.h" />
     <ClInclude Include="Source\Headers\Application.h" />
     <ClInclude Include="Source\Headers\BVH.h" />
-    <ClInclude Include="Source\Headers\BVHTranslator.h" />
     <ClInclude Include="Source\Headers\Camera.h" />
     <ClInclude Include="Source\Headers\CameraController.h" />
     <ClInclude Include="Source\Headers\Core.h" />

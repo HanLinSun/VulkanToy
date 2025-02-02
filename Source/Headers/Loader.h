@@ -14,6 +14,7 @@ namespace Renderer
 		void LoadModel(Scene* scene, std::string type);
 		void LoadSceneCamera(Scene* scene);
 		void LoadFromSceneFile(Scene* scene, std::string sceneFile);
+		void LoadSceneLight(Scene* scene);
 
 
 		std::istream& SafeGetline(std::istream& is, std::string& t);

@@ -110,38 +110,181 @@ bool HitBVHNode(Ray r , inout Intersection intersection)
     return hit;
 }
 
-vec3 DirectLight()
+bool HitLight(Ray r, inout Intersection intersection,inout LightSample lightSample)
+{
+  float closet =INFINITY;
+  for(uint i=0; i<ubo.numLights;i++)
+  {
+     Light light = lights[i];
+     if(light.type ==RECT_LIGHT)
+     {
+         AreaLightIntersectionTest(r, closet, light,lightSample);
+     }
+     else if(light.type ==SPHERE_LIGHT)
+     {
+        SphereLightIntersectionTest(r, closet, light,lightSample);
+     }
+  }
+  	return closest < INFINITY;
+}
+
+bool CloestHit(Ray r, inout Intersection intersection, inout LightSample lightSample)
+{
+   float t=INF;
+   float d;
+   if(ubo.numLights>0)
+   {
+      if(HitLight(r, intersection, lightSample))
+      {
+          intersection.isEmitter =true;
+      }
+   }
+   return HitBVHNode(r, intersection);
+}
+
+bool AnyHitCheck(Ray r, float maxDist)
+{
+
+}
+
+PBRMaterial GetHitMaterialProperties(in Ray r, in Intersection intersection)
+{
+    PBRMaterial material =Materials[intersection.material_ID];
+    if(material.albedoTextureID >0)
+    {
+         vec4 color = texture(materialTextures[material.albedoTextureID], intersection.texCoord);
+         material.baseColor.rgb *= GammaCorrect(color.rgb);
+         material.opacity *= color.a;
+    }
+
+    if(material.normalTextureID>0)
+    {
+         vec3 texNormal = texture(materialTextures[material.normalTextureID], intersection.texCoord).rgb;
+         texNormal = normalize(texNormal * 2.0 - 1.0);
+         vec3 origNormal = intersection.normal;
+         intersection.normal = normalize( intersection.tangent * texNormal.x +  intersection.bitangent * texNormal.y +  intersection.normal * texNormal.z);
+         intersection.ffnormal = dot(origNormal, r.direction) <= 0.0 ?  intersection.normal : - intersection.normal;
+    }
+
+    if(material.metallicRoughnessTextureID >0)
+    {
+       vec2 matRgh = texture(materialTextures[material.normalTextureID], intersection.texCoord).bg;
+       material.metallic = matRgh.x;
+       material.roughness =max(matRgh.y * matRgh.y, 0.001);;
+    }
+
+    if(material.emissonMapTextureID >0)
+    {
+       vec3 tex_emission = texture(materialTextures[material.emissonMapTextureID], intersection.texCoord).rgb;
+       material.emission = GammaCorrect(tex_emission);
+    }
+
+    float aspect = sqrt(1.0 - material.anisotropic * 0.9);
+    material.ax = max(0.001, material.roughness / aspect);
+    material.ay = max(0.001, material.roughness * aspect);
+
+    intersection.eta = dot(r.direction, state.normal) < 0.0 ? (1.0 / material.ior) : material.ior;
+    return material;
+}
+
+//https://pbr-book.org/3ed-2018/Light_Transport_I_Surface_Reflection/Direct_Lighting
+vec3 DirectLight(in Ray r, in Intersection intersection)
+{
+      vec3 Ld =vec3(0.0);
+      vec3 Li = vec3(0.0); //incident radiance
+      vec3 scatterPos = intersection.position + intersection.normal * EPSILON;
+
+      BSDFSample bsdfSample;
+      LightSample lightSample;
+
+      //Light LTE
+      int index = int(Random()* float(ubo.numLights));
+      Light light = lights[index];
+      SampleOneLight(light, scatterPos, lightSample);
+      Li = light.emission;
+      
+      //Quad Light single side emission
+      if(dot(lightSample.direction, lightSample.normal)<0.0)
+      {
+           Ray shadowRay = Ray(scatterPos, lightSample.direction);
+           bool inShadow = AnyHitCheck(shadowRay, lightSample.distance - EPS)
+           //BSDF LTE
+            if (!inShadow)
+            {
+              //Visible
+                PBRMaterial material =GetHitMaterialProperties(r, intersection);
+                bsdfSample.f = EvalDisney(intersection,material, -r.direction, intersection.ffnormal, lightSample.direction, bsdfSample.pdf);
+
+                float misWeight = 1.0;
+
+                if(light.area > 0.0) // No MIS for distant light
+                    misWeight = PowerHeuristic(lightSample.pdf, bsdfSample.pdf);
+
+                if (scatterSample.pdf > 0.0)
+                    Ld += misWeight * Li * bsdfSample.f / lightSample.pdf;
+            }
+      }
+
+      //Ld =0.0
+      return Ld;
+}
+
+void RussianRoulette(in int depth ,inout int throughput, int targetDepth)
+{
+        if (currentDepth >= targetDepth)
+        {
+            float q = min(max(throughput.x, max(throughput.y, throughput.z)) + 0.001, 0.95);
+            if (Random() > q)
+                break;
+            throughput /= q;
+        }
+}
 
 vec3 TraceRay(Ray r)
 {
     Intersection intersection;
-    vec3 radiance = vec3(1.0);
-    vec3 throughout =vec3(1.0);
+    vec3 radiance = vec3(0.0);
+    vec3 throughput =vec3(1.0);
 
     LightSample lightSample;
     BSDFSample bsdfSample;
-
     Ray currentRay = r;
 
-    for (int i = 0; i < ubo.maxDepth; i++)
+    int bounces;
+    for (bounces = 0;; bounces++)
     {
-//       if (HitScene(currentRay, intersection))
-       if(HitBVHNode(currentRay,intersection))
-        {
-            vec3 direction = intersection.normal + RandomInUnitSphere();
-            currentRay.origin = intersection.position;
-            currentRay.direction = normalize(direction);
-            radiance *= 0.5;
-        }
-        else
-        {
-            vec3 unitDirection = normalize(currentRay.direction);
-            float a = 0.5 * (unitDirection.y + 1.0);
-            radiance *= (1.0 - a) * vec3(1.0, 1.0, 1.0) + a * vec3(0.5, 0.7, 1.0);
-            break; // Exit the loop since there's no further intersection
-        }
-    }
+    
+        bool hit =CloestHit(currentRay, intersection, lightSample);
+        // Terminate path if ray escaped
+        //TODO: add skybox and HDR skymap reflection when ray escaped
+        if(!hit) break;
 
+        GetHitMaterialProperties(r, intersection);
+
+        // Gather radiance from light and use bsdfSample.pdf from previous bounce for MIS
+        //Hit light, terminate the ray
+        if(intersection.isEmitter)
+        {
+            float misWeight = 1.0f;
+            if(bounce >0)
+            {
+                 misWeight = PowerHeuristic(bsdfSample.pdf, lightSample.pdf);
+            }
+            radiance += misWeight * lightSample.emission * throughput;
+            break;
+        }
+       
+        //Terminate ray if maxDepth was reached
+        if(bounces >=ubo.maxDepth) break;
+
+        //BSDF Sample
+        radiance += DirectLight(r, intersection)*throughput;
+        // Sample BSDF for color and outgoing direction
+
+
+        //Russian Roulette 
+        RussianRoulette(bounce, throughput, 2);
+    }
      return radiance;
 }
 

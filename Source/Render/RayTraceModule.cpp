@@ -332,9 +332,9 @@ namespace Renderer
         m_rayTraceUniform.aperture = cam->GetAperture();
         m_rayTraceUniform.focalDistance = cam->GetFocalDistance();
         m_rayTraceUniform.aperture = cam->GetAspectRatio();
-        m_rayTraceUniform.lightNums = 2;
+        m_rayTraceUniform.lightNums = m_scene->GetLightSize();
         m_rayTraceUniform.samplePerPixel =5;
-        m_rayTraceUniform.maxRecursiveDepth =10;
+        m_rayTraceUniform.maxRecursiveDepth =8;
         m_rayTraceUniform.primNums = m_scene->GetPrimitives().size();
                 
         check_vk_result(m_rayTraceResources.uniformBuffer.Map());

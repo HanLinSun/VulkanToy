@@ -3,8 +3,6 @@
 #include <memory>
 #include <vector>
 
-
-
 struct RayTraceUniformData
 {
 	// Compute shader uniform block object
@@ -72,9 +70,12 @@ struct Sphere
 struct LightGPU
 {
 	alignas(16) glm::vec3 position;
-	alignas(16) glm::vec3 normal;
 	alignas(16) glm::vec3 emission;
+	alignas(16) glm::vec3 u;
+	alignas(16) glm::vec3 v;
 	alignas(4) int type;
+	alignas(4) float radius;
+	alignas(4) float area;
 };
 
 struct Primitive

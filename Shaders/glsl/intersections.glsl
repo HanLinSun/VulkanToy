@@ -1,6 +1,6 @@
 #include "definitions.glsl"
 
-vec3 TriangleIntersection(in vec3 ray_origin, in vec3 ray_direction, Triangle triangle, inout vec3 normal)
+vec3 TriangleIntersectionTest(in vec3 ray_origin, in vec3 ray_direction, Triangle triangle, inout vec3 normal)
 {
     vec3 a = triangle.v0 - triangle.v1;
     vec3 b = triangle.v2 - triangle.v0;
@@ -26,16 +26,49 @@ vec3 TriangleIntersection(in vec3 ray_origin, in vec3 ray_direction, Triangle tr
     return vec3(t, u, v);
 }
 
+void AreaLightIntersectionTest(in Ray r, inout float closest, in Light light, inout LightSample lightSample)
+{
+    float dist = HitRectPlane(r, light);
+    if (dist < 0.0) dist = INFINITY;
+    if (dist < closest)
+    {
+        closest = dist;
+        vec3 normal = normalize(cross(light.u, light.v));
+        float cosTheta = abs(-r.direction, normal);
+        float pdf = t * t / (light.area * cosTheta);
+        lightSample.pdf = pdf;
+        lightSample.emission = light.emission;
+        lightSample.normal = normal;
+    }
+}
+
+void SphereLightIntersectionTest(in Ray r, inout float closest, in Light light, inout LightSample lightSample)
+{
+    float dist = HitSphereLight(r, light);
+    if (dist < 0.0) dist = INFINITY;
+
+    if (dist < closest)
+    {
+        closest = dist;
+
+        vec3 surfacePos = r.origin + r.direction *closest;
+        vec3 normal = normalize(surfacePos - light.position);
+        float pdf = (dist * dist) / light.area;
+
+        lightSample.emission = light.emission;
+        lightSample.pdf = pdf;
+        lightSample.normal = normal;
+    }
+}
+
 vec3 Reflect(vec3 v, vec3 n) {
     return v - 2 * dot(v, n) * n;
 }
-
 vec3 multiplyMV(mat4 mat, vec4 v)
 {
     vec4 res =mat * v;
     return vec3(res.xyz);
 }
-
 
 bool HitTriangle(Primitive prim, Ray r, float tMin, float tMax, inout Intersection intersection)
 {
@@ -44,7 +77,7 @@ bool HitTriangle(Primitive prim, Ray r, float tMin, float tMax, inout Intersecti
 
     Triangle t = prim.triangle;
     vec3 n = vec3(0, 0, 0);
-    vec3 hit = TriangleIntersection(ray_origin, ray_direction, t, n);
+    vec3 hit = TriangleIntersectionTest(ray_origin, ray_direction, t, n);
     if (!(hit.y < 0.0 || hit.y>1.0 || hit.z < 0.0 || (hit.y + hit.z)>1.0))
     {
         intersection.position = ray_origin + hit.x * ray_direction;
@@ -131,4 +164,55 @@ bool HitPrimitive(Primitive prim, float tMin, float tMax, Ray r, inout Intersect
     {
         return HitSphere(prim, r, tMin, tMax, intersection);
     }
+}
+
+float HitRectPlane(in Ray r, in Light light)
+{
+    vec3 u = light.u;
+    vec3 v = light.v;
+
+    vec3 normal = normalize(cross(u, v));
+    vec4 plane = vec4(normal, dot(normal, light.position));
+    u* = 1.0 / u * u;
+    v *= 1.0 / v * v;
+
+    vec3 n = vec3(plane);
+
+    float dt = dot(r.direction, n);
+    float t = (plane.w - dot(n, r.origin)) / dt;
+
+    if (t > EPSILON)
+    {
+        vec3 p = r.origin + r.direction * t;
+        vec3 vi = p - pos;
+        float a1 = dot(u, vi);
+        if (a1 >= 0.0 && a1 <= 1.0)
+        {
+            float a2 = dot(v, vi);
+            if (a2 >= 0.0 && a2 <= 1.0)
+                return t;
+        }
+    }
+
+    //Not hit rect plane
+    return INFINITY;
+}
+
+float HitSphereLight(in Ray r, in Light light)
+{
+    vec3 dir = light.position - r.origin;
+    float b = dot(dir, r.direction);
+    float det = b * b - dot(dir, dir) + light.radius * light.radius;
+
+    if (det < 0.0) return INFINITY;
+
+    det = sqrt(det);
+
+    float t1 = b - det;
+    if (t1 >EPSILON) return t1;
+
+    float t2 = b + det;
+    if (t2 > EPSILON) return t2;
+
+    return INFINITY;
 }

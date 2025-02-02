@@ -1,4 +1,5 @@
 #include "Loader.h"
+#include "Light.h"
 #include <iostream>
 #include <fstream>
 namespace Renderer
@@ -84,7 +85,71 @@ namespace Renderer
 		}
 	}
 
-	void  Loader::LoadSceneCamera(Scene* scene)
+	void Loader::LoadSceneLight(Scene* scene)
+	{
+		std::string line;
+		SafeGetline(scene->fp_in, line);
+		std::string type;
+		glm::vec3 v1= glm::vec3(0, 0, 0);
+		glm::vec3 v2 = glm::vec3(0, 0, 0);
+		glm::vec3 position=glm::vec3(0,0,0);
+		glm::vec3 emission=glm::vec3(0,0,0);
+		float radius;
+		while (!line.empty() && scene->fp_in.good())
+		{
+			std::vector<std::string> tokens = TokenizeString(line);
+			if (strcmp(tokens[0].c_str(), "Type") == 0)
+			{
+				type = tokens[1];
+			}
+			else if (strcmp(tokens[0].c_str(), "Radius") == 0)
+			{
+				radius = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "Position") == 0)
+			{
+				position = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+			}
+			else if (strcmp(tokens[0].c_str(), "v1") == 0)
+			{
+				v1 = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()),atof(tokens[3].c_str()));
+			}
+			else if (strcmp(tokens[0].c_str(), "v2") == 0)
+			{
+				v2 = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()),atof(tokens[3].c_str()));
+			}
+			else if (strcmp(tokens[0].c_str(), "Emission") == 0)
+			{
+				emission = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
+			}
+			SafeGetline(scene->fp_in, line);
+		}
+
+		LightGPU light;
+		light.position = position;
+		light.emission = emission;
+		if (type == "Quad")
+		{
+			light.type = LightType::QuadLight;
+			light.u = v1 - light.position;
+			light.v = v2 - light.position;
+			light.area = glm::length(glm::cross(light.u, light.v));
+		}
+		else if (type == "Sphere")
+		{
+			light.type = LightType::SphereLight;
+			light.radius = radius;
+			light.area = 4.0f * 3.1415926535f * light.radius * light.radius;
+		}
+		else if (type == "Directional")
+		{
+			light.area = 0.0f;
+			light.type = LightType::DirectionalLight;
+		}
+		scene->AddLight(light);
+	}
+
+	void Loader::LoadSceneCamera(Scene* scene)
 	{
 		std::string line;
 		SafeGetline(scene->fp_in, line);
@@ -151,6 +216,10 @@ namespace Renderer
 				else if (strcmp(tokens[0].c_str(), "Camera") == 0)
 				{
 					LoadSceneCamera(scene);
+				}
+				else if (strcmp(tokens[0].c_str(), "Light") == 0)
+				{
+					LoadSceneLight(scene);
 				}
 			}
 		}
