@@ -97,7 +97,6 @@ struct MaterialProperties
        glm::float32_t Metallic;
        glm::float32_t Transmission;
      
-
        glm::float32_t Sheen;
        glm::float32_t SheenTint=0;
        glm::float32_t SpecularTint = 0;

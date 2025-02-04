@@ -21,8 +21,8 @@ struct RayTraceUniformData
 
 struct PBRMaterialData
 {
-	alignas(16) glm::vec4 baseColor;
-	alignas(16) glm::vec4 emission;
+	alignas(16) glm::vec3 baseColor;
+	alignas(16) glm::vec3 emission;
 
 	alignas(4) glm::float32_t anisotropic;
 	alignas(4) glm::float32_t metallic;
@@ -43,6 +43,8 @@ struct PBRMaterialData
 	alignas(4) glm::float32_t opacity;
 	alignas(4) int alphaMode;
 	alignas(4) glm::float32_t alphaCutoff;
+	alignas(4) float ax;
+	alignas(4) float ay;
 
 	alignas(4) int albedoTextureID; //base color map
 	alignas(4) int normalTextureID;

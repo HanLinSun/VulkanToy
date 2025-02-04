@@ -43,8 +43,8 @@ struct PBRMaterial
 {
 	vec3 baseColor;
 	vec3 emission;
-	float anisotropic;
 
+	float anisotropic;
 	float metallic;
 	float roughness;
 	float subsurface;
@@ -62,6 +62,8 @@ struct PBRMaterial
 	float opacity;
 	int alphaMode;
 	float alphaCutoff;
+	float ax;
+	float ay;
 
 	int albedoTextureID; //base color map
 	int normalTextureID;

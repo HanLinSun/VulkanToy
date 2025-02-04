@@ -2,8 +2,9 @@
 #include "random.glsl"
 #include "intersections.glsl"
 #include "sample.glsl"
-
+#include "DisneyBSDF.glsl"
 #define MAX_STACK_DEPTH 64
+#extension GL_EXT_nonuniform_qualifier : enable
 
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
@@ -34,6 +35,15 @@ layout(std430, binding = 6) readonly buffer BVHBufferObject {
    LBVHNode[] bvhNodes;
  };
 
+ vec3 GammaCorrect(vec3 color)
+{
+     float gammaVal =1/2.2;
+     float r = pow(color.r, gammaVal);
+     float g = pow(color.g,gammaVal);
+     float b = pow(color.b,gammaVal);
+     return vec3(r,g,b);
+}
+
 vec3 RayAt(Ray r, double t)
 {
     return r.origin + r.direction * float(t);
@@ -58,7 +68,7 @@ bool HitScene(Ray r, inout Intersection intersection)
   return hit;
 }
 
-bool HitBVHNode(Ray r , inout Intersection intersection)
+bool HitBVHNode(in Ray r , inout Intersection intersection)
 {
     float tMin =MINIMUM;
     float tMax =INFINITY;
@@ -112,17 +122,17 @@ bool HitBVHNode(Ray r , inout Intersection intersection)
 
 bool HitLight(Ray r, inout Intersection intersection,inout LightSample lightSample)
 {
-  float closet =INFINITY;
+  float closest =INFINITY;
   for(uint i=0; i<ubo.numLights;i++)
   {
      Light light = lights[i];
      if(light.type ==RECT_LIGHT)
      {
-         AreaLightIntersectionTest(r, closet, light,lightSample);
+         AreaLightIntersectionTest(r, closest, light,lightSample);
      }
      else if(light.type ==SPHERE_LIGHT)
      {
-        SphereLightIntersectionTest(r, closet, light,lightSample);
+        SphereLightIntersectionTest(r, closest, light,lightSample);
      }
   }
   	return closest < INFINITY;
@@ -130,7 +140,7 @@ bool HitLight(Ray r, inout Intersection intersection,inout LightSample lightSamp
 
 bool CloestHit(Ray r, inout Intersection intersection, inout LightSample lightSample)
 {
-   float t=INF;
+   float t=INFINITY;
    float d;
    if(ubo.numLights>0)
    {
@@ -144,7 +154,27 @@ bool CloestHit(Ray r, inout Intersection intersection, inout LightSample lightSa
 
 bool AnyHitCheck(Ray r, float maxDist)
 {
-
+   Intersection temp_isect;
+   if(ubo.numLights >0)
+   {
+       for(uint i=0; i<ubo.numLights;i++)
+       {
+            Light light =lights[i];
+            if(light.type==RECT_LIGHT)
+            {
+                float dist = HitRectPlane(r, light);
+                 if (dist > 0.0 && dist < maxDist)
+                return true;
+            }
+            else if(light.type==SPHERE_LIGHT)
+            {
+                float dist = HitSphereLight(r,light);
+                if (dist > 0.0 && dist < maxDist)
+                return true;
+            }
+       }
+   }
+      return HitBVHNode(r, temp_isect);
 }
 
 PBRMaterial GetHitMaterialProperties(in Ray r, in Intersection intersection)
@@ -152,14 +182,16 @@ PBRMaterial GetHitMaterialProperties(in Ray r, in Intersection intersection)
     PBRMaterial material =Materials[intersection.material_ID];
     if(material.albedoTextureID >0)
     {
-         vec4 color = texture(materialTextures[material.albedoTextureID], intersection.texCoord);
+         int ID =material.albedoTextureID;
+         vec4 color = texture(materialTextures[ID], intersection.texCoords);
          material.baseColor.rgb *= GammaCorrect(color.rgb);
          material.opacity *= color.a;
     }
 
     if(material.normalTextureID>0)
     {
-         vec3 texNormal = texture(materialTextures[material.normalTextureID], intersection.texCoord).rgb;
+         int ID =material.normalTextureID;
+         vec3 texNormal = texture(materialTextures[ID], intersection.texCoords).rgb;
          texNormal = normalize(texNormal * 2.0 - 1.0);
          vec3 origNormal = intersection.normal;
          intersection.normal = normalize( intersection.tangent * texNormal.x +  intersection.bitangent * texNormal.y +  intersection.normal * texNormal.z);
@@ -168,14 +200,16 @@ PBRMaterial GetHitMaterialProperties(in Ray r, in Intersection intersection)
 
     if(material.metallicRoughnessTextureID >0)
     {
-       vec2 matRgh = texture(materialTextures[material.normalTextureID], intersection.texCoord).bg;
+       int ID = material.metallicRoughnessTextureID;
+       vec2 matRgh = texture(materialTextures[ID], intersection.texCoords).bg;
        material.metallic = matRgh.x;
        material.roughness =max(matRgh.y * matRgh.y, 0.001);;
     }
 
     if(material.emissonMapTextureID >0)
     {
-       vec3 tex_emission = texture(materialTextures[material.emissonMapTextureID], intersection.texCoord).rgb;
+       int ID = material.emissonMapTextureID;
+       vec3 tex_emission = texture(materialTextures[ID], intersection.texCoords).rgb;
        material.emission = GammaCorrect(tex_emission);
     }
 
@@ -183,7 +217,7 @@ PBRMaterial GetHitMaterialProperties(in Ray r, in Intersection intersection)
     material.ax = max(0.001, material.roughness / aspect);
     material.ay = max(0.001, material.roughness * aspect);
 
-    intersection.eta = dot(r.direction, state.normal) < 0.0 ? (1.0 / material.ior) : material.ior;
+    intersection.eta = dot(r.direction, intersection.normal) < 0.0 ? (1.0 / material.ior) : material.ior;
     return material;
 }
 
@@ -192,52 +226,60 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
 {
       vec3 Ld =vec3(0.0);
       vec3 Li = vec3(0.0); //incident radiance
+
       vec3 scatterPos = intersection.position + intersection.normal * EPSILON;
 
       BSDFSample bsdfSample;
       LightSample lightSample;
 
       //Light LTE
+      if(ubo.numLights ==0) return Ld;
+
       int index = int(Random()* float(ubo.numLights));
       Light light = lights[index];
       SampleOneLight(light, scatterPos, lightSample);
       Li = light.emission;
-      
+       
       //Quad Light single side emission
       if(dot(lightSample.direction, lightSample.normal)<0.0)
       {
            Ray shadowRay = Ray(scatterPos, lightSample.direction);
-           bool inShadow = AnyHitCheck(shadowRay, lightSample.distance - EPS)
+           bool inShadow = AnyHitCheck(shadowRay, lightSample.distance -EPSILON);
+
+           if(inShadow)
+           {
+              Ld =vec3(1,1,0);
+           }
+
            //BSDF LTE
             if (!inShadow)
             {
               //Visible
                 PBRMaterial material =GetHitMaterialProperties(r, intersection);
-                bsdfSample.f = EvalDisney(intersection,material, -r.direction, intersection.ffnormal, lightSample.direction, bsdfSample.pdf);
+                bsdfSample.f = EvalDisney(intersection, material, -r.direction, intersection.ffnormal, lightSample.direction, bsdfSample.pdf);
+
+                if(bsdfSample.f ==vec3(0.0))
+                {
+                    Ld =vec3(1,0,0);
+                }
 
                 float misWeight = 1.0;
 
                 if(light.area > 0.0) // No MIS for distant light
                     misWeight = PowerHeuristic(lightSample.pdf, bsdfSample.pdf);
 
-                if (scatterSample.pdf > 0.0)
+                if (bsdfSample.pdf > 0.0)
                     Ld += misWeight * Li * bsdfSample.f / lightSample.pdf;
             }
       }
+      else
+      {
+           Ld =  vec3(1,0,1);
+      }
+
 
       //Ld =0.0
       return Ld;
-}
-
-void RussianRoulette(in int depth ,inout int throughput, int targetDepth)
-{
-        if (currentDepth >= targetDepth)
-        {
-            float q = min(max(throughput.x, max(throughput.y, throughput.z)) + 0.001, 0.95);
-            if (Random() > q)
-                break;
-            throughput /= q;
-        }
 }
 
 vec3 TraceRay(Ray r)
@@ -255,18 +297,31 @@ vec3 TraceRay(Ray r)
     {
     
         bool hit =CloestHit(currentRay, intersection, lightSample);
+        if(!hit)
+        {
+            radiance =vec3(1,0,0);
+        }
+        else
+        {
+           radiance =vec3(0,1,0);
+        }
+        return radiance;
+
         // Terminate path if ray escaped
         //TODO: add skybox and HDR skymap reflection when ray escaped
         if(!hit) break;
 
-        GetHitMaterialProperties(r, intersection);
+        PBRMaterial material = GetHitMaterialProperties(r, intersection);
 
+
+
+        radiance += material.emission * throughput;
         // Gather radiance from light and use bsdfSample.pdf from previous bounce for MIS
         //Hit light, terminate the ray
         if(intersection.isEmitter)
         {
             float misWeight = 1.0f;
-            if(bounce >0)
+            if(bounces >0)
             {
                  misWeight = PowerHeuristic(bsdfSample.pdf, lightSample.pdf);
             }
@@ -277,25 +332,37 @@ vec3 TraceRay(Ray r)
         //Terminate ray if maxDepth was reached
         if(bounces >=ubo.maxDepth) break;
 
-        //BSDF Sample
+        //Sample Light
         radiance += DirectLight(r, intersection)*throughput;
+
         // Sample BSDF for color and outgoing direction
+        bsdfSample.f =SampleDisney(intersection,material, -r.direction, intersection.ffnormal, bsdfSample.L, bsdfSample.pdf);
+
+        //For Debug
+        radiance =intersection.position;
 
 
+        if(bsdfSample.pdf>0.0)
+        {
+            throughput*=bsdfSample.f /bsdfSample.pdf;
+        }
+        else break;
+
+        r.direction = bsdfSample.L;
+        r.origin =intersection.position + r.direction*EPSILON;
         //Russian Roulette 
-        RussianRoulette(bounce, throughput, 2);
+         if (bounces >=2)
+        {
+            float q = min(max(throughput.x, max(throughput.y, throughput.z)) + 0.001, 0.95);
+            if (Random() > q)
+                break;
+            throughput /= q;
+        }
     }
      return radiance;
 }
 
-vec3 GammaCorrect(vec3 color)
-{
-     float gammaVal =1/2.2;
-     float r = pow(color.r, gammaVal);
-     float g = pow(color.g,gammaVal);
-     float b = pow(color.b,gammaVal);
-     return vec3(r,g,b);
-}
+
 
 void main()
 {

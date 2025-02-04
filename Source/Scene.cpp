@@ -93,22 +93,34 @@ namespace Renderer
 		for (auto& mat : m_materials)
 		{
 			PBRMaterialData pbrMat;
-			pbrMat.baseColor = mat->GetDiffuseColor();
-			pbrMat.emission = mat->GetEmissiveColor();
-			pbrMat.roughness = mat->GetRoughness();
+			glm::vec4 diffuseColor = mat->GetDiffuseColor();
+			pbrMat.baseColor = glm::vec3(diffuseColor.x, diffuseColor.y, diffuseColor.z);
+			glm::vec4 emissionColor = mat->GetEmissiveColor();
+			pbrMat.emission = glm::vec3(emissionColor.x, emissionColor.y, emissionColor.z);
+
+			pbrMat.anisotropic = mat->GetAnisotropic();
 			pbrMat.metallic = mat->GetMetallic();
+			pbrMat.roughness = mat->GetRoughness();
+	
+			pbrMat.subsurface = mat->GetSubSurface();
+			pbrMat.specularTint = mat->GetSpecularTint();
+
 			pbrMat.sheen = mat->GetSheen();
 			pbrMat.sheenTint = mat->GetSheenTint();
-			pbrMat.anisotropic = mat->GetAnisotropic();
 
 			pbrMat.clearcoat = mat->GetClearCoat();
 			pbrMat.clearcoatGloss = mat->GetClearCoatGloss();
-			pbrMat.transmission = mat->GetTransmission();
-
 			pbrMat.specTrans = mat->GetSpecTrans();
-			pbrMat.specularTint = mat->GetSpecularTint();
-			pbrMat.subsurface = mat->GetSubSurface();
 			pbrMat.ior = mat->GetIndexOfRefraction();
+
+			pbrMat.transmission = mat->GetTransmission();
+			pbrMat.opacity = mat->GetOpacity();
+			
+			pbrMat.alphaMode = 0.0f;
+			pbrMat.alphaCutoff = 0.0f;
+
+			pbrMat.ax = 0.0f;
+			pbrMat.ay = 0.0f;
 
 			pbrMat.albedoTextureID = mat->GetTextureID(TextureType::Diffuse);
 			pbrMat.normalTextureID = mat->GetTextureID(TextureType::Normal);

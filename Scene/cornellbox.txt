@@ -11,10 +11,3 @@ ModelDataPath ./Models/CornellBox/CornellBox-Original.obj
 Translate 0 0 0
 Rotation  0 0 0
 Scale     1 1 1
-
-Light
-Type Quad
-Position 0.343 0.5478 0.227
-v1 0.343 0.5478 0.332
-v2 0.213 0.5478 0.227
-Emission 15 15 15

@@ -181,7 +181,7 @@ float GTR1(float NdotH, float a)
 	return (a2 - 1) / (PI * log(a2) * t);
 }
 
-vec3 ImportanceSampleGTR1(float rgh, float r1, float r2)
+vec3 SampleGTR1(float rgh, float r1, float r2)
 {
 	float a = max(0.001, rgh);
 	float a2 = a * a;
@@ -246,7 +246,7 @@ vec3 ImportanceSampleGTR2_Aniso(float ax, float ay, float r1, float r2)
 }
 
 
-float SmithG_GGX_Aniso(float NdotV, float VdotX, float VdotY, float ax, float ay)
+float SmithGAniso(float NdotV, float VdotX, float VdotY, float ax, float ay)
 {
 	float a = VdotX * ax;
 	float b = VdotY * ay;
@@ -256,17 +256,6 @@ float SmithG_GGX_Aniso(float NdotV, float VdotX, float VdotY, float ax, float ay
 	//return 1 / (NdotV + sqrt(sqr(VdotX * ax) + sqr(VdotY * ay) + sqr(NdotV)));
 }
 
-vec2 CalculateAnisotropicParams(float roughness, float anisotropic)
-{
-	vec2 a_xy = vec2(0.0);
-	float aspect =sqrt(1.0f - 0.9f * anisotropic);
-
-	float roughness_square = roughness * roughness;
-
-	a_xy.x = max(0.001f, roughness_square / aspect);
-	a_xy.y = max(0.001f, roughness_square * aspect);
-	return a_xy;
-}
 
 // Samples a microfacet normal for the GGX distribution using VNDF method.
 // Source: "Sampling the GGX Distribution of Visible Normals" by Heitz
@@ -289,6 +278,23 @@ vec3 SampleGGXVNDF(vec3 Ve, vec2 alpha2D, vec2 u)
 
 	return normalize(vec3(alpha2D.x * Nh.x, alpha2D.y * Nh.y, max(0.0, Nh.z)));
 }
+
+float DielectricFresnel(float cosThetaI, float eta)
+{
+	float sinThetaTSq = eta * eta * (1.0f - cosThetaI * cosThetaI);
+
+	// Total internal reflection
+	if (sinThetaTSq > 1.0)
+		return 1.0;
+
+	float cosThetaT = sqrt(max(1.0 - sinThetaTSq, 0.0));
+
+	float rs = (eta * cosThetaT - cosThetaI) / (eta * cosThetaT + cosThetaI);
+	float rp = (eta * cosThetaI - cosThetaT) / (eta * cosThetaI + cosThetaT);
+
+	return 0.5f * (rs * rs + rp * rp);
+}
+
 
 vec3 mon2lin(vec3 x)
 {
