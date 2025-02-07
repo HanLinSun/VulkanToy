@@ -263,8 +263,6 @@ vec3 SampleDisney(Intersection intersection, PBRMaterial material ,vec3 V, vec3 
     float r1 = Random();
     float r2 = Random();
 
-    return N;
-
     vec3 T, B;
     Onb(N, T, B);
 
@@ -321,20 +319,28 @@ vec3 SampleDisney(Intersection intersection, PBRMaterial material ,vec3 V, vec3 
     else if (r3 < cdf[2])
     {
         vec3 H = SampleGGXVNDF(V, a_xy, vec2(r1, r2));
-        float F = DielectricFresnel(abs(dot(V, H)), intersection.eta);
+       // float F = DielectricFresnel(abs(dot(V, H)), intersection.eta);
+
+        if (H.z < 0.0)
+            H = -H;
+        L = normalize(reflect(-V, H));
+    }
+    else if (r3 < cdf[3])
+    {
+        vec3 H = SampleGGXVNDF(V, a_xy, vec2(r1, r2));
+        float F = DielectricFresnel(abs(dot(V, H)),intersection.eta);
 
         if (H.z < 0.0)
             H = -H;
 
         // Rescale random number for reuse
-        //Need to know the math behind it
         r3 = (r3 - cdf[2]) / (cdf[3] - cdf[2]);
-
+        // Reflection
         if (r3 < F)
         {
             L = normalize(reflect(-V, H));
         }
-        else
+        else // Transmission
         {
             L = normalize(refract(-V, H, intersection.eta));
         }
@@ -353,6 +359,6 @@ vec3 SampleDisney(Intersection intersection, PBRMaterial material ,vec3 V, vec3 
 
 
     return L;
-    //return EvalDisney(intersection, material ,V, N, L, pdf);
+   // return EvalDisney(intersection, material ,V, N, L, pdf);
 }
 

@@ -61,6 +61,10 @@ struct Triangle
 	alignas(16) glm::vec3 normal_0;
 	alignas(16) glm::vec3 normal_1;
 	alignas(16) glm::vec3 normal_2;
+
+	alignas(8) glm::vec2 texCoord_0;
+	alignas(8) glm::vec2 texCoord_1;
+	alignas(8) glm::vec2 texCoord_2;
 };
 
 

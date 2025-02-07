@@ -159,56 +159,32 @@ bool HitTriangle(Primitive prim, Ray r, float tMin, float tMax, inout Intersecti
 
     Triangle t = prim.triangle;
     vec3 n = vec3(0, 0, 0);
-    //vec3 hit = TriangleIntersectionTest(ray_origin, ray_direction, t, n);
+    vec3 hit = TriangleIntersectionTest(ray_origin, ray_direction, t, n);
 
-
-    //if (!(hit.y < 0.0 || hit.y>1.0 || hit.z < 0.0 || (hit.y + hit.z)>1.0))
-    //{
-    //    intersection.position = ray_origin + hit.x * ray_direction;
-    //    intersection.normal = normalize(n);
-    //    intersection.backFaceFlag = dot(ray_direction, intersection.normal) > 0 ? 1 : 0;
-    //    intersection.normal *= 1 - 2 * intersection.backFaceFlag;
-
-    //    intersection.position += intersection.normal * 0.0001;
-
-    //    //back to world space
-    //    intersection.position = multiplyMV(prim.transform, vec4(intersection.position, 1.0));
-    //    intersection.normal = multiplyMV(prim.inverseTranspose, vec4(intersection.normal, 0.0));
-    //    intersection.ffnormal = dot(intersection.normal, r.direction) <= 0.0 ? intersection.normal : -intersection.normal;
-
-    //    intersection.t = hit.x;
-    //    intersection.material_ID = prim.materialIdx;
-    //    return hit.x > tMin && hit.x < tMax;
-    //}
-   // return false;
-
-    vec3 baryPos;
-    bool hasIntersect = TriangleIntersection(ray_origin, ray_direction, t, baryPos);
-    if (!hasIntersect)
+    if (!(hit.y < 0.0 || hit.y>1.0 || hit.z < 0.0 || (hit.y + hit.z)>1.0))
     {
-        return false;
+        vec3 bary = vec3(1 - hit.y - hit.z, hit.y, hit.z);
+        intersection.texCoords = t.texCoord_0 * bary.x + t.texCoord_1 * bary.y + t.texCoord_2 * bary.z;
+        vec3 normal = normalize(t.n0.xyz * bary.x + t.n1.xyz * bary.y + t.n2.xyz * bary.z);
+
+        intersection.position = ray_origin + hit.x * ray_direction;
+        intersection.normal =normal;
+        intersection.backFaceFlag = dot(ray_direction, intersection.normal) > 0 ? 1 : 0;
+        //intersection.normal *= 1 - 2 * intersection.backFaceFlag;
+
+        intersection.position += intersection.normal * 0.0001;
+
+        //back to world space
+        intersection.position = multiplyMV(prim.transform, vec4(intersection.position, 1.0));
+        intersection.normal = multiplyMV(prim.inverseTranspose, vec4(intersection.normal, 0.0));
+        intersection.ffnormal = dot(intersection.normal, r.direction) <= 0.0 ? intersection.normal : -intersection.normal;
+
+        intersection.t = hit.x;
+        intersection.material_ID = prim.materialIdx;
+        return hit.x > tMin && hit.x < tMax;
     }
+    return false;
 
-    vec3 isect_pos = (1.f - baryPos.x - baryPos.y) * t.v0 + baryPos.x * t.v1 + baryPos.y * t.v2;
-
-    // calculate local space normal of the closest triangle
-    float S = 0.5f * length(cross(t.v0 - t.v1, t.v0 - t.v2));
-    float s1 = 0.5f * length(cross(isect_pos - t.v1,isect_pos - t.v2)) / S;
-    float s2 = 0.5f * length(cross(isect_pos - t.v2,isect_pos - t.v0)) / S;
-    float s3 = 0.5f * length(cross(isect_pos - t.v0,isect_pos - t.v1)) / S;
-    vec3 normal = t.n0 * s1 +t.n1 * s2 + t.n2 * s3;
-    intersection.normal = normalize(normal);
-
-    float isect_t = length(r.origin - intersection.position);
-    if (tMax > isect_t && isect_t > 0) tMax = isect_t;
-
-    intersection.position = isect_pos + intersection.normal * EPSILON;
-    intersection.position = multiplyMV(prim.transform, vec4(intersection.position, 1.0));
-    intersection.normal = multiplyMV(prim.inverseTranspose, vec4(intersection.normal, 0.0));
-    intersection.ffnormal = dot(intersection.normal, r.direction) <= 0.0 ? intersection.normal : -intersection.normal;
-    intersection.t = isect_t;
-    intersection.material_ID = prim.materialIdx;
-    return hasIntersect;
 }
 
 bool HitBoundingBox(Ray r, vec3 boxMin, vec3 boxMax)

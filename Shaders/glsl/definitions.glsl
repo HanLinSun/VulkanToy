@@ -90,6 +90,10 @@ struct Triangle
 	vec3 n0;
 	vec3 n1;
 	vec3 n2;
+
+	vec2 texCoord_0;
+	vec2 texCoord_1;
+	vec2 texCoord_2;
 };
 
 struct Sphere

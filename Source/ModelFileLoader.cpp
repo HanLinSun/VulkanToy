@@ -218,6 +218,10 @@ namespace Renderer
 				primitive.triangle.normal_1= triVert[1].normal;
 				primitive.triangle.normal_2 = triVert[2].normal;
 
+				primitive.triangle.texCoord_0 = triVert[0].texCoord;
+				primitive.triangle.texCoord_1 = triVert[1].texCoord;
+				primitive.triangle.texCoord_2 = triVert[2].texCoord;
+
 				primitive.material_ID = shapes[s].mesh.material_ids[f];
 				primitive.transformMatrix = defaultTransformMat;
 				primitive.inverseTransform = defaultInverseTransformMat;

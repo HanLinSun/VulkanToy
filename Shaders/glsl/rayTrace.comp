@@ -297,23 +297,16 @@ vec3 TraceRay(Ray r)
     {
     
         bool hit =CloestHit(currentRay, intersection, lightSample);
-        if(!hit)
-        {
-            radiance =vec3(1,0,0);
-        }
-        else
-        {
-           radiance =vec3(0,1,0);
-        }
-        return radiance;
 
+      
         // Terminate path if ray escaped
         //TODO: add skybox and HDR skymap reflection when ray escaped
         if(!hit) break;
 
+        radiance =intersection.ffnormal;
+        return radiance;
+
         PBRMaterial material = GetHitMaterialProperties(r, intersection);
-
-
 
         radiance += material.emission * throughput;
         // Gather radiance from light and use bsdfSample.pdf from previous bounce for MIS
@@ -339,7 +332,7 @@ vec3 TraceRay(Ray r)
         bsdfSample.f =SampleDisney(intersection,material, -r.direction, intersection.ffnormal, bsdfSample.L, bsdfSample.pdf);
 
         //For Debug
-        radiance =intersection.position;
+ 
 
 
         if(bsdfSample.pdf>0.0)
