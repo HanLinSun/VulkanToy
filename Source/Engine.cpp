@@ -152,7 +152,7 @@ namespace Renderer
         VkExtent2D swapChainExtent = m_swapChain->GetVkExtent();
         VkFormat format = m_swapChain->GetVkImageFormat();
 
-        m_ImGuiLayer->InitImGUIAttribute(m_device.get(), swapChainExtent, m_renderPass,m_presentQueue,"./Shaders/",m_msaaSamples);
+        m_ImGuiLayer->InitImGUIAttribute(m_device.get(), swapChainExtent, m_renderPass,m_presentQueue,"./Shaders/glsl/",m_msaaSamples);
     }
 
 

@@ -75,7 +75,7 @@ void Onb(in vec3 N, inout vec3 T, inout vec3 B)
 	B = cross(N, T);
 }
 
-vec3 SampleLambert(vec3 albedo,vec3 V, vec3 N, inout vec3 L, inout float pdf)
+vec3 SampleLambert(vec3 albedo, vec3 N, inout vec3 L, inout float pdf)
 {
 	float r1 = Random();
 	float r2 = Random();

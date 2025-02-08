@@ -258,3 +258,7 @@ bool HitPrimitive(Primitive prim, float tMin, float tMax, Ray r, inout Intersect
     }
 }
 
+void ScatterSimple(Ray r, inout Intersection intersection, inout Ray scatteredRay)
+{
+
+}
