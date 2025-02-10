@@ -35,12 +35,14 @@ namespace Renderer
 					modelDataPath = tokens[1];
 				}
 			}
-			LoadModel(modelDataPath, modelFilePath, scene);
+
+
+			//LoadModel(modelDataPath, modelFilePath, scene);
 
 			glm::vec3 translation=glm::vec3(0,0,0);
 			glm::vec3 rotation = glm::vec3(0, 0, 0);
 			glm::vec3 scale=glm::vec3(0,0,0);
-
+			int materialId = -1;
 			SafeGetline(scene->fp_in, line);
 			while (!line.empty() && scene->fp_in.good()) {
 				std::vector<std::string> tokens = TokenizeString(line);
@@ -55,8 +57,23 @@ namespace Renderer
 				else if (strcmp(tokens[0].c_str(), "Scale") == 0) {
 					scale = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
 				}
+				else if (strcmp(tokens[0].c_str(), "MaterialID") == 0)
+				{
+					materialId = atoi(tokens[1].c_str());
+				}
 				SafeGetline(scene->fp_in, line);
 			}
+
+			if (materialId == -1)
+			{
+				LoadModel(modelDataPath, modelFilePath, scene);
+			}
+			else
+			{
+				LoadModel(modelDataPath, modelFilePath, scene, materialId);
+			}
+
+
 			scene->GetSceneModelGroupsRaw().back()->buildTransformationMatrix(translation, rotation, scale);
 			scene->GetSceneModelGroupsRaw().back()->SetModelTransformMatrix();
 			scene->GetPrimitivesFromModelGroups();
@@ -149,6 +166,82 @@ namespace Renderer
 		scene->AddLight(light);
 	}
 
+	void Loader::LoadSceneMaterial(Scene* scene)
+	{
+		std::string line;
+		SafeGetline(scene->fp_in, line);
+		glm::vec4 baseColor = glm::vec4(0, 0, 0,1);
+		glm::vec4 emission = glm::vec4(0, 0, 0, 1);
+		float roughness = 0.0f;
+		float metallic = 0.0f;
+		float clearcoat = 0.0f;
+		float clearcoatgloss = 0.0f;
+		float sheen=0.0f;
+		float sheenTint=0.0f;
+		float spectrans = 0.0f;
+		float subsurface = 0.0f;
+		MaterialProperties materialProperty;
+
+		while (!line.empty() && scene->fp_in.good())
+		{
+			std::vector<std::string> tokens = TokenizeString(line);
+			if (strcmp(tokens[0].c_str(), "Color") == 0)
+			{
+				baseColor = glm::vec4(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()),0);
+			}
+			else if (strcmp(tokens[0].c_str(), "Roughness") == 0)
+			{
+				roughness = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "Metallic") == 0)
+			{
+				metallic = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "ClearCoat") == 0)
+			{
+				clearcoat = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "ClearCoatGloss") == 0)
+			{
+				clearcoatgloss = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "Sheen"))
+			{
+				sheen = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "SheenTint"))
+			{
+				sheenTint = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "SpecTrans") == 0)
+			{
+				spectrans = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "SubSurface") == 0)
+			{
+				subsurface = atof(tokens[1].c_str());
+			}
+			else if (strcmp(tokens[0].c_str(), "Emission") == 0)
+			{
+				emission = glm::vec4(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()), 0);
+			}
+			SafeGetline(scene->fp_in, line);
+		}
+		materialProperty.Diffuse = baseColor;
+		materialProperty.Sheen = sheen;
+		materialProperty.SheenTint = sheenTint;
+		materialProperty.Emissive = emission;
+		materialProperty.Roughness = roughness;
+		materialProperty.Metallic = metallic;
+		materialProperty.ClearCoat = clearcoat;
+		materialProperty.ClearCoatGloss = clearcoatgloss;
+		materialProperty.SpecTrans = spectrans;
+		materialProperty.SubSurface = subsurface;
+		std::shared_ptr<Material> material = std::make_shared<Material>(materialProperty);
+		scene->AddMaterial(material);
+	}
+
+
 	void Loader::LoadSceneCamera(Scene* scene)
 	{
 		std::string line;
@@ -221,10 +314,15 @@ namespace Renderer
 				{
 					LoadSceneLight(scene);
 				}
+				else if (strcmp(tokens[0].c_str(), "Material") == 0)
+				{
+					LoadSceneMaterial(scene);
+				}
 			}
 		}
 	}
 
+	//This case, use mtl material
 	void Loader::LoadModel(std::string path, std::string model_folder_path, Scene* scene)
 	{
 		MeshData mesh;
@@ -256,6 +354,39 @@ namespace Renderer
 			}
 		}
 		
+	}
+
+	//use material settled by scene file
+	void Loader::LoadModel(std::string path, std::string folder_path, Scene* scene, int materialID)
+	{
+		MeshData mesh;
+		int fileSplit = 0;
+		for (int i = path.size() - 1; i > 0; i--)
+		{
+			if (path[i] == '.')
+			{
+				fileSplit = i;
+				break;
+			}
+		}
+		std::string fileType = path.substr(fileSplit, path.size() - fileSplit);
+
+		if (fileType == ".obj")
+		{
+			ObjFileLoader* objFileloader = new ObjFileLoader(m_device);
+			if (objFileloader != nullptr)
+			{
+				objFileloader->loadFileData(scene, path, folder_path);
+				std::vector<std::shared_ptr<Material>> mats = scene->GetMaterials();
+				std::unique_ptr<ModelGroup> modelGroup = std::make_unique<ModelGroup>();
+				for (auto& mesh : objFileloader->GetMeshes())
+				{
+					Model* model = new Model(m_device.get(), m_commandPool, mesh.m_vertices, mesh.m_indices, mats[materialID], mesh.m_primitives);
+					modelGroup->AddModel(model);
+				}
+				scene->AddModelGroup(std::move(modelGroup));
+			}
+		}
 	}
 
 	std::istream& Loader::SafeGetline(std::istream& is, std::string& t) {
