@@ -8,6 +8,7 @@
 #include <GPUModel.h>
 #include <ModelFileLoader.h>
 #include <fstream>
+#include <unordered_map>
 using namespace BVHBuildTool;
 
 namespace Renderer
@@ -56,12 +57,15 @@ namespace Renderer
 		std::vector< std::shared_ptr<Primitive>> GetPrimitivePtrs();
 
 		std::ifstream fp_in;
+		std::unordered_map<std::string, int> m_materiallNameIdxMap;
 
 	private:
 
 		std::vector<std::unique_ptr<ModelGroup>> m_modelGroups;
 		std::vector<std::shared_ptr<Texture2D>> m_textures;
 		std::vector<std::shared_ptr<Material>> m_materials;
+
+		
 
 		std::vector<std::shared_ptr<TestMaterial>> m_testMaterials;
 		std::vector< std::shared_ptr<Primitive>> m_primitives;

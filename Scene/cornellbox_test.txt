@@ -1,0 +1,104 @@
+Camera
+Resolution  800 800
+FOV         40
+Position   .276 .275 -.75
+LookAt      .276 .275 .10
+Up          0 1 0
+
+Material ceiling_white
+Color 0.725 0.71 0.68
+
+
+Material back_wall_white
+Color 0.725 0.71 0.68
+
+
+Material floor_white
+Color 0.725 0.71 0.68
+
+
+Material small_box_white
+Color 0.725 0.71 0.68
+
+
+Material large_box_white
+Color 0.725 0.71 0.68
+
+
+Material red
+Color 0.63 0.065 0.05
+
+
+Material green
+Color 0.14 0.45 0.091
+
+
+Object Mesh
+ModelFilePath ./Assets/CornellBoxSeparate/
+ModelDataPath ./Assets/CornellBoxSeparate/cbox_ceiling.obj
+Material ceiling_white
+Translate .278 .5488 .27955
+Rotation 0 0 0
+Scale 0.01 0.01 0.01
+
+
+Object Mesh
+ModelFilePath ./Assets/CornellBoxSeparate/
+ModelDataPath ./Assets/CornellBoxSeparate/cbox_floor.obj
+Material floor_white
+Translate .2756 0 .2796
+Rotation 0 0 0
+Scale 0.01 0.01 0.01
+
+Object Mesh
+ModelFilePath ./Assets/CornellBoxSeparate/
+ModelDataPath ./Assets/CornellBoxSeparate/cbox_back.obj
+Material back_wall_white
+Translate .2764 .2744 .5592
+Rotation 0 0 0
+Scale 0.01 0.01 0.01
+
+
+Object Mesh
+ModelFilePath ./Assets/CornellBoxSeparate/
+ModelDataPath ./Assets/CornellBoxSeparate/cbox_smallbox.obj
+Material small_box_white
+Translate .1855 .0835 .169
+Rotation 0 0 0
+Scale 0.01 0.01 0.01
+
+
+Object Mesh
+ModelFilePath ./Assets/CornellBoxSeparate/
+ModelDataPath ./Assets/CornellBoxSeparate/cbox_largebox.obj
+Material large_box_white
+Translate .3685 .166 .35125
+Rotation 0 0 0
+Scale 0.01 0.01 0.01
+
+
+Object Mesh
+ModelFilePath ./Assets/CornellBoxSeparate/
+ModelDataPath ./Assets/CornellBoxSeparate/cbox_greenwall.obj
+Material green
+Translate 0 .2744 .2796
+Rotation 0 0 0
+Scale 0.01 0.01 0.01
+
+
+Object Mesh
+ModelFilePath ./Assets/CornellBoxSeparate/
+ModelDataPath ./Assets/CornellBoxSeparate/cbox_redwall.obj
+Material red
+Translate  .5536 .2744 .2796
+Rotation 0 0 0
+Scale 0.01 0.01 0.01
+
+
+Light
+Type Quad
+Position  .34299999 .54779997 .22700010
+v1 .34299999 .54779997 .33200008
+v2 .21300001 .54779997 .22700010
+Emission 17 12 4
+

@@ -42,7 +42,7 @@ namespace Renderer
 			glm::vec3 translation=glm::vec3(0,0,0);
 			glm::vec3 rotation = glm::vec3(0, 0, 0);
 			glm::vec3 scale=glm::vec3(0,0,0);
-			int materialId = -1;
+			std::string materialName="";
 			SafeGetline(scene->fp_in, line);
 			while (!line.empty() && scene->fp_in.good()) {
 				std::vector<std::string> tokens = TokenizeString(line);
@@ -57,20 +57,23 @@ namespace Renderer
 				else if (strcmp(tokens[0].c_str(), "Scale") == 0) {
 					scale = glm::vec3(atof(tokens[1].c_str()), atof(tokens[2].c_str()), atof(tokens[3].c_str()));
 				}
-				else if (strcmp(tokens[0].c_str(), "MaterialID") == 0)
+				else if (strcmp(tokens[0].c_str(), "Material") == 0)
 				{
-					materialId = atoi(tokens[1].c_str());
+					materialName = tokens[1].c_str();
 				}
 				SafeGetline(scene->fp_in, line);
 			}
 
-			if (materialId == -1)
+
+		
+			if (materialName == "")
 			{
 				LoadModel(modelDataPath, modelFilePath, scene);
 			}
 			else
 			{
-				LoadModel(modelDataPath, modelFilePath, scene, materialId);
+				int materialID = scene->m_materiallNameIdxMap[materialName];
+				LoadModel(modelDataPath, modelFilePath, scene, materialID);
 			}
 
 
@@ -166,10 +169,11 @@ namespace Renderer
 		scene->AddLight(light);
 	}
 
-	void Loader::LoadSceneMaterial(Scene* scene)
+	void Loader::LoadSceneMaterial(Scene* scene, std::string matName)
 	{
 		std::string line;
 		SafeGetline(scene->fp_in, line);
+		std::string materialName = matName;
 		glm::vec4 baseColor = glm::vec4(0, 0, 0,1);
 		glm::vec4 emission = glm::vec4(0, 0, 0, 1);
 		float roughness = 0.0f;
@@ -238,6 +242,7 @@ namespace Renderer
 		materialProperty.SpecTrans = spectrans;
 		materialProperty.SubSurface = subsurface;
 		std::shared_ptr<Material> material = std::make_shared<Material>(materialProperty);
+		scene->m_materiallNameIdxMap[materialName] = scene->GetMaterialSize();
 		scene->AddMaterial(material);
 	}
 
@@ -316,7 +321,7 @@ namespace Renderer
 				}
 				else if (strcmp(tokens[0].c_str(), "Material") == 0)
 				{
-					LoadSceneMaterial(scene);
+					LoadSceneMaterial(scene,tokens[1].c_str());
 				}
 			}
 		}

@@ -16,7 +16,7 @@ namespace Renderer
 		void LoadSceneCamera(Scene* scene);
 		void LoadFromSceneFile(Scene* scene, std::string sceneFile);
 		void LoadSceneLight(Scene* scene);
-		void LoadSceneMaterial(Scene* scene);
+		void LoadSceneMaterial(Scene* scene, std::string matName);
 
 		std::istream& SafeGetline(std::istream& is, std::string& t);
 		std::vector<std::string> TokenizeString(std::string str);

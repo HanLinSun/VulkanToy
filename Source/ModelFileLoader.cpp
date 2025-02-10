@@ -23,8 +23,6 @@ namespace Renderer
 	void FileLoader::loadFileData(Scene* scene,std::string path, std::string modelFolderPath) {}
 	void FileLoader::loadFileData(Scene*, std::string sceneDescriptionPath){}
 
-
-
 	ObjFileLoader::ObjFileLoader(std::shared_ptr<Device> device):m_device(device) {}
 
 	ObjFileLoader:: ~ObjFileLoader()
@@ -78,6 +76,7 @@ namespace Renderer
 		for (auto& material : materials)
 		{
 			std::shared_ptr<Material> load_mat = std::make_shared<Material>();
+			load_mat->m_name = material.name;
 			load_mat->SetAmbientColor(glm::vec4(material.ambient[0], material.ambient[1], material.ambient[2], 1));
 			load_mat->SetDiffuseColor(glm::vec4(material.diffuse[0], material.diffuse[1], material.diffuse[2], 1));
 			load_mat->SetEmissiveColor(glm::vec4(material.emission[0], material.emission[1], material.emission[2], 1));

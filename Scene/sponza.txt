@@ -12,3 +12,31 @@ ModelDataPath ./Models/Sponza/sponza.obj
 Translate 0 -100 0
 Rotation  0 90 0
 Scale     1 1 1
+
+Material ceiling_white
+Color 0.725 0.71 0.68
+
+
+Material back_wall_white
+Color 0.725 0.71 0.68
+
+
+Material floor_white
+Color 0.725 0.71 0.68
+
+
+Material small_box_white
+Color 0.725 0.71 0.68
+
+
+Material large_box_white
+Color 0.725 0.71 0.68
+
+
+Material red
+color 0.63 0.065 0.05
+
+
+Material green
+color 0.14 0.45 0.091
+
