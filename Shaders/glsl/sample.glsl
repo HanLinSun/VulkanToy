@@ -168,9 +168,9 @@ float PowerHeuristic(float a, float b)
 // pow(m,5)
 float SchlickFresnel(float u)
 {
-	float m = clamp(1 - u, 0, 1);
+	float m = clamp(1.0 - u, 0.0, 1.0);
 	float m2 = m * m;
-	return m2 * m2 * m; // pow(m,5)
+	return m2 * m2 * m;
 }
 
 //GTR: Generalized-Trowbridge-Reitz,used to estimate specular

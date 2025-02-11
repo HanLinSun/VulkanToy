@@ -23,7 +23,7 @@ vec3 ToWorld(vec3 X, vec3 Y, vec3 Z, vec3 V)
 
 vec3 ToLocal(vec3 X, vec3 Y, vec3 Z, vec3 V)
 {
-    return V.x * X + V.y * Y + V.z * Z;
+    return vec3(dot(V, X), dot(V, Y), dot(V, Z));
 }
 
 float Luminance(vec3 c)
@@ -81,7 +81,8 @@ vec3 EvalDisneyClearcoat(in PBRMaterial material, vec3 V, vec3 N, vec3 L ,vec3 H
 vec3 EvalDisneyDiffuse(in PBRMaterial material, in vec3 Csheen, vec3 V, vec3 N, vec3 L, vec3 H, inout float pdf)
 {
     pdf = 0.0;
-    if (dot(N, L) <= 0.0)
+
+    if (L.z<= 0.0)
         return vec3(0.0);
 
     float NdotL = dot(N, L);
@@ -151,9 +152,11 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     pdf = 0.0;
     vec3 f = vec3(0.0);
 
+
     vec3 T, B;
     Onb(N, T, B);
    
+
     // (NDotL = L.z; NDotV = V.z; NDotH = H.z)
     V = ToLocal(T, B, N, V);
     L = ToLocal(T, B, N, L);
@@ -182,16 +185,26 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     // Lobe probabilities
     float schlickWt = SchlickFresnel(V.z);
 
+    if (V.z > 1.0) return vec3(0, 1, 0);
+    else return vec3(1, 0, 0);
+
     float diffusePr = dielectricWt * Luminance(material.baseColor);
     float dielectricPr = dielectricWt * Luminance(mix(Cspec0, vec3(1.0), schlickWt));
     float metalPr = metalWt * Luminance(mix(material.baseColor, vec3(1.0), schlickWt));
     float glassPr = glassWt;
     float clearCtPr = 0.25 * material.clearcoat;
 
+
+
     //Normalize 
     float invTotalWt = 1.0 / (diffusePr + dielectricPr + metalPr + glassPr + clearCtPr);
 
+
+
     diffusePr *= invTotalWt;
+
+
+
     dielectricPr *= invTotalWt;
     metalPr *= invTotalWt;
     glassPr *= invTotalWt;
@@ -202,7 +215,6 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     float tmpPdf = 0.0;
     float VDotH = abs(dot(V, H));
 
-    // Diffuse
 
     if (diffusePr > 0.0 && reflect)
     {

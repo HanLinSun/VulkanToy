@@ -68,6 +68,22 @@ bool HitScene(Ray r, inout Intersection intersection)
   return hit;
 }
 
+bool HitScene(Ray r, inout Intersection intersection,float maxDist)
+{
+  bool hit =false;
+  float tMin=MINIMUM;
+  float closest =maxDist;
+
+  for(int i=0;i<ubo.numPrimitives;i++)
+  {
+      if(HitPrimitive(primitives[i],tMin,closest, r, intersection))
+      {
+         hit =true;
+      }
+  }
+  return hit;
+}
+
 bool HitBVHNode(in Ray r , inout Intersection intersection)
 {
     float tMin =MINIMUM;
@@ -151,6 +167,7 @@ bool CloestHit(Ray r, inout Intersection intersection, inout LightSample lightSa
       return HitScene(r, intersection);
 }
 
+
 bool AnyHitCheck(in Ray r, float maxDist)
 {
    Intersection temp_isect;
@@ -172,9 +189,10 @@ bool AnyHitCheck(in Ray r, float maxDist)
                 return true;
            }
        }
-}
+    }
       //return HitBVHNode(r,temp_isect);
-      return HitScene(r, temp_isect);
+
+      return HitScene(r, temp_isect, maxDist);
 }
 
 PBRMaterial GetHitMaterialProperties(in Ray r, in Intersection intersection)
@@ -250,13 +268,14 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
            bool inShadow = AnyHitCheck(shadowRay, lightSample.distance-EPSILON);
             
           //  return vec3(lightSample.distance,lightSample.distance,lightSample.distance);
-
-
            //BSDF LTE
             if (!inShadow)
             {
               //Visible
                 PBRMaterial material =GetHitMaterialProperties(r, intersection);
+
+                lightSample.direction =normalize(lightSample.direction);
+
                 bsdfSample.f = EvalDisney(intersection, material, -r.direction, intersection.ffnormal, lightSample.direction, bsdfSample.pdf);
 
                 float misWeight = 1.0;
@@ -347,8 +366,8 @@ vec3 TraceRay(Ray r)
         if(bounces >=ubo.maxDepth) break;
 
         //Sample Light
-        radiance += DirectLight(r, intersection)*throughput;
-       // radiance = DirectLight(r, intersection)*throughput;
+       // radiance += DirectLight(r, intersection)*throughput;
+       radiance = DirectLight(r, intersection)*throughput;
 
         return radiance;
 
