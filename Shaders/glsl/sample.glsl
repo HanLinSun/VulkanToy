@@ -101,17 +101,18 @@ void SampleDistantLight(in Light light, in vec3 scatterPos, inout LightSample li
 }
 
 //Shape sample
-void SampleRectLight(in Light light, in vec3 scatterPos, inout LightSample lightSample)
+void SampleRectLight(in Light light, in vec3 scatterPos, inout LightSample lightSample, float numLights)
 {
 	float r1 = Random();
 	float r2 = Random();
 	//point on rect surface
 	vec3 lightSurfacePos = light.position + light.u * r1 + light.v * r2;
-	lightSample.direction = normalize(lightSurfacePos - scatterPos);
+	lightSample.direction =lightSurfacePos - scatterPos;
 	lightSample.distance = length(lightSample.direction);
 	float distanceSquare = lightSample.distance * lightSample.distance;
+	lightSample.direction /= lightSample.distance;
 	lightSample.normal = normalize(cross(light.u, light.v));
-	lightSample.emission = light.emission; //light.emission * float(ubo.numOfLights);
+	lightSample.emission = light.emission*numLights ; //light.emission * float(ubo.numOfLights);
 	lightSample.pdf = distanceSquare / (light.area * abs(dot(lightSample.normal, lightSample.direction)));
 }
 
@@ -142,12 +143,12 @@ void SampleSphereLight(in Light light, in vec3 scatterPos, inout LightSample lig
 	lightSample.pdf = distSquare / (light.area * 0.5 * abs(dot(lightSample.normal, lightSample.direction)));
 }
 
-void SampleOneLight(in Light light, in vec3 scatterPos, inout LightSample lightSample)
+void SampleOneLight(in Light light, in vec3 scatterPos, inout LightSample lightSample,float numLights)
 {
 	int type = int(light.type);
 
 	if (type == RECT_LIGHT)
-		SampleRectLight(light, scatterPos, lightSample);
+		SampleRectLight(light, scatterPos, lightSample,numLights);
 	else if (type == SPHERE_LIGHT)
 		SampleSphereLight(light, scatterPos, lightSample);
 	else
@@ -293,12 +294,6 @@ float DielectricFresnel(float cosThetaI, float eta)
 	float rp = (eta * cosThetaI - cosThetaT) / (eta * cosThetaI + cosThetaT);
 
 	return 0.5f * (rs * rs + rp * rp);
-}
-
-
-vec3 mon2lin(vec3 x)
-{
-	return vec3(pow(x[0], 2.2), pow(x[1], 2.2), pow(x[2], 2.2));
 }
 
 #endif

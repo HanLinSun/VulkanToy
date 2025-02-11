@@ -206,4 +206,12 @@ namespace Renderer
 		m_material = std::make_unique<Material>(std::move(mat));
 	}
 
+	void Model::SetPrimitiveMaterialID(int materialID)
+	{
+		for (auto primitive : m_primitives)
+		{
+			primitive->material_ID = materialID;
+		}
+	}
+
  }

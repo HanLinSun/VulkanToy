@@ -37,7 +37,7 @@ namespace Renderer
 		VkBuffer GetModelUniformBuffer() const;
 		Material* GetMaterial() const;
 		void SetMaterial(Material* mat);
-
+		void SetPrimitiveMaterialID(int materialID);
 		std::vector<std::shared_ptr<Primitive>> GetPrimitives();
 
 	protected:

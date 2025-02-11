@@ -89,12 +89,10 @@ bool HitBVHNode(in Ray r , inout Intersection intersection)
        {
              if(node.primitiveIdx !=-1)
              {
-                 Intersection temp_insec;
-                 if(HitPrimitive(primitives[node.primitiveIdx],tMin, closest,r,temp_insec))
+                 if(HitPrimitive(primitives[node.primitiveIdx],tMin, closest,r, intersection))
                  {
                      hit =true;
-                     intersection =temp_insec;
-                     closest =temp_insec.t;
+                     closest = intersection.t;
                  }
                  if (toVisitOffset == 0) break;
                  currentNodeIndex = nodeStack[--toVisitOffset];
@@ -149,10 +147,11 @@ bool CloestHit(Ray r, inout Intersection intersection, inout LightSample lightSa
           intersection.isEmitter =true;
       }
    }
-   return HitBVHNode(r, intersection);
+   // return HitBVHNode(r, intersection);
+      return HitScene(r, intersection);
 }
 
-bool AnyHitCheck(Ray r, float maxDist)
+bool AnyHitCheck(in Ray r, float maxDist)
 {
    Intersection temp_isect;
    if(ubo.numLights >0)
@@ -163,18 +162,19 @@ bool AnyHitCheck(Ray r, float maxDist)
             if(light.type==RECT_LIGHT)
             {
                 float dist = HitRectPlane(r, light);
-                 if (dist > 0.0 && dist < maxDist)
-                return true;
+                if (dist > 0.0 && dist < maxDist)
+               return true;
             }
             else if(light.type==SPHERE_LIGHT)
             {
                 float dist = HitSphereLight(r,light);
                 if (dist > 0.0 && dist < maxDist)
                 return true;
-            }
+           }
        }
-   }
-      return HitBVHNode(r, temp_isect);
+}
+      //return HitBVHNode(r,temp_isect);
+      return HitScene(r, temp_isect);
 }
 
 PBRMaterial GetHitMaterialProperties(in Ray r, in Intersection intersection)
@@ -229,6 +229,7 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
 
       vec3 scatterPos = intersection.position + intersection.normal * EPSILON;
 
+
       BSDFSample bsdfSample;
       LightSample lightSample;
 
@@ -237,19 +238,19 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
 
       int index = int(Random()* float(ubo.numLights));
       Light light = lights[index];
-      SampleOneLight(light, scatterPos, lightSample);
+      SampleOneLight(light, scatterPos, lightSample,float(ubo.numLights));
       Li = light.emission;
-       
+
+
       //Quad Light single side emission
       if(dot(lightSample.direction, lightSample.normal)<0.0)
       {
            Ray shadowRay = Ray(scatterPos, lightSample.direction);
-           bool inShadow = AnyHitCheck(shadowRay, lightSample.distance -EPSILON);
 
-           if(inShadow)
-           {
-              Ld =vec3(1,1,0);
-           }
+           bool inShadow = AnyHitCheck(shadowRay, lightSample.distance-EPSILON);
+            
+          //  return vec3(lightSample.distance,lightSample.distance,lightSample.distance);
+
 
            //BSDF LTE
             if (!inShadow)
@@ -257,11 +258,6 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
               //Visible
                 PBRMaterial material =GetHitMaterialProperties(r, intersection);
                 bsdfSample.f = EvalDisney(intersection, material, -r.direction, intersection.ffnormal, lightSample.direction, bsdfSample.pdf);
-
-                if(bsdfSample.f ==vec3(0.0))
-                {
-                    Ld =vec3(1,0,0);
-                }
 
                 float misWeight = 1.0;
 
@@ -272,11 +268,6 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
                     Ld += misWeight * Li * bsdfSample.f / lightSample.pdf;
             }
       }
-      else
-      {
-           Ld =  vec3(1,0,1);
-      }
-
 
       //Ld =0.0
       return Ld;
@@ -292,11 +283,13 @@ vec3 TraceRaySimple(Ray r)
     {
           if(HitBVHNode(currentRay,intersection))
           {
-                  vec3 direction = intersection.normal + RandomInUnitSphere();
+                  float r1=Random();
+                  float r2 =Random();
+                  vec3 direction = CosineSampleHemisphere(r1,r2);
                   vec3 albedo =Materials[intersection.material_ID].baseColor;
                   currentRay.origin = intersection.position + intersection.normal *EPSILON;
                   currentRay.direction = normalize(direction);
-                  radiance *=albedo;
+                  radiance *= albedo;
           }
           else
           {
@@ -325,19 +318,18 @@ vec3 TraceRay(Ray r)
     for (bounces = 0;; bounces++)
     {
     
-        bool hit =CloestHit(currentRay, intersection, lightSample);
-
+       bool hit =CloestHit(currentRay, intersection, lightSample);
+       //bool hit= HitScene(currentRay,intersection);
       
         // Terminate path if ray escaped
         //TODO: add skybox and HDR skymap reflection when ray escaped
         if(!hit) break;
 
-        radiance =intersection.ffnormal;
-        return radiance;
 
         PBRMaterial material = GetHitMaterialProperties(r, intersection);
 
         radiance += material.emission * throughput;
+
         // Gather radiance from light and use bsdfSample.pdf from previous bounce for MIS
         //Hit light, terminate the ray
         if(intersection.isEmitter)
@@ -356,6 +348,9 @@ vec3 TraceRay(Ray r)
 
         //Sample Light
         radiance += DirectLight(r, intersection)*throughput;
+       // radiance = DirectLight(r, intersection)*throughput;
+
+        return radiance;
 
         // Sample BSDF for color and outgoing direction
         bsdfSample.f =SampleDisney(intersection,material, -r.direction, intersection.ffnormal, bsdfSample.L, bsdfSample.pdf);
@@ -369,6 +364,7 @@ vec3 TraceRay(Ray r)
 
         r.direction = bsdfSample.L;
         r.origin =intersection.position + r.direction*EPSILON;
+
         //Russian Roulette 
          if (bounces >=2)
         {
@@ -413,8 +409,8 @@ void main()
         r.origin =origin.xyz;
     	r.direction = normalize(rayDirection);
 
-        //radiance += TraceRay(r);
-        radiance += TraceRaySimple(r);
+        radiance += TraceRay(r);
+        //radiance += TraceRaySimple(r);
     }
 
     radiance /= float(SPP);

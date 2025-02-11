@@ -26,6 +26,4 @@ namespace Renderer
 		VkCommandPool m_commandPool;
 	};
 
-
-
 }

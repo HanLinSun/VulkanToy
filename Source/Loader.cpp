@@ -387,6 +387,7 @@ namespace Renderer
 				for (auto& mesh : objFileloader->GetMeshes())
 				{
 					Model* model = new Model(m_device.get(), m_commandPool, mesh.m_vertices, mesh.m_indices, mats[materialID], mesh.m_primitives);
+					model->SetPrimitiveMaterialID(materialID);
 					modelGroup->AddModel(model);
 				}
 				scene->AddModelGroup(std::move(modelGroup));

@@ -168,16 +168,18 @@ bool HitTriangle(Primitive prim, Ray r, float tMin, float tMax, inout Intersecti
         vec3 normal = normalize(t.n0.xyz * bary.x + t.n1.xyz * bary.y + t.n2.xyz * bary.z);
 
         intersection.position = ray_origin + hit.x * ray_direction;
-        intersection.normal =normal;
+        intersection.normal = normal;
         intersection.backFaceFlag = dot(ray_direction, intersection.normal) > 0 ? 1 : 0;
         //intersection.normal *= 1 - 2 * intersection.backFaceFlag;
 
         intersection.position += intersection.normal * 0.0001;
 
+        intersection.ffnormal = dot(intersection.normal, ray_direction) <= 0.0 ? intersection.normal : -intersection.normal;
+
         //back to world space
         intersection.position = multiplyMV(prim.transform, vec4(intersection.position, 1.0));
         intersection.normal = multiplyMV(prim.inverseTranspose, vec4(intersection.normal, 0.0));
-        intersection.ffnormal = dot(intersection.normal, r.direction) <= 0.0 ? intersection.normal : -intersection.normal;
+        intersection.ffnormal = multiplyMV(prim.inverseTranspose, vec4(intersection.ffnormal, 0.0));
 
         intersection.t = hit.x;
         intersection.material_ID = prim.materialIdx;
