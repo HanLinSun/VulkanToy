@@ -181,6 +181,8 @@ bool HitTriangle(Primitive prim, Ray r, float tMin, float tMax, inout Intersecti
         intersection.normal = multiplyMV(prim.inverseTranspose, vec4(intersection.normal, 0.0));
         intersection.ffnormal = multiplyMV(prim.inverseTranspose, vec4(intersection.ffnormal, 0.0));
 
+        intersection.ffnormal = normalize(intersection.ffnormal);
+
         intersection.t = hit.x;
         intersection.material_ID = prim.materialIdx;
         return hit.x > tMin && hit.x < tMax;

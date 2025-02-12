@@ -195,7 +195,7 @@ bool AnyHitCheck(in Ray r, float maxDist)
       return HitScene(r, temp_isect, maxDist);
 }
 
-PBRMaterial GetHitMaterialProperties(in Ray r, in Intersection intersection)
+PBRMaterial GetHitMaterialProperties(in Ray r, inout Intersection intersection)
 {
     PBRMaterial material =Materials[intersection.material_ID];
     if(material.albedoTextureID >0)
@@ -235,7 +235,12 @@ PBRMaterial GetHitMaterialProperties(in Ray r, in Intersection intersection)
     material.ax = max(0.001, material.roughness / aspect);
     material.ay = max(0.001, material.roughness * aspect);
 
-    intersection.eta = dot(r.direction, intersection.normal) < 0.0 ? (1.0 / material.ior) : material.ior;
+    if(material.ior>0)
+    {
+        intersection.eta = dot(r.direction, intersection.normal) < 0.0 ? (1.0 / material.ior) : material.ior;
+    }
+    else intersection.eta =0;
+
     return material;
 }
 
@@ -259,7 +264,6 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
       SampleOneLight(light, scatterPos, lightSample,float(ubo.numLights));
       Li = light.emission;
 
-
       //Quad Light single side emission
       if(dot(lightSample.direction, lightSample.normal)<0.0)
       {
@@ -267,14 +271,13 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
 
            bool inShadow = AnyHitCheck(shadowRay, lightSample.distance-EPSILON);
             
-          //  return vec3(lightSample.distance,lightSample.distance,lightSample.distance);
            //BSDF LTE
             if (!inShadow)
             {
               //Visible
                 PBRMaterial material =GetHitMaterialProperties(r, intersection);
 
-                lightSample.direction =normalize(lightSample.direction);
+                r.direction = normalize(r.direction);
 
                 bsdfSample.f = EvalDisney(intersection, material, -r.direction, intersection.ffnormal, lightSample.direction, bsdfSample.pdf);
 
@@ -344,11 +347,9 @@ vec3 TraceRay(Ray r)
         //TODO: add skybox and HDR skymap reflection when ray escaped
         if(!hit) break;
 
-
         PBRMaterial material = GetHitMaterialProperties(r, intersection);
 
         radiance += material.emission * throughput;
-
         // Gather radiance from light and use bsdfSample.pdf from previous bounce for MIS
         //Hit light, terminate the ray
         if(intersection.isEmitter)
@@ -366,14 +367,10 @@ vec3 TraceRay(Ray r)
         if(bounces >=ubo.maxDepth) break;
 
         //Sample Light
-       // radiance += DirectLight(r, intersection)*throughput;
-       radiance = DirectLight(r, intersection)*throughput;
-
-        return radiance;
+        radiance += DirectLight(r, intersection)*throughput;
 
         // Sample BSDF for color and outgoing direction
         bsdfSample.f =SampleDisney(intersection,material, -r.direction, intersection.ffnormal, bsdfSample.L, bsdfSample.pdf);
-
 
         if(bsdfSample.pdf>0.0)
         {
@@ -382,10 +379,10 @@ vec3 TraceRay(Ray r)
         else break;
 
         r.direction = bsdfSample.L;
-        r.origin =intersection.position + r.direction*EPSILON;
+        r.origin = intersection.position + r.direction*EPSILON;
 
         //Russian Roulette 
-         if (bounces >=2)
+         if (bounces >=3)
         {
             float q = min(max(throughput.x, max(throughput.y, throughput.z)) + 0.001, 0.95);
             if (Random() > q)

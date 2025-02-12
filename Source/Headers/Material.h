@@ -24,7 +24,7 @@ struct MaterialProperties
         const glm::vec4 reflectance = { 0, 0, 0, 0 },
         const glm::vec4 transmittance = { 1,1,1,1 },
         const float opacity = 1.0f,
-        const float indexOfRefraction = 0.0f,
+        const float indexOfRefraction = 1.5f,
         const float bumpIntensity = 1.0f,
         const float alphaThreshold = 0.1f,
         const float transmission =1.0f,

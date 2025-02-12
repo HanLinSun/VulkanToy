@@ -47,11 +47,11 @@ vec3 EvalSheen(in PBRMaterial material, vec3 H,vec3 L)
     return material.sheen * mix(vec3(1.0f), tint, material.sheenTint) * SchlickFresnel(LdotH);
 }
 
-vec3 EvalSpecularTint(in PBRMaterial material, float eta )
+vec3 EvalSpecularTint(in PBRMaterial material, float eta, inout float F0 )
 {
     vec3 tint = CalculateTint(material.baseColor);
 
-    float F0 = (1.0 - eta) / (1.0 + eta);
+    F0 = (1.0 - eta) / (1.0 + eta);
     F0 *= F0;
 
    return  F0 * mix(vec3(1.0), tint, material.specularTint);
@@ -151,15 +151,15 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
 {
     pdf = 0.0;
     vec3 f = vec3(0.0);
-
-
     vec3 T, B;
     Onb(N, T, B);
    
 
     // (NDotL = L.z; NDotV = V.z; NDotH = H.z)
+    vec3 SaveV = V;
     V = ToLocal(T, B, N, V);
     L = ToLocal(T, B, N, L);
+
 
     vec3 H;
     if (L.z > 0.0)
@@ -173,34 +173,33 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
 
     //Tint colors
     vec3 Csheen, Cspec0;
+    Csheen = vec3(0, 0, 0);
+    Cspec0 = vec3(0, 0, 0);
+
     float F0;
     Csheen = EvalSheen(material, H, L);
-    Cspec0 = EvalSpecularTint(material, intersection.eta);
+    Cspec0 = EvalSpecularTint(material, intersection.eta, F0);
 
     //Model Weights
     float dielectricWt = (1.0 - material.metallic) * (1.0 - material.specTrans);
     float metalWt = material.metallic;
     float glassWt = (1.0 - material.metallic) * material.specTrans;
 
+
     // Lobe probabilities
     float schlickWt = SchlickFresnel(V.z);
 
-    if (V.z > 1.0) return vec3(0, 1, 0);
-    else return vec3(1, 0, 0);
-
     float diffusePr = dielectricWt * Luminance(material.baseColor);
+
+
     float dielectricPr = dielectricWt * Luminance(mix(Cspec0, vec3(1.0), schlickWt));
     float metalPr = metalWt * Luminance(mix(material.baseColor, vec3(1.0), schlickWt));
     float glassPr = glassWt;
     float clearCtPr = 0.25 * material.clearcoat;
 
 
-
     //Normalize 
     float invTotalWt = 1.0 / (diffusePr + dielectricPr + metalPr + glassPr + clearCtPr);
-
-
-
     diffusePr *= invTotalWt;
 
 
@@ -225,10 +224,15 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     //Dielectric Reflection
     if (dielectricPr > 0.0 && reflect)
     {
+
         float F = (DielectricFresnel(VDotH, 1.0 / material.ior) - F0) / (1.0 - F0);
+
         f += EvalMicrofacetReflection(material, V, L, H, mix(Cspec0, vec3(1.0), F), tmpPdf) * dielectricWt;
         pdf += tmpPdf * dielectricPr;
     }
+
+
+
     //Metallic
     if (metalPr > 0.0 && reflect)
     {
@@ -261,6 +265,7 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
         f += EvalDisneyClearcoat(material, V, N, L, H, tmpPdf) * 0.25 * material.clearcoat;
         pdf += tmpPdf * clearCtPr;
     }
+
     return f * abs(L.z);
 }
 
@@ -286,7 +291,7 @@ vec3 SampleDisney(Intersection intersection, PBRMaterial material ,vec3 V, vec3 
     float F0;
     vec3 tint = CalculateTint(material.baseColor);
     Csheen = material.sheen * mix(vec3(1.0f), tint, material.sheenTint);
-    Cspec0 = EvalSpecularTint(material, intersection.eta);
+    Cspec0 = EvalSpecularTint(material, intersection.eta,F0);
 
     //AnisotropicParams ax,ay
     vec2 a_xy = vec2(material.ax,material.ay);
