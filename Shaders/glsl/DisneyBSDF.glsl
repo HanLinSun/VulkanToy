@@ -89,7 +89,8 @@ vec3 EvalDisneyDiffuse(in PBRMaterial material, in vec3 Csheen, vec3 V, vec3 N, 
     float NdotV = dot(N,V);
     float LdotH = dot(L,H);
     //Diffuse PDF: cos(theta) /PI 
-    pdf = dot(N, L) * (1.0 / PI);
+    pdf = L.z * (1.0 / PI);
+
     float FL = SchlickFresnel(NdotL);
     float FV = SchlickFresnel(NdotV);
     float FH = SchlickFresnel(LdotH);
@@ -156,7 +157,6 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
    
 
     // (NDotL = L.z; NDotV = V.z; NDotH = H.z)
-    vec3 SaveV = V;
     V = ToLocal(T, B, N, V);
     L = ToLocal(T, B, N, L);
 
@@ -185,7 +185,6 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     float metalWt = material.metallic;
     float glassWt = (1.0 - material.metallic) * material.specTrans;
 
-
     // Lobe probabilities
     float schlickWt = SchlickFresnel(V.z);
 
@@ -201,9 +200,6 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     //Normalize 
     float invTotalWt = 1.0 / (diffusePr + dielectricPr + metalPr + glassPr + clearCtPr);
     diffusePr *= invTotalWt;
-
-
-
     dielectricPr *= invTotalWt;
     metalPr *= invTotalWt;
     glassPr *= invTotalWt;
@@ -224,14 +220,10 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     //Dielectric Reflection
     if (dielectricPr > 0.0 && reflect)
     {
-
         float F = (DielectricFresnel(VDotH, 1.0 / material.ior) - F0) / (1.0 - F0);
-
         f += EvalMicrofacetReflection(material, V, L, H, mix(Cspec0, vec3(1.0), F), tmpPdf) * dielectricWt;
         pdf += tmpPdf * dielectricPr;
     }
-
-
 
     //Metallic
     if (metalPr > 0.0 && reflect)
@@ -331,8 +323,8 @@ vec3 SampleDisney(Intersection intersection, PBRMaterial material ,vec3 V, vec3 
     if (r3 < cdf[0]) //Diffuse
     {
         L = CosineSampleHemisphere(r1, r2);
-
     }
+
     else if (r3 < cdf[2])
     {
         vec3 H = SampleGGXVNDF(V, a_xy, vec2(r1, r2));
@@ -374,8 +366,6 @@ vec3 SampleDisney(Intersection intersection, PBRMaterial material ,vec3 V, vec3 
     L = ToWorld(T, B, N, L);
     V = ToWorld(T, B, N, V);
 
-
-    return L;
-   // return EvalDisney(intersection, material ,V, N, L, pdf);
+    return EvalDisney(intersection, material ,V, N, L, pdf);
 }
 

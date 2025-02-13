@@ -23,7 +23,7 @@ const std::string SCENE_FILE_PATH = "./Scene/cornellbox_test.txt";
 const std::string MODEL_PATH = "./Models/CornellBox/CornellBox-Original.obj";
 const std::string MODEL_FILE_PATH = "./Models/CornellBox/";
 
-//Seems that this object is too large and will crash vulkan driver
+//Seems that this object is too large and will crash vulkan driver£¨solved£©
 //const std::string MODEL_PATH = "./Models/Sponza/sponza.obj";
 //const std::string MODEL_FILE_PATH = "./Models/Sponza/";
 const std::string SKYBOX_CUBEMAP_PATH = "./Textures/Skybox/";
@@ -183,7 +183,6 @@ namespace Renderer
 		std::unique_ptr<Scene> m_Scene;
 		std::shared_ptr<CameraController> m_CameraController;
 		std::shared_ptr<Camera> m_Camera;
-
 
 		std::vector<ThreadData> m_threadDatas;
 

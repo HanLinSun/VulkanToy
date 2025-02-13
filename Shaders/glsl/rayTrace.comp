@@ -162,6 +162,10 @@ bool CloestHit(Ray r, inout Intersection intersection, inout LightSample lightSa
       {
           intersection.isEmitter =true;
       }
+      else
+      {
+         intersection.isEmitter=false;
+      }
    }
    // return HitBVHNode(r, intersection);
       return HitScene(r, intersection);
@@ -269,7 +273,7 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
       {
            Ray shadowRay = Ray(scatterPos, lightSample.direction);
 
-           bool inShadow = AnyHitCheck(shadowRay, lightSample.distance-EPSILON);
+           bool inShadow = AnyHitCheck(shadowRay, lightSample.distance);
             
            //BSDF LTE
             if (!inShadow)
@@ -288,6 +292,7 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
 
                 if (bsdfSample.pdf > 0.0)
                     Ld += misWeight * Li * bsdfSample.f / lightSample.pdf;
+ 
             }
       }
 
@@ -344,7 +349,7 @@ vec3 TraceRay(Ray r)
        //bool hit= HitScene(currentRay,intersection);
       
         // Terminate path if ray escaped
-        //TODO: add skybox and HDR skymap reflection when ray escaped
+        //TODO: add skybox and HDR skymap reflection when ray escaped in the future
         if(!hit) break;
 
         PBRMaterial material = GetHitMaterialProperties(r, intersection);
@@ -369,6 +374,7 @@ vec3 TraceRay(Ray r)
         //Sample Light
         radiance += DirectLight(r, intersection)*throughput;
 
+
         // Sample BSDF for color and outgoing direction
         bsdfSample.f =SampleDisney(intersection,material, -r.direction, intersection.ffnormal, bsdfSample.L, bsdfSample.pdf);
 
@@ -377,6 +383,8 @@ vec3 TraceRay(Ray r)
             throughput*=bsdfSample.f /bsdfSample.pdf;
         }
         else break;
+
+
 
         r.direction = bsdfSample.L;
         r.origin = intersection.position + r.direction*EPSILON;
