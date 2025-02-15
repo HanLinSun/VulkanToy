@@ -176,7 +176,7 @@ namespace Renderer
 		std::string materialName = matName;
 		glm::vec4 baseColor = glm::vec4(0, 0, 0,1);
 		glm::vec4 emission = glm::vec4(0, 0, 0, 1);
-		float roughness = 0.0f;
+		float roughness = 0.5f;
 		float metallic = 0.0f;
 		float clearcoat = 0.0f;
 		float clearcoatgloss = 0.0f;
@@ -184,6 +184,7 @@ namespace Renderer
 		float sheenTint=0.0f;
 		float spectrans = 0.0f;
 		float subsurface = 0.0f;
+
 		MaterialProperties materialProperty;
 
 		while (!line.empty() && scene->fp_in.good())

@@ -119,8 +119,9 @@ namespace Renderer
 			pbrMat.alphaMode = 0.0f;
 			pbrMat.alphaCutoff = 0.0f;
 
-			pbrMat.ax = 0.0f;
-			pbrMat.ay = 0.0f;
+			float aspect = sqrt(1.0 - pbrMat.anisotropic * 0.9f);
+			pbrMat.ax = std::max(0.001f, pbrMat.roughness / aspect);
+			pbrMat.ay = std::max(0.001f, pbrMat.roughness * aspect);
 
 			pbrMat.albedoTextureID = mat->GetTextureID(TextureType::Diffuse);
 			pbrMat.normalTextureID = mat->GetTextureID(TextureType::Normal);

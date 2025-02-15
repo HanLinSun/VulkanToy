@@ -235,9 +235,9 @@ PBRMaterial GetHitMaterialProperties(in Ray r, inout Intersection intersection)
        material.emission = GammaCorrect(tex_emission);
     }
 
-    float aspect = sqrt(1.0 - material.anisotropic * 0.9);
-    material.ax = max(0.001, material.roughness / aspect);
-    material.ay = max(0.001, material.roughness * aspect);
+//    float aspect = sqrt(1.0 - material.anisotropic * 0.9);
+//    material.ax = max(0.001, material.roughness / aspect);
+//    material.ay = max(0.001, material.roughness * aspect);
 
     if(material.ior>0)
     {
@@ -385,9 +385,8 @@ vec3 TraceRay(Ray r)
         else break;
 
 
-
-        r.direction = bsdfSample.L;
-        r.origin = intersection.position + r.direction*EPSILON;
+        currentRay.direction = bsdfSample.L;
+        currentRay.origin = intersection.position;
 
         //Russian Roulette 
          if (bounces >=3)

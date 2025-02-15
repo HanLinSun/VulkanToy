@@ -230,8 +230,10 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     {
         vec3 F = mix(material.baseColor, vec3(1.0), SchlickFresnel(VDotH));
         f += EvalMicrofacetReflection(material, V, L, H, F, tmpPdf) * metalWt;
+
         pdf += tmpPdf * metalPr;
     }
+
 
     //Glass Specular
     if (glassPr > 0.0)
@@ -250,6 +252,7 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
             pdf += tmpPdf * glassPr * (1.0 - F);
         }
     }
+
 
     // Clearcoat
     if (clearCtPr > 0.0 && reflect)

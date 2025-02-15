@@ -168,7 +168,7 @@ float PowerHeuristic(float a, float b)
 // pow(m,5)
 float SchlickFresnel(float u)
 {
-	float m = clamp(1.0 - u, 0.0, 1.0);
+	float m = clamp(1.0f - u, 0.0f, 1.0f);
 	float m2 = m * m;
 	return m2 * m2 * m;
 }

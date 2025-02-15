@@ -34,7 +34,7 @@ struct MaterialProperties
         const float clearcoatGloss = 1.0f,
         const float metallic = 1.0f,
         const float subsurface =1.0f,
-        const float anisotropic = 1.0f
+        const float anisotropic = 0.0f
     )   
         : Diffuse(diffuse)
         , Specular(specular)
