@@ -231,8 +231,8 @@ float GTR2Aniso(float NdotH, float HdotX, float HdotY, float ax, float ay)
 	float a = HdotX / ax;
 	float b = HdotY / ay;
 	float c = a * a + b * b + NdotH * NdotH;
+
 	return 1.0 / (PI * ax * ay * c * c);
-	//return 1 / (PI * ax * ay * sqr(sqr(HdotX / ax) + sqr(HdotY / ay) + NdotH * NdotH));
 }
 
 vec3 ImportanceSampleGTR2_Aniso(float ax, float ay, float r1, float r2)
@@ -246,15 +246,20 @@ vec3 ImportanceSampleGTR2_Aniso(float ax, float ay, float r1, float r2)
 	return vec3(tanTheta * cosPhi, tanTheta * sinPhi, 1.0);
 }
 
+float SmithG(float NDotV, float alphaG)
+{
+	float a = alphaG * alphaG;
+	float b = NDotV * NDotV;
+	return (2.0 * NDotV) / (NDotV + sqrt(a + b - a * b));
+}
 
 float SmithGAniso(float NdotV, float VdotX, float VdotY, float ax, float ay)
 {
 	float a = VdotX * ax;
 	float b = VdotY * ay;
 	float c = NdotV;
-	return 1 / (c + sqrt(a * a + b * b + c * c));
+	return (2.0f * NdotV) / (NdotV + sqrt(a * a + b * b + c * c));
 
-	//return 1 / (NdotV + sqrt(sqr(VdotX * ax) + sqr(VdotY * ay) + sqr(NdotV)));
 }
 
 

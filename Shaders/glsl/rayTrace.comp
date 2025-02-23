@@ -350,6 +350,7 @@ vec3 TraceRay(Ray r)
       
         // Terminate path if ray escaped
         //TODO: add skybox and HDR skymap reflection when ray escaped in the future
+
         if(!hit) break;
 
         PBRMaterial material = GetHitMaterialProperties(r, intersection);
@@ -384,9 +385,8 @@ vec3 TraceRay(Ray r)
         }
         else break;
 
-
         currentRay.direction = bsdfSample.L;
-        currentRay.origin = intersection.position;
+        currentRay.origin = intersection.position + currentRay.direction*EPSILON;
 
         //Russian Roulette 
          if (bounces >=3)

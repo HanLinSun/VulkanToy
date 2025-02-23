@@ -85,25 +85,26 @@ vec3 EvalDisneyDiffuse(in PBRMaterial material, in vec3 Csheen, vec3 V, vec3 N, 
     if (L.z<= 0.0)
         return vec3(0.0);
 
-    float NdotL = dot(N, L);
-    float NdotV = dot(N,V);
     float LdotH = dot(L,H);
     //Diffuse PDF: cos(theta) /PI 
-    pdf = L.z * (1.0 / PI);
 
-    float FL = SchlickFresnel(NdotL);
-    float FV = SchlickFresnel(NdotV);
-    float FH = SchlickFresnel(LdotH);
-    float Fd90 = 0.5 + 2 * LdotH * LdotH * material.roughness;
-    float Fd = mix(1.0, Fd90, FL) * mix(1.0, Fd90, FV);
+    float Rr = 2.0 * material.roughness * LdotH * LdotH;
+
+    pdf = L.z * INV_PI;
+
+    float FL = SchlickFresnel(L.z);
+    float FV = SchlickFresnel(V.z);
+    float Fretro = Rr * (FL + FV + FL * FV * (Rr - 1.0));
+    float Fd = (1.0 - 0.5 * FL) * (1.0 - 0.5 * FV);
 
     // Fake subsurface
-    float Fss90 = dot(L, H) * dot(L, H) * material.roughness;
+    float Fss90 = 0.5 * Rr;
     float Fss = mix(1.0, Fss90, FL) * mix(1.0, Fss90, FV);
-    float ss = 1.25 * (Fss * (1.0 / (dot(N, L) + dot(N, V)) - 0.5) + 0.5);
-
+    float ss = 1.25 * (Fss * (1.0 / (L.z + V.z) - 0.5) + 0.5);
+    float FH = SchlickFresnel(LdotH);
     vec3 Fsheen = FH * material.sheen * Csheen;
-    return ((1.0 / PI) * mix(Fd, ss, material.subsurface) * material.baseColor.xyz + Fsheen) * (1.0 - material.metallic);
+
+    return (INV_PI * material.baseColor * mix(Fd + Fretro, ss, material.subsurface) + Fsheen);
 }
 
 //Abstract of disney specular(it is divided into reflection and refraction)
@@ -120,11 +121,16 @@ vec3 EvalMicrofacetReflection(in PBRMaterial mat, vec3 V, vec3 L, vec3 H, vec3 F
 
     //Disney specular
     float D = GTR2Aniso(H.z, H.x, H.y, ax, ay);
+
     float G1 = SmithGAniso(abs(V.z), V.x, V.y, ax, ay);
     float G2 = G1 * SmithGAniso(abs(L.z), L.x, L.y, ax, ay);
 
-    pdf = G1 * D / (4.0 * V.z); 
-    return F * D * G2 / (4.0 * L.z * V.z);
+    pdf = G1 * D / (4.0 * V.z);
+   
+    vec3 color = F * D * G2 / (4.0 * L.z * V.z);
+   
+
+    return color;
 }
 
 //Microfacet Models for Refraction through Rough Surfaces from cornell
@@ -148,6 +154,7 @@ vec3 EvalMicrofacetRefraction(in PBRMaterial mat, float eta, vec3 V, vec3 L, vec
     pdf = G1 * max(0.0, VDotH) * D * jacobian / V.z;
     return pow(mat.baseColor, vec3(0.5)) * (1.0 - F) * D * G2 * abs(VDotH) * jacobian * eta2 / abs(L.z * V.z);
 }
+
 vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N, vec3 L, out float pdf)
 {
     pdf = 0.0;
@@ -162,6 +169,8 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
 
 
     vec3 H;
+
+
     if (L.z > 0.0)
         H = normalize(L + V);
     else
@@ -189,8 +198,6 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     float schlickWt = SchlickFresnel(V.z);
 
     float diffusePr = dielectricWt * Luminance(material.baseColor);
-
-
     float dielectricPr = dielectricWt * Luminance(mix(Cspec0, vec3(1.0), schlickWt));
     float metalPr = metalWt * Luminance(mix(material.baseColor, vec3(1.0), schlickWt));
     float glassPr = glassWt;
@@ -221,10 +228,10 @@ vec3 EvalDisney(Intersection intersection, PBRMaterial material, vec3 V, vec3 N,
     if (dielectricPr > 0.0 && reflect)
     {
         float F = (DielectricFresnel(VDotH, 1.0 / material.ior) - F0) / (1.0 - F0);
-        f += EvalMicrofacetReflection(material, V, L, H, mix(Cspec0, vec3(1.0), F), tmpPdf) * dielectricWt;
+        f += EvalMicrofacetReflection(material, V, L, H, mix(Cspec0, vec3(1.0), F), tmpPdf) * dielectricWt;  
         pdf += tmpPdf * dielectricPr;
     }
-
+     
     //Metallic
     if (metalPr > 0.0 && reflect)
     {
