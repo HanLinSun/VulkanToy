@@ -313,10 +313,9 @@ vec3 TraceRaySimple(Ray r)
                   float r1=Random();
                   float r2 =Random();
                   vec3 direction = CosineSampleHemisphere(r1,r2);
-                  vec3 albedo =Materials[intersection.material_ID].baseColor;
                   currentRay.origin = intersection.position + intersection.normal *EPSILON;
                   currentRay.direction = normalize(direction);
-                  radiance *= albedo;
+                  radiance *= 0.5;
           }
           else
           {
@@ -353,9 +352,14 @@ vec3 TraceRay(Ray r)
 
         if(!hit) break;
 
-        PBRMaterial material = GetHitMaterialProperties(r, intersection);
+        PBRMaterial material = GetHitMaterialProperties(currentRay, intersection);
+
+
 
         radiance += material.emission * throughput;
+
+
+
         // Gather radiance from light and use bsdfSample.pdf from previous bounce for MIS
         //Hit light, terminate the ray
         if(intersection.isEmitter)
@@ -368,22 +372,30 @@ vec3 TraceRay(Ray r)
             radiance += misWeight * lightSample.emission * throughput;
             break;
         }
-       
+
+
         //Terminate ray if maxDepth was reached
         if(bounces >=ubo.maxDepth) break;
 
         //Sample Light
-        radiance += DirectLight(r, intersection)*throughput;
+        radiance += DirectLight(currentRay, intersection)*throughput;
+
+
 
 
         // Sample BSDF for color and outgoing direction
-        bsdfSample.f =SampleDisney(intersection,material, -r.direction, intersection.ffnormal, bsdfSample.L, bsdfSample.pdf);
+        bsdfSample.f =SampleDisney(intersection,material, -currentRay.direction, intersection.ffnormal, bsdfSample.L, bsdfSample.pdf);
 
         if(bsdfSample.pdf>0.0)
         {
             throughput*=bsdfSample.f /bsdfSample.pdf;
         }
         else break;
+
+         if(bounces==2)
+        {
+           return radiance;
+        }
 
         currentRay.direction = bsdfSample.L;
         currentRay.origin = intersection.position + currentRay.direction*EPSILON;
@@ -397,6 +409,7 @@ vec3 TraceRay(Ray r)
             throughput /= q;
         }
     }
+
      return radiance;
 }
 
@@ -423,6 +436,8 @@ void main()
 		vec3 lensOffset = vec3(0.01f/ 2.0 * SampleUniformDiskConcentric(r1,r2), 0.0);
         vec2 pixel     = vec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y) + jitter;
        	vec2 uv        = vec2((pixel.x / image_size.x) * 2.0 - 1.0, (1.0 - pixel.y / image_size.y) * 2.0 - 1.0);
+
+
         vec4 origin    = viewInv * vec4(lensOffset, 1.0);
 		vec4 target    = projInv * vec4(uv.x, uv.y, 1.0, 1.0);
 		vec4 direction = viewInv * vec4(normalize(target.xyz * 0.5 - lensOffset), 0.0);

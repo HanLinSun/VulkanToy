@@ -325,16 +325,17 @@ namespace Renderer
         glm::vec4 camPos = cam->GetPosition();
         glm::vec4 camForward = cam->GetLookTarget();
         glm::vec4 camLookAt = cam->GetLookTarget();
-        glm::vec3 cameraUp = cam->GetUpVector();;
+        glm::vec4 cameraUp = cam->GetUpVector();
+        glm::vec4 cameraRight = cam->GetRightVector();
 
         m_rayTraceUniform.camProjectionMatrix = cam->GetProjectionMatrix();
         m_rayTraceUniform.camViewMatrix = cam->GetViewmatrix();
-        m_rayTraceUniform.aperture = cam->GetAperture();
         m_rayTraceUniform.focalDistance = cam->GetFocalDistance();
-        m_rayTraceUniform.aperture = cam->GetAspectRatio();
+        m_rayTraceUniform.aperture = cam->GetAperture();
+
         m_rayTraceUniform.lightNums = m_scene->GetLightSize();
         m_rayTraceUniform.samplePerPixel =8;
-        m_rayTraceUniform.maxRecursiveDepth =10;
+        m_rayTraceUniform.maxRecursiveDepth =8;
         m_rayTraceUniform.primNums = m_scene->GetPrimitives().size();
                 
         check_vk_result(m_rayTraceResources.uniformBuffer.Map());
