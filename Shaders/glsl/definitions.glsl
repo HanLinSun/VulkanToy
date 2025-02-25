@@ -11,8 +11,8 @@
 #define DIRECTIONAL_LIGHT 2
 
 #define EPSILON 0.0001
-#define INFINITY  1000000.0
-#define MINIMUM   0.00001
+#define INFINITY  10000.0
+#define MINIMUM   0.0001
 
 struct Intersection
 {
