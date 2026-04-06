@@ -2,8 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
-#include<glm/glm.hpp>
-#include <glm/gtx/hash.hpp>
+#include <RendererInclude.h>
 #include "Scene.h"
 #include <memory>
 

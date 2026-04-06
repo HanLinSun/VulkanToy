@@ -6,7 +6,6 @@
 #include <Vulkan/Buffer.h>
 #include <Vulkan/Texture.h>
 #include <Vulkan/BufferUtils.h>
-#include <Vulkan/Buffer.h>
 #include <Camera.h>
 #include <Log.h>
 #include <Scene.h>
