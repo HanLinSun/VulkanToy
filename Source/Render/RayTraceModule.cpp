@@ -242,7 +242,6 @@ namespace Renderer
             computeWriteDescriptorSets.push_back(descriptorWriteSet);
         }
 
-
         AddGPUWriteDescriptorSet(isBVHNodeBufferAlloc, computeWriteDescriptorSets, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &m_BVHNodeGPUBuffer.descriptor, 6);
         vkUpdateDescriptorSets(m_device->GetVkDevice(), static_cast<uint32_t>(computeWriteDescriptorSets.size()), computeWriteDescriptorSets.data(), 0, nullptr);
     }
@@ -371,8 +370,6 @@ namespace Renderer
             delete m_accelMethod;
             m_BVHNodeGPUBuffer.Destroy();
         }
-
-
         m_storageImage.DestroyVKResources();
     }
 }

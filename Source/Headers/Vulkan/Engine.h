@@ -167,11 +167,6 @@ namespace Renderer
 		
 		std::vector<VkCommandBuffer> m_commandBuffers;
 
-		struct
-		{
-			VkSemaphore presentComplete;
-			VkSemaphore renderComplete;
-		}m_Semaphores;
 
 		Texture m_storageImage;
 
@@ -215,7 +210,7 @@ namespace Renderer
 
 		void RecreateSwapChain();
 
-		void CreateSubmitInfo();
+		void FinishCommandBuffer(VkCommandBuffer commandbuffer);
 
 		VkResult AcquireNextImage(VkSemaphore presentCompleteSemaphore,uint32_t *imagerIndex);
 

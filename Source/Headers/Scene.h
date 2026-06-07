@@ -65,8 +65,6 @@ namespace Renderer
 		std::vector<std::shared_ptr<Texture2D>> m_textures;
 		std::vector<std::shared_ptr<Material>> m_materials;
 
-		
-
 		std::vector<std::shared_ptr<TestMaterial>> m_testMaterials;
 		std::vector< std::shared_ptr<Primitive>> m_primitives;
 		std::vector<LightGPU> m_lights;

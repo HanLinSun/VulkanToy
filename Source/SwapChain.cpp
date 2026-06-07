@@ -1,6 +1,7 @@
 #include <vector>
 #include <Vulkan/SwapChain.h>
 #include <Vulkan/Instance.h>
+#include <Tools.h>
 
 namespace {
     // Specify the color channel format and color space type
@@ -17,22 +18,18 @@ namespace {
                 return availableFormat;
             }
         }
-
         // Otherwise, return any format
         return availableFormats[0];
     }
     // Specify the presentation mode of the swap chain
     VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes) {
-        // Second choice
         VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
 
         for (const auto& availablePresentMode : availablePresentModes) {
             if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-                // First choice
                 return availablePresentMode;
             }
             else if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-                // Third choice
                 bestMode = availablePresentMode;
             }
         }
@@ -47,10 +44,8 @@ namespace {
             int width, height;
             glfwGetWindowSize(window, &width, &height);
             VkExtent2D actualExtent = { static_cast<uint32_t>(width), static_cast<uint32_t>(height) };
-
             actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
             actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
-
             return actualExtent;
         }
     }
@@ -63,27 +58,32 @@ SwapChain::SwapChain(std::shared_ptr<Device> device, VkSurfaceKHR vkSurface, uns
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    if (vkCreateSemaphore(device->GetVkDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphore) != VK_SUCCESS ||
-        vkCreateSemaphore(device->GetVkDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphore) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create semaphores");
+    m_imageAvailableSemaphores.resize(VK_MAX_FRAMES_LAG);
+    m_renderFinishedSemaphores.resize(m_vkSwapChainImages.size());
+
+    for (uint32_t i = 0; i < VK_MAX_FRAMES_LAG; i++)
+    {
+        vkCreateSemaphore(device->GetVkDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]);
+    }
+    for (uint32_t i = 0; i < m_vkSwapChainImages.size(); i++)
+    {
+        check_vk_result(vkCreateSemaphore(device->GetVkDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]));
     }
 }
 std::vector<VkImage> SwapChain::GetVkImages() const
 {
     return m_vkSwapChainImages;
 }
+
 void SwapChain::Create()
 {
     auto* instance = m_device->GetInstance();
     const auto& surfaceCapabilities = instance->GetSurfaceCapabilities();
     VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(instance->GetSurfaceFormats());
-
     VkPresentModeKHR presentMode = ChooseSwapPresentMode(instance->GetPresentModes());
-
     VkExtent2D extent = ChooseSwapExtent(surfaceCapabilities, m_window);
 
-    uint32_t imageCount = surfaceCapabilities.minImageCount + 1;
-    imageCount = m_numBuffers > imageCount ? m_numBuffers : imageCount;
+    uint32_t imageCount = std::max(static_cast<uint32_t>(VK_MAX_FRAMES_LAG),surfaceCapabilities.minImageCount);
 
     if (surfaceCapabilities.maxImageCount > 0 && imageCount > surfaceCapabilities.maxImageCount) {
         imageCount = surfaceCapabilities.maxImageCount;
@@ -122,26 +122,13 @@ void SwapChain::Create()
         createInfo.pQueueFamilyIndices = nullptr;
     }
 
-    // Specify transform on images in the swap chain (no transformation done here)
     createInfo.preTransform = surfaceCapabilities.currentTransform;
-
-    // Specify alpha channel usage (set to be ignored here)
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-
-    // Specify presentation mode
     createInfo.presentMode = presentMode;
-
-    // Specify whether we can clip pixels that are obscured by other windows
     createInfo.clipped = VK_TRUE;
-
-    // Reference to old swap chain in case current one becomes invalid
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    //m_vkSwapChain = {};
-    // Create swap chain
-    if (vkCreateSwapchainKHR(m_device->GetVkDevice(), &createInfo, nullptr, &m_vkSwapChain) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create swap chain");
-    }
+    check_vk_result(vkCreateSwapchainKHR(m_device->GetVkDevice(), &createInfo, nullptr, &m_vkSwapChain));
 
     // --- Retrieve swap chain images ---
     vkGetSwapchainImagesKHR(m_device->GetVkDevice(), m_vkSwapChain, &imageCount, nullptr);
@@ -168,7 +155,7 @@ VkExtent2D SwapChain::GetVkExtent() const {
     return m_vkSwapChainExtent;
 }
 
-uint32_t SwapChain::GetIndex() const {
+uint32_t SwapChain::GetCurrentImageIndex() const {
     return m_imageIndex;
 }
 
@@ -180,9 +167,8 @@ VkImage SwapChain::GetVkImage(uint32_t index) const {
     return m_vkSwapChainImages[index];
 }
 
-VkSemaphore SwapChain::GetImageAvailableVkSemaphore() const {
-    return m_imageAvailableSemaphore;
-
+VkSemaphore SwapChain::GetImageAvailableVkSemaphore(int currentImage) const {
+    return m_imageAvailableSemaphores[currentImage];
 }
 
 VkResult SwapChain::QueuePresent(VkQueue queue, uint32_t imageIndex, VkSemaphore waitSemaphore)
@@ -204,11 +190,8 @@ VkResult SwapChain::QueuePresent(VkQueue queue, uint32_t imageIndex, VkSemaphore
     return vkQueuePresentKHR(queue, &presentInfo);
 }
 
-
-
-
-VkSemaphore SwapChain::GetRenderFinishedVkSemaphore() const {
-    return m_renderFinishedSemaphore;
+VkSemaphore SwapChain::GetRenderFinishedVkSemaphore(int imageIndex) const {
+    return m_renderFinishedSemaphores[imageIndex];
 }
 
 void SwapChain::Recreate() {
@@ -216,12 +199,13 @@ void SwapChain::Recreate() {
     Create();
 }
 
-bool SwapChain::Acquire() {
+bool SwapChain::AcquireNextImage(int currentFrame) {
+
     if (ENABLE_VALIDATION) {
         // the validation layer implementation expects the application to explicitly synchronize with the GPU
         vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Present));
     }
-    VkResult result = vkAcquireNextImageKHR(m_device->GetVkDevice(), m_vkSwapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore, VK_NULL_HANDLE, &m_imageIndex);
+    VkResult result = vkAcquireNextImageKHR(m_device->GetVkDevice(), m_vkSwapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &m_imageIndex);
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw std::runtime_error("Failed to acquire swap chain image");
     }
@@ -234,38 +218,17 @@ bool SwapChain::Acquire() {
     return true;
 }
 
-bool SwapChain::Present() {
-    VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore };
-
-    // Submit result back to swap chain for presentation
-    VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
-
-    VkSwapchainKHR swapChains[] = { m_vkSwapChain };
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
-    presentInfo.pImageIndices = &m_imageIndex;
-    presentInfo.pResults = nullptr;
-
-    VkResult result = vkQueuePresentKHR(m_device->GetQueue(QueueFlags::Present), &presentInfo);
-
-    if (result != VK_SUCCESS) {
-        throw std::runtime_error("Failed to present swap chain image");
-    }
-
-    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR ) {
-        Recreate();
-        return false;
-    }
-
-    return true;
-}
 void SwapChain::DestroyVKResources()
 {
-    vkDestroySemaphore(m_device->GetVkDevice(), m_imageAvailableSemaphore, nullptr);
-    vkDestroySemaphore(m_device->GetVkDevice(), m_renderFinishedSemaphore, nullptr);
+    for (int i = 0; i < m_imageAvailableSemaphores.size(); i++)
+    {
+        vkDestroySemaphore(m_device->GetVkDevice(), m_imageAvailableSemaphores[i], nullptr);
+    }
+    for (int i = 0; i < m_renderFinishedSemaphores.size(); i++)
+    {
+        vkDestroySemaphore(m_device->GetVkDevice(), m_renderFinishedSemaphores[i], nullptr);
+    }
+   
     Destroy();
 }
 

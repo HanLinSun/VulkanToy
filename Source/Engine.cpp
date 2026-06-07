@@ -9,8 +9,6 @@
 double previousX = 0.0;
 double previousY = 0.0;
 
-
-
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr) {
@@ -56,7 +54,7 @@ namespace Renderer
         m_instance->PickPhysicalDevice({ VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,VK_KHR_MAINTENANCE3_EXTENSION_NAME,VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME }, QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit, m_surface);
 
         m_device = m_instance->CreateDevice(QueueFlagBit::GraphicsBit | QueueFlagBit::TransferBit | QueueFlagBit::ComputeBit | QueueFlagBit::PresentBit);
-        m_swapChain = m_device->CreateSwapChain(m_surface, 3 , m_window);
+        m_swapChain = m_device->CreateSwapChain(m_surface, VK_MAX_FRAMES_LAG, m_window);
 
         // m_skyboxTexture = std::make_unique<TextureCubeMap>();
         imageCount = m_swapChain->GetCount();
@@ -89,7 +87,6 @@ namespace Renderer
 
     void Engine::Run() 
     {
-            //m_Camera->Update();
             m_CameraController->Update();
             if (m_runRaytracePipeline)
             {
@@ -187,8 +184,6 @@ namespace Renderer
         SetupDebugMessenger();
 
         //By default we use this
-        
-       // LoadModel(MODEL_PATH, MODEL_FILE_PATH);
         LoadScene(SCENE_FILE_PATH);
 
         CreateRenderPass();
@@ -221,9 +216,6 @@ namespace Renderer
             CreateRayTraceGraphicsPipeline();
             m_rayTraceResource = m_RayTraceModule->GetRayTraceComputeResource();
         }
-
-     
-        CreateSubmitInfo();
         CreateCommandBuffers();
         CreateSyncObjects();
     }
@@ -275,10 +267,6 @@ namespace Renderer
             vkDestroyDescriptorSetLayout(m_device->GetVkDevice(), m_rayTraceGraphicsDescriptorLayout,nullptr);
         }
 
-
-        vkDestroySemaphore(m_device->GetVkDevice(), m_Semaphores.presentComplete, nullptr);
-        vkDestroySemaphore(m_device->GetVkDevice(), m_Semaphores.renderComplete, nullptr);
-
         if (m_runRaytracePipeline)
         {
             m_RayTraceModule->DestroyVKResources();
@@ -292,7 +280,6 @@ namespace Renderer
         }
 
         m_ImGuiLayer->Destroy();
-
         {
             m_Scene->DestroyVKResources();
             m_Scene->GetCamera()->DestroyVKResources();
@@ -1154,21 +1141,10 @@ namespace Renderer
         }
     }
 
-    VkResult Engine::AcquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t* imageIndex)
-    {
-       return  vkAcquireNextImageKHR(m_device->GetVkDevice(), m_swapChain->GetVkSwapChain(), UINT64_MAX, presentCompleteSemaphore, VK_NULL_HANDLE, imageIndex);
-    }
 
-    void Engine::CreateSubmitInfo()
+    void Engine::FinishCommandBuffer(VkCommandBuffer commandbuffer)
     {
         VkSemaphoreCreateInfo semaphoreCreateInfo = VulkanInitializer::SemaphoreCreateInfo();
-        // Create a semaphore used to synchronize image presentation
-        // Ensures that the image is displayed before we start submitting new commands to the queue
-        check_vk_result(vkCreateSemaphore(m_device->GetVkDevice(), &semaphoreCreateInfo, nullptr, &m_Semaphores.presentComplete));
-        // Create a semaphore used to synchronize command submission
-        // Ensures that the image is not presented until all commands have been submitted and executed
-        check_vk_result(vkCreateSemaphore(m_device->GetVkDevice(), &semaphoreCreateInfo, nullptr, &m_Semaphores.renderComplete));
-
         // Set up submit info structure
         // Semaphores will stay the same during application lifetime
 
@@ -1176,10 +1152,18 @@ namespace Renderer
 
         m_submitInfo = VulkanInitializer::SubmitInfo();
         m_submitInfo.pWaitDstStageMask = waitStages;
+
+        VkSemaphore imageAvailableSemaphore = m_swapChain->GetImageAvailableVkSemaphore(currentFrame);
+        VkSemaphore renderFinishedSemaphore = m_swapChain->GetRenderFinishedVkSemaphore(m_swapChain->GetCurrentImageIndex());
         m_submitInfo.waitSemaphoreCount = 1;
-        m_submitInfo.pWaitSemaphores = &m_Semaphores.presentComplete;
+        m_submitInfo.pWaitSemaphores = &imageAvailableSemaphore;
         m_submitInfo.signalSemaphoreCount = 1;
-        m_submitInfo.pSignalSemaphores = &m_Semaphores.renderComplete;
+        m_submitInfo.pSignalSemaphores = &renderFinishedSemaphore;
+        m_submitInfo.commandBufferCount = 1;
+        //m_submitInfo.pCommandBuffers = &m_commandBuffers[currentFrame];
+        m_submitInfo.pCommandBuffers = &commandbuffer;
+        check_vk_result(vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &m_submitInfo, m_waitFences[currentFrame]));
+
     }
 
     void Engine::DrawFrame() {
@@ -1189,14 +1173,10 @@ namespace Renderer
 
         uint32_t imageIndex;
 
-        VkResult result = AcquireNextImage(m_Semaphores.presentComplete, &imageIndex);
+        auto result = m_swapChain->AcquireNextImage(currentFrame);
+        if (!result)
+        {
 
-        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-            RecreateSwapChain();
-            return;
-        }
-        else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-            throw std::runtime_error("failed to acquire swap chain image!");
         }
 
 
@@ -1206,12 +1186,12 @@ namespace Renderer
   
         if (!m_runRaytracePipeline)
         {
-            RecordCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
+            RecordCommandBuffer(m_commandBuffers[currentFrame], m_swapChain->GetCurrentImageIndex());
         }
         else
         {
             m_RayTraceModule->RecordComputeCommandBuffer();
-            RecordRayTraceGraphicCommandBuffer(m_commandBuffers[currentFrame], imageIndex);
+            RecordRayTraceGraphicCommandBuffer(m_commandBuffers[currentFrame], m_swapChain->GetCurrentImageIndex());
         }
 
         if (m_runRaytracePipeline)
@@ -1226,14 +1206,12 @@ namespace Renderer
             vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Compute));
         }
 
-        m_submitInfo.commandBufferCount = 1;
-        m_submitInfo.pCommandBuffers = &m_commandBuffers[currentFrame];
-
-        check_vk_result(vkQueueSubmit(m_device->GetQueue(QueueFlags::Graphics), 1, &m_submitInfo, m_waitFences[currentFrame]));
+        FinishCommandBuffer(m_commandBuffers[currentFrame]);
 
         check_vk_result(vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Graphics)));
 
-        result = m_swapChain->QueuePresent(m_device->GetQueue(QueueFlags::Present),imageIndex, m_Semaphores.renderComplete);
+        int currentImage = m_swapChain->GetCurrentImageIndex();
+        result = m_swapChain->QueuePresent(m_device->GetQueue(QueueFlags::Present), currentImage, m_swapChain->GetRenderFinishedVkSemaphore(currentImage));
 
         if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
             framebufferResized = false;
@@ -1245,7 +1223,7 @@ namespace Renderer
 
         check_vk_result(vkQueueWaitIdle(m_device->GetQueue(QueueFlags::Present)));
 
-        currentFrame = (currentFrame + 1) % (m_swapChain->GetCount());
+        currentFrame = (currentFrame + 1) % (VK_MAX_FRAMES_LAG);
     }
 
     void Engine::RecreateFrameResources() {
