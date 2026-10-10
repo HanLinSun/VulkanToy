@@ -5,26 +5,26 @@
 #include <Vulkan/Initializer.hpp>
 void Texture::UpdateDescriptor()
 {
-	descriptor.sampler = m_sampler;
-	descriptor.imageView = m_imageView;
-	descriptor.imageLayout = m_imageLayout;
+	descriptor.sampler = sampler;
+	descriptor.imageView = imageView;
+	descriptor.imageLayout = imageLayout;
 }
 
 void Texture::DestroyVKResources()
 {
-	vkDestroyImageView(m_device->GetVkDevice(),m_imageView, nullptr);
-	vkDestroyImage(m_device->GetVkDevice(), m_image, nullptr);
-	if (m_sampler!=nullptr)
+	vkDestroyImageView(device->GetVkDevice(),imageView, nullptr);
+	vkDestroyImage(device->GetVkDevice(), image, nullptr);
+	if (sampler!=nullptr)
 	{
-		vkDestroySampler(m_device->GetVkDevice(), m_sampler, nullptr);
+		vkDestroySampler(device->GetVkDevice(), sampler, nullptr);
 	}
-	vkFreeMemory(m_device->GetVkDevice(), m_imageDeviceMemory, nullptr);
+	vkFreeMemory(device->GetVkDevice(), imageDeviceMemory, nullptr);
 }
 
 int Texture2D::LoadFromFile(std::string filename, VkFormat format, std::shared_ptr<Device> device, VkImageUsageFlags  imageUsageFlags,
 	VkImageLayout imageLayout , bool forceLinear)
 { 
-        this->m_device = device;
+        this->device = device;
     
 	    int texWidth, texHeight;
 		int texChannels;
@@ -49,23 +49,27 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, std::shared_p
 
        VkBuffer stagingBuffer;
        VkDeviceMemory stagingBufferMemory;
-	   BufferUtils::CreateBuffer(m_device.get(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	   BufferUtils::CreateBuffer(device.get(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
        void* data;
-       vkMapMemory(m_device->GetVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+       vkMapMemory(device->GetVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
        memcpy(data, this->m_pixels, static_cast<size_t>(imageSize));
-       vkUnmapMemory(m_device->GetVkDevice(), stagingBufferMemory);
+       vkUnmapMemory(device->GetVkDevice(), stagingBufferMemory);
 
        stbi_image_free(this->m_pixels);
 
-       Tools::CreateImage(m_device.get(), this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_image, this->m_imageDeviceMemory);
-       Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels,VK_PIPELINE_STAGE_HOST_BIT,VK_PIPELINE_STAGE_TRANSFER_BIT);
-       Tools::CopyBufferToImage(m_device.get(), stagingBuffer, this->m_image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+       Tools::CreateImage(device.get(), this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT,
+           VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, 
+           VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+           this->image, this->imageDeviceMemory);
 
-       vkDestroyBuffer(m_device->GetVkDevice(), stagingBuffer, nullptr);
-       vkFreeMemory(m_device->GetVkDevice(), stagingBufferMemory, nullptr);
+       Tools::TransitionImageLayout(device.get(), this->image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels,VK_PIPELINE_STAGE_HOST_BIT,VK_PIPELINE_STAGE_TRANSFER_BIT);
+       Tools::CopyBufferToImage(device.get(), stagingBuffer, this->image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 
-       Tools::GenerateMipmaps(m_device.get(), this->m_image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
+       vkDestroyBuffer(device->GetVkDevice(), stagingBuffer, nullptr);
+       vkFreeMemory(device->GetVkDevice(), stagingBufferMemory, nullptr);
+
+       Tools::GenerateMipmaps(device.get(), this->image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
 
        // Create a default sampler
 
@@ -90,7 +94,7 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, std::shared_p
        samplerInfo.maxLod = static_cast<float>(mipLevels);
        samplerInfo.mipLodBias = 0.0f;
        
-      if (vkCreateSampler(m_device->GetVkDevice(), &samplerInfo, nullptr, &this->m_sampler) != VK_SUCCESS) {
+      if (vkCreateSampler(device->GetVkDevice(), &samplerInfo, nullptr, &this->sampler) != VK_SUCCESS) {
            throw std::runtime_error("failed to create texture sampler!");
        }
 
@@ -105,8 +109,8 @@ int Texture2D::LoadFromFile(std::string filename, VkFormat format, std::shared_p
        viewCreateInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
        viewCreateInfo.subresourceRange.levelCount = mipLevels;
-       viewCreateInfo.image = this->m_image;
-       if (vkCreateImageView(this->m_device->GetVkDevice(), &viewCreateInfo, nullptr, &this->m_imageView)!=VK_SUCCESS)
+       viewCreateInfo.image = this->image;
+       if (vkCreateImageView(this->device->GetVkDevice(), &viewCreateInfo, nullptr, &this->imageView)!=VK_SUCCESS)
        {
            throw std::runtime_error("failed to create texture image view!");
        }
@@ -130,7 +134,7 @@ void Texture2DArray::LoadFromFile(std::string filename, VkFormat format, std::sh
 
 int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat format, std::shared_ptr<Device> device, VkImageUsageFlags imageUsageFlags, VkImageLayout imageLayout)
 {
-    this->m_device = device;
+    this->device = device;
     int texWidth, texHeight;
     int texChannels;
 
@@ -162,17 +166,19 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
-    BufferUtils::CreateBuffer(m_device.get(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    BufferUtils::CreateBuffer(device.get(), imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
-    vkMapMemory(m_device->GetVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+    vkMapMemory(device->GetVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
     memcpy(data, cubemapData, static_cast<size_t>(imageSize));
-    vkUnmapMemory(m_device->GetVkDevice(), stagingBufferMemory);
+    vkUnmapMemory(device->GetVkDevice(), stagingBufferMemory);
 
-    Tools::CreateCubeMapImage(m_device.get(), this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->m_image, this->m_imageDeviceMemory);
+    Tools::CreateCubeMapImage(device.get(), this->width, this->height, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+        this->image, this->imageDeviceMemory);
    
 
-    VkCommandBuffer copyCmd = Tools::CreateCommandBuffer(m_device.get(), VK_COMMAND_BUFFER_LEVEL_PRIMARY, m_device->GetGraphicCommandPool(), true);
+    VkCommandBuffer copyCmd = Tools::CreateCommandBuffer(device.get(), VK_COMMAND_BUFFER_LEVEL_PRIMARY, device->GetGraphicCommandPool(), true);
     std::vector<VkBufferImageCopy> bufferCopyRegions;
 
     size_t offset = 0;
@@ -202,20 +208,20 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
     //Once time loading have 6 textures, and only have 1 layer
     subresourceRange.layerCount = 6;
 
-    Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, VK_PIPELINE_STAGE_HOST_BIT,VK_PIPELINE_STAGE_TRANSFER_BIT );
+    Tools::TransitionImageLayout(device.get(), this->image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, VK_PIPELINE_STAGE_HOST_BIT,VK_PIPELINE_STAGE_TRANSFER_BIT );
 
     vkCmdCopyBufferToImage(
         copyCmd,
         stagingBuffer,
-       this->m_image,
+       this->image,
         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         static_cast<uint32_t>(bufferCopyRegions.size()),
         bufferCopyRegions.data()
     );
 
-    this->m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    Tools::TransitionImageLayout(m_device.get(), this->m_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, this->m_imageLayout, mipLevels,VK_PIPELINE_STAGE_TRANSFER_BIT,VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-    Tools::EndCommandBuffer(m_device.get(), copyCmd, m_device->GetGraphicCommandPool(), QueueFlags::Graphics);
+    this->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    Tools::TransitionImageLayout(device.get(), this->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, this->imageLayout, mipLevels,VK_PIPELINE_STAGE_TRANSFER_BIT,VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+    Tools::EndCommandBuffer(device.get(), copyCmd, device->GetGraphicCommandPool(), QueueFlags::Graphics);
 
     VkSamplerCreateInfo samplerInfo = VulkanInitializer::SamplerCreateInfo();
     samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -231,7 +237,7 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
     samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
     samplerInfo.maxAnisotropy = 1.0f;
 
-    if (vkCreateSampler(m_device->GetVkDevice(), &samplerInfo, nullptr, &this->m_sampler) != VK_SUCCESS) {
+    if (vkCreateSampler(device->GetVkDevice(), &samplerInfo, nullptr, &this->sampler) != VK_SUCCESS) {
         throw std::runtime_error("failed to create texture sampler!");
     }
 
@@ -241,7 +247,7 @@ int TextureCubeMap::LoadFromFiles(std::vector<std::string> filenames, VkFormat f
     view.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
     view.subresourceRange.layerCount = 6;
     view.subresourceRange.levelCount =this->mipLevels;
-    view.image = this->m_image;
+    view.image = this->image;
 
     // Clean up staging resources
     vkFreeMemory(device->GetVkDevice(), stagingBufferMemory, nullptr);

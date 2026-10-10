@@ -138,6 +138,7 @@ struct RayTraceUniformBuffer
 	uint numPrimitives;
 	uint spp;
 	uint maxDepth;
+	uint currentSample;
 	float focalDistance;
 	float aperture;
 };

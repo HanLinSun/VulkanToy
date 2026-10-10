@@ -42,11 +42,12 @@ namespace Renderer
 		void CreateRayTraceComputeDescriptorPool();
 		void CreateRayTraceCommandPool(VkCommandPool* commandPool);
 		void CreateRayTraceStorageImage(uint32_t width, uint32_t height);
-		void UpdateUniformBuffer(Camera* cam);
+		void CreateRayTraceAccumulateImage(uint32_t width, uint32_t height);
+		void UpdateUniformBuffer(Camera* cam,int currentSample);
 		void CreateUniformBuffer();
 		ComputeResource GetRayTraceComputeResource() const;
 		Texture2D GetStorageImage() const;
-
+		Texture2D GetAccumulateImage() const;
 		inline void AddGPUWriteDescriptorSet(bool isGPUBufferAlloc, std::vector<VkWriteDescriptorSet>& computeDescriptorSets, VkDescriptorType type, VkDescriptorBufferInfo* bufferInfo, int binding);
 
 	private:
@@ -65,12 +66,9 @@ namespace Renderer
 		bool isLightGPUBufferAlloc;
 		Buffer m_lightGPUBuffer;
 
-		bool isBVHNodeBufferAlloc;
-		Buffer m_BVHNodeGPUBuffer;
-
 		std::shared_ptr<Device> m_device;
 		VkDescriptorPool m_rayTraceComputeDescriptorPool;
 		Texture2D m_storageImage;
-
+		Texture2D m_accumulateImage;
 	};
 }

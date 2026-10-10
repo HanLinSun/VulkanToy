@@ -89,6 +89,7 @@ struct ThreadData
 
 namespace Renderer
 {
+
 	class Engine
 	{
 	public:
@@ -104,8 +105,8 @@ namespace Renderer
 		void InitVulkan();
 
 		VkSampler default_sampler = {};
-
 		std::vector<VkSampler> temp_samplers;
+		int currentSample=0;
 	private:
 
 		std::unique_ptr<RayTraceModule> m_RayTraceModule;

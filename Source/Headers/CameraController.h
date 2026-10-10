@@ -42,6 +42,8 @@ namespace Renderer
 		void OnMouseEvent();
 		void Update();
 
+		bool IsDirty() const;
+
 		InputStatus m_CameraInputStatus;
 	protected:
 		std::shared_ptr<Camera> m_Camera;

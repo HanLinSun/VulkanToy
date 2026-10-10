@@ -18,16 +18,16 @@ class Texture
 {
 public:
 
-	std::shared_ptr<Device> m_device;
-	VkImage  m_image;
-	VkImageLayout m_imageLayout;
-	VkDeviceMemory m_imageDeviceMemory;
-	VkImageView m_imageView;
+	std::shared_ptr<Device> device;
+	VkImage  image;
+	VkImageLayout imageLayout;
+	VkDeviceMemory imageDeviceMemory;
+	VkImageView imageView;
 	uint32_t  width, height;
 	uint32_t  mipLevels;
 	uint32_t  layerCount;
 	VkDescriptorImageInfo descriptor;
-	VkSampler m_sampler;
+	VkSampler sampler;
 	//stb_image
 	stbi_uc* m_pixels;
 

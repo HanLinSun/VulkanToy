@@ -212,4 +212,9 @@ namespace Renderer
 
 	}
 
+	bool CameraController::IsDirty() const
+	{
+		return m_dirty;
+	}
+
 }

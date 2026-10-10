@@ -14,6 +14,7 @@ struct RayTraceUniformData
 	alignas(4) int primNums;
 	alignas(4) int samplePerPixel;
 	alignas(4) int maxRecursiveDepth;
+	alignas(4) int currentSample;
 	alignas(4) glm::float32_t focalDistance;
 	alignas(4) glm::float32_t aperture;
 };

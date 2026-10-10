@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <cstring>
+
+//TODO:: VMA allocator? or page-block allocation 
 VkResult Buffer::Map(VkDeviceSize size, VkDeviceSize offset)
 {
 	//used for writing data to GPU memory, mapped is a pointer to GPU memory address

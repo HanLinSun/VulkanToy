@@ -1,16 +1,6 @@
-//Disney PBR BSDF
-//CopyRight Hanlin Sun 2025
-/**References:
-1: [https://github.com/wdas/brdf/blob/main/src/brdfs/disney.brdf] Disney BRDF implements
-2: [https://schuttejoe.github.io/post/disneybsdf/] and related paper help me to implement disney PBR sample
-3: [https://blog.selfshadow.com/publications/s2015-shading-course/] SIGGRAPH 2015 Course: Physically Based Shading in Theory and Practice
-4. [https://github.com/mmacklin/tinsel/blob/master/src/disney.h] mmacklin's implements on Disney PBR
-5. [https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf] Disney BRDF paper
-6. [http://simon-kallweit.me/rendercompo2015/report/] Simon Kallweit's project report
-7. [https://github.com/mitsuba-renderer/mitsuba3] mitsuba3
-8. [https://www.cs.cornell.edu/~srm/publications/EGSR07-btdf.pdf] Microfacet Models for Refraction through Rough Surfaces
-9. [https://boksajak.github.io/files/CrashCourseBRDF.pdf] Sample Disney BRDF
-**/
+// Disney PBR BSDF
+// CopyRight: Hanlin Sun
+
  
 #include "sample.glsl"
 #include "definitions.glsl"
@@ -22,7 +12,7 @@ vec3 ToWorld(vec3 X, vec3 Y, vec3 Z, vec3 V)
 }
 
 vec3 ToLocal(vec3 X, vec3 Y, vec3 Z, vec3 V)
-{
+{ 
     return vec3(dot(V, X), dot(V, Y), dot(V, Z));
 }
 

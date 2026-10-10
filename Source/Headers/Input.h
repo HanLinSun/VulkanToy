@@ -22,7 +22,6 @@ namespace Renderer
 		inline static float GetMouseX() { return s_Instance->GetMouseXImpl(); }
 		inline static float GetMouseY() { return s_Instance->GetMouseYImpl(); }
 		inline static bool MouseMoved() { return s_Instance->IsMouseMoved(); }
-		
 
 	protected:
 		virtual bool IsKeyPressedImpl(int keycode) = 0;

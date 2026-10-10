@@ -10,30 +10,27 @@ layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 layout(binding = 0, rgba8) uniform writeonly image2D targetTexture;
 
-layout(binding = 1) uniform UniformBufferObject{
+layout(binding = 1, rgba8) uniform image2D accumulateTexture;
+
+layout(binding = 2) uniform UniformBufferObject{
     RayTraceUniformBuffer ubo;
 };
 
-layout(binding = 2) readonly buffer PrimitiveBufferObject
+layout(binding = 3) readonly buffer PrimitiveBufferObject
 {
     Primitive[] primitives;
 };
 
-layout(binding = 3) readonly buffer PBRMaterialBufferObject
+layout(binding = 4) readonly buffer PBRMaterialBufferObject
 {
     PBRMaterial[] Materials;
 };
 
-layout(binding = 4) uniform sampler2D[] materialTextures;
 
 layout(binding = 5) readonly buffer LightBufferObject
 {
     Light[] lights;
 };
-
-layout(std430, binding = 6) readonly buffer BVHBufferObject {
-   LBVHNode[] bvhNodes;
- };
 
  vec3 GammaCorrect(vec3 color)
 {
@@ -84,56 +81,6 @@ bool HitScene(Ray r, inout Intersection intersection,float maxDist)
   return hit;
 }
 
-bool HitBVHNode(in Ray r , inout Intersection intersection)
-{
-    float tMin =MINIMUM;
-    float tMax =INFINITY;
-
-    bool hit=false;
-    float closest =tMax;
-
-    int nodeStack[MAX_STACK_DEPTH];
-    int toVisitOffset = 0;
-    int currentNodeIndex = 0;
-    vec3 invDir =vec3(1.0f / r.direction.x, 1.0f / r.direction.y, 1.f / r.direction.z);
-    bool dirIsNeg[3] = {invDir.x < 0, invDir.y < 0, invDir.z < 0};
-    //use stack to traverse BVH node
-    while(true)
-    {
-       LBVHNode node = bvhNodes[currentNodeIndex];
-       if(HitBoundingBox(r, node.pMin, node.pMax))
-       {
-             if(node.primitiveIdx !=-1)
-             {
-                 if(HitPrimitive(primitives[node.primitiveIdx],tMin, closest,r, intersection))
-                 {
-                     hit =true;
-                     closest = intersection.t;
-                 }
-                 if (toVisitOffset == 0) break;
-                 currentNodeIndex = nodeStack[--toVisitOffset];
-             }
-             else
-             {
-                if (dirIsNeg[node.splitAxis]==true) {
-                    /// second child first
-                    nodeStack[toVisitOffset++] = currentNodeIndex + 1;
-                    currentNodeIndex = node.secondChildOffset;
-                } else {
-                    nodeStack[toVisitOffset++] = node.secondChildOffset;
-                    currentNodeIndex = currentNodeIndex + 1;
-                }
-             }
-       }
-       else
-       {
-            if (toVisitOffset == 0) break;
-            currentNodeIndex = nodeStack[--toVisitOffset];
-       }
-    }
-    return hit;
-}
-
 bool HitLight(Ray r, inout Intersection intersection,inout LightSample lightSample)
 {
   float closest =INFINITY;
@@ -167,7 +114,6 @@ bool CloestHit(Ray r, inout Intersection intersection, inout LightSample lightSa
          intersection.isEmitter=false;
       }
    }
-   // return HitBVHNode(r, intersection);
       return HitScene(r, intersection);
 }
 
@@ -194,50 +140,48 @@ bool AnyHitCheck(in Ray r, float maxDist)
            }
        }
     }
-      //return HitBVHNode(r,temp_isect);
-
       return HitScene(r, temp_isect, maxDist);
 }
 
 PBRMaterial GetHitMaterialProperties(in Ray r, inout Intersection intersection)
 {
     PBRMaterial material =Materials[intersection.material_ID];
-    if(material.albedoTextureID >0)
-    {
-         int ID =material.albedoTextureID;
-         vec4 color = texture(materialTextures[ID], intersection.texCoords);
-         material.baseColor.rgb *= GammaCorrect(color.rgb);
-         material.opacity *= color.a;
-    }
+//    if(material.albedoTextureID >0)
+//    {
+//         int ID =material.albedoTextureID;
+//         vec4 color = texture(materialTextures[ID], intersection.texCoords);
+//         material.baseColor.rgb *= GammaCorrect(color.rgb);
+//         material.opacity *= color.a;
+//    }
+//
+//    if(material.normalTextureID>0)
+//    {
+//         int ID =material.normalTextureID;
+//         vec3 texNormal = texture(materialTextures[ID], intersection.texCoords).rgb;
+//         texNormal = normalize(texNormal * 2.0 - 1.0);
+//         vec3 origNormal = intersection.normal;
+//         intersection.normal = normalize( intersection.tangent * texNormal.x +  intersection.bitangent * texNormal.y +  intersection.normal * texNormal.z);
+//         intersection.ffnormal = dot(origNormal, r.direction) <= 0.0 ?  intersection.normal : - intersection.normal;
+//    }
+//
+//    if(material.metallicRoughnessTextureID >0)
+//    {
+//       int ID = material.metallicRoughnessTextureID;
+//       vec2 matRgh = texture(materialTextures[ID], intersection.texCoords).bg;
+//       material.metallic = matRgh.x;
+//       material.roughness =max(matRgh.y * matRgh.y, 0.001);;
+//    }
+//
+//    if(material.emissonMapTextureID >0)
+//    {
+//       int ID = material.emissonMapTextureID;
+//       vec3 tex_emission = texture(materialTextures[ID], intersection.texCoords).rgb;
+//       material.emission = GammaCorrect(tex_emission);
+//    }
 
-    if(material.normalTextureID>0)
-    {
-         int ID =material.normalTextureID;
-         vec3 texNormal = texture(materialTextures[ID], intersection.texCoords).rgb;
-         texNormal = normalize(texNormal * 2.0 - 1.0);
-         vec3 origNormal = intersection.normal;
-         intersection.normal = normalize( intersection.tangent * texNormal.x +  intersection.bitangent * texNormal.y +  intersection.normal * texNormal.z);
-         intersection.ffnormal = dot(origNormal, r.direction) <= 0.0 ?  intersection.normal : - intersection.normal;
-    }
-
-    if(material.metallicRoughnessTextureID >0)
-    {
-       int ID = material.metallicRoughnessTextureID;
-       vec2 matRgh = texture(materialTextures[ID], intersection.texCoords).bg;
-       material.metallic = matRgh.x;
-       material.roughness =max(matRgh.y * matRgh.y, 0.001);;
-    }
-
-    if(material.emissonMapTextureID >0)
-    {
-       int ID = material.emissonMapTextureID;
-       vec3 tex_emission = texture(materialTextures[ID], intersection.texCoords).rgb;
-       material.emission = GammaCorrect(tex_emission);
-    }
-
-//    float aspect = sqrt(1.0 - material.anisotropic * 0.9);
-//    material.ax = max(0.001, material.roughness / aspect);
-//    material.ay = max(0.001, material.roughness * aspect);
+    float aspect = sqrt(1.0 - material.anisotropic * 0.9);
+    material.ax = max(0.001, material.roughness / aspect);
+    material.ay = max(0.001, material.roughness * aspect);
 
     if(material.ior>0)
     {
@@ -272,7 +216,6 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
       if(dot(lightSample.direction, lightSample.normal)<0.0)
       {
            Ray shadowRay = Ray(scatterPos, lightSample.direction);
-
            bool inShadow = AnyHitCheck(shadowRay, lightSample.distance);
             
            //BSDF LTE
@@ -296,38 +239,7 @@ vec3 DirectLight(in Ray r, in Intersection intersection)
             }
       }
 
-      //Ld =0.0
       return Ld;
-}
-
-vec3 TraceRaySimple(Ray r)
-{
-   Intersection intersection;
-   vec3 radiance=vec3(1.0);
-   Ray currentRay = r;
-   int bounces;
-    for (bounces=0;;bounces++)
-    {
-          if(HitBVHNode(currentRay,intersection))
-          {
-                  float r1=Random();
-                  float r2 =Random();
-                  vec3 direction = CosineSampleHemisphere(r1,r2);
-                  currentRay.origin = intersection.position + intersection.normal *EPSILON;
-                  currentRay.direction = normalize(direction);
-                  radiance *= 0.5;
-          }
-          else
-          {
-                  vec3 unitDirection = normalize(currentRay.direction);
-                  float a = 0.5 * (unitDirection.y + 1.0);
-                  radiance *= (1.0 - a) * vec3(1.0, 1.0, 1.0) + a * vec3(0.5, 0.7, 1.0);
-                  break; 
-          }
-
-          if(bounces>=ubo.maxDepth) break;
-    }
-    return radiance;
 }
 
 vec3 TraceRay(Ray r)
@@ -343,10 +255,7 @@ vec3 TraceRay(Ray r)
     int bounces;
     for (bounces = 0;; bounces++)
     {
-    
        bool hit =CloestHit(currentRay, intersection, lightSample);
-       //bool hit= HitScene(currentRay,intersection);
-      
         // Terminate path if ray escaped
         //TODO: add skybox and HDR skymap reflection when ray escaped in the future
 
@@ -403,6 +312,8 @@ void main()
    mat4 projInv =inverse(ubo.projMatrix);
    mat4 viewInv =inverse(ubo.viewMatrix);
 
+   ivec2 pixel =ivec2(gl_GlobalInvocationID.xy);
+
     vec2 image_size = vec2(imageSize(targetTexture));
 
     uint SPP = ubo.spp; //sample per pixel
@@ -435,8 +346,16 @@ void main()
     }
 
     radiance /= float(SPP);
-    radiance =GammaCorrect(radiance);
+    
+    vec3 previousColor = imageLoad(accumulateTexture, pixel).rgb;
 
-    imageStore(targetTexture, ivec2(gl_GlobalInvocationID.xy), vec4(radiance, 0.0));
+    float sampleCount = float(ubo.currentSample);
 
+    vec4 final_col = (vec4(radiance, 1.0) + vec4(previousColor,1.0)*(ubo.currentSample)) / (ubo.currentSample+1.0);
+
+ 
+
+    //vec3 to_write =GammaCorrect(accumulated);
+  
+    imageStore(targetTexture, pixel, final_col);
 }

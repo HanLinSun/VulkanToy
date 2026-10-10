@@ -69,7 +69,7 @@ namespace Renderer
 	{
 	public:
 		ModelGroup();
-		~ModelGroup() { std::cout << "ModelGroup deconstructor called" << std::endl; };
+		~ModelGroup() { };
 
 	    Model* GetModelAt(int idx) const;
 		void AddModel(Model* _model);
